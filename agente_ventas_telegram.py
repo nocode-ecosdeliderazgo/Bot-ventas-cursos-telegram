@@ -699,6 +699,13 @@ def create_promotion_keyboard(promotion_id: str, user_id=None):
         [InlineKeyboardButton("🔙 Ver Otras Promociones", callback_data="promotions_list")]
     ]
     return InlineKeyboardMarkup(keyboard)
+    
+def create_main_inline_keyboard():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📚 Ver Cursos", callback_data="cta_ver_cursos"), InlineKeyboardButton("💰 Promociones", callback_data="cta_promociones")],
+        [InlineKeyboardButton("❓ Preguntas Frecuentes", callback_data="cta_faq"), InlineKeyboardButton("📞 Contactar Asesor", callback_data="cta_asesor")],
+        [InlineKeyboardButton("🔄 Reiniciar Conversación", callback_data="cta_reiniciar")]
+    ])
 
 # ==============================
 # BOTONES CTA DINÁMICOS DESDE SUPABASE
@@ -1750,6 +1757,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
     user_id_str = str(update.effective_user.id)
     logger.info(f"Comando /start recibido de usuario {user_id_str}")
+
+
+
+
     # Ensure memory is loaded for this specific user
     if global_user_id != user_id_str or not global_mem.lead_data.user_id:
         global_user_id = user_id_str
@@ -1800,6 +1811,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     user_input = update.message.text
     user_id_str = str(update.effective_user.id)
     logger.info(f"Mensaje recibido de usuario {user_id_str}: '{user_input[:50]}...'")
+
+        # Cada vez que el usuario regrese al menú de inicio (por ejemplo, tras Reiniciar Conversación o pulsar un botón de inicio), muestra ambos menús igual
+    # Ejemplo para el flujo de reinicio:
+    if user_input.strip() == "🔄 Reiniciar Conversación":
+        import os
+        user_memory_file = os.path.join("memorias", f"memory_{user_id_str}.json")
+        if os.path.exists(user_memory_file):
+            os.remove(user_memory_file)
+        global_mem = Memory()
+        global_mem.load(user_id_str)
+        global_mem.lead_data.user_id = user_id_str
+        global_mem.lead_data.stage = "inicio"
+        global_mem.save()
+        await send_agent_telegram(update, "¡Conversación reiniciada!", create_main_keyboard(), msg_critico=True)
+        await send_agent_telegram(update, "Menú principal:", create_main_inline_keyboard(), msg_critico=True)
+        await send_privacy_notice(update, context)
+        return
+
 
     # Si el usuario pide ver todos los cursos, resetea el curso seleccionado
     if user_input.strip().lower() == 'ver todos los cursos':
@@ -1978,9 +2007,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 "Tenemos cursos prácticos, generación de imágenes, prompts y mucho más para que lleves tu conocimiento al siguiente nivel."
             )
             await send_agent_telegram(update, mensaje_bienvenida, create_main_keyboard(), msg_critico=True)
+            await send_agent_telegram(update, "Menú principal:", create_main_inline_keyboard(), msg_critico=True)
         else:
             await send_agent_telegram(update, "Por favor, ingresa un nombre válido (solo letras y espacios).", None, msg_critico=True)
         return
+
+
+
+
+
+
+
 
     # --- FLUJO DE NOMBRE PREFERIDO ---
     if global_mem.lead_data.stage == "awaiting_preferred_name":
@@ -2323,8 +2360,7 @@ INSTRUCCIONES ESPECÍFICAS:
 
 CONTEXTO DEL USUARIO:
 - Nombre: {name}
-- Curso seleccionado: {selected_course}
-- Intereses: {interests} 
+- Curso seleccionado: {selected_course} 
 
 CURSOS DISPONIBLES:
 {available_courses}
@@ -2350,6 +2386,13 @@ def notify_advisor(action: str, details: str) -> None:
         # Por ahora solo lo registramos en el log
     except Exception as e:
         logger.error(f"Error notificando al asesor: {e}")
+
+# Helper para crear el menú principal como InlineKeyboardMarkup
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+
+
+
+
 
 
  
