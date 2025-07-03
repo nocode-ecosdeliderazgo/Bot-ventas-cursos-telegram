@@ -1,0 +1,32 @@
+2025-07-02 21:06:45,912 - __main__ - INFO - Iniciando aplicación principal
+2025-07-02 21:06:45,912 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-02 21:06:45,913 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-02 21:06:46,110 - __main__ - WARNING - MyChatMemberHandler no disponible en esta versión de telegram.ext
+2025-07-02 21:06:46,110 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-02 21:06:46,111 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-02 21:06:46,112 - __main__ - INFO - Iniciando polling...
+2025-07-02 21:06:46,687 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-02 21:06:46,868 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-02 21:06:46,869 - telegram.ext.Application - INFO - Application started
+2025-07-02 21:06:57,398 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 21:06:58,192 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 21:06:58,193 - __main__ - INFO - Mensaje recibido de usuario 8101815097: 'hola...'
+2025-07-02 21:07:05,793 - __main__ - INFO - Memoria cargada para usuario 8101815097
+2025-07-02 21:07:06,264 - __main__ - INFO - Obtenidos 4 cursos publicados
+2025-07-02 21:07:06,264 - __main__ - ERROR - Error procesando input: name 'get_enhanced_system_prompt' is not defined
+2025-07-02 21:07:07,451 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-02 21:07:13,633 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 21:07:14,252 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-02 21:07:14,253 - __main__ - INFO - Callback recibido de usuario 8101815097: cta_ver_cursos
+2025-07-02 21:07:14,592 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/editMessageText "HTTP/1.1 200 OK"
+2025-07-02 21:07:14,594 - __main__ - INFO - Obtenidos 4 cursos publicados
+2025-07-02 21:07:14,959 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-02 21:07:23,810 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 21:07:33,996 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 21:07:44,189 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 21:07:54,377 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 21:07:59,390 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 21:08:00,138 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-02 21:08:00,140 - __main__ - INFO - Callback recibido de usuario 8101815097: course_db747b9e-2872-47a4-a75e-6d6280b1829e
+2025-07-02 21:08:00,895 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/editMessageText "HTTP/1.1 200 OK"
+2025-07-02 21:08:09,600 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
