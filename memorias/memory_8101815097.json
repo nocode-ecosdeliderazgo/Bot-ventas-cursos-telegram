@@ -5,11 +5,11 @@
         "phone": null,
         "stage": "info",
         "courses_seen": [],
-        "selected_course": "db747b9e-2872-47a4-a75e-6d6280b1829e",
+        "selected_course": "a392bf83-4908-4807-89a9-95d0acc807c9",
         "escalation_pending": false,
         "name": "Gael",
         "role": null,
-        "interests": "",
+        "interests": "ADSIM_01",
         "lead_score": 1,
         "awaiting_ack": false,
         "last_ack_time": null,
@@ -17,5 +17,5 @@
     },
     "history": [],
     "last_presented_courses": [],
-    "last_activity": 1751512080.531446
+    "last_activity": 1751515984.278731
 }

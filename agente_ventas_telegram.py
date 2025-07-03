@@ -306,7 +306,7 @@ class Memory:
         """Carga memoria específica para un usuario"""
         try:
             # Crear archivo específico por usuario
-            user_memory_file = f"memory_{user_id}.json"
+            user_memory_file = os.path.join("memorias", f"memory_{user_id}.json")
             
             with open(user_memory_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -356,7 +356,7 @@ class Memory:
     def save(self):
         """Guarda memoria específica para el usuario actual"""
         try:
-            user_memory_file = f"memory_{self.lead_data.user_id}.json"
+            user_memory_file = os.path.join("memorias", f"memory_{self.lead_data.user_id}.json")
             self.last_activity = time.time()
             
             data = {
@@ -394,7 +394,7 @@ class Memory:
         """Limpia archivos de memoria antiguos"""
         try:
             current_time = time.time()
-            memory_dir = os.path.dirname(os.path.abspath(__file__))
+            memory_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "memorias")
             
             for filename in os.listdir(memory_dir):
                 if filename.startswith("memory_") and filename.endswith(".json"):
@@ -847,7 +847,7 @@ def notify_advisor_lead_qualified(user_data: dict):
 # ==============================
 PLANTILLAS_FAQ = []
 try:
-    with open(os.path.join(os.path.dirname(__file__), "plantillas.json"), "r", encoding="utf-8") as f:
+    with open(os.path.join(os.path.dirname(__file__), "data", "plantillas.json"), "r", encoding="utf-8") as f:
         PLANTILLAS_FAQ = json.load(f)
 except Exception as e:
     print(f"[Error] No se pudo cargar plantillas.json: {e}")
@@ -1436,7 +1436,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 if query.message is not None and hasattr(query.message, "chat") and query.message.chat is not None:
                     chat_id = query.message.chat.id  # type: ignore
                 if chat_id:
-                    with open('pdf_prueba.pdf', 'rb') as pdf_file:
+                    with open(os.path.join("data", "pdf_prueba.pdf"), 'rb') as pdf_file:
                         await context.bot.send_document(chat_id=chat_id, document=pdf_file)
                     # Chequeo de umbral para sugerir llamada
                     score = get_interest_score(user_id_str)
@@ -2019,12 +2019,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         if curso_info:
             messages = []
             try:
-                with open('imagen_prueba.jpg', 'rb') as img_file:
+                with open(os.path.join("data", "imagen_prueba.jpg"), 'rb') as img_file:
                     await update.message.reply_photo(img_file)
             except Exception as e:
                 logger.warning(f"No se pudo enviar imagen: {e}")
             try:
-                with open('pdf_prueba.pdf', 'rb') as pdf_file:
+                with open(os.path.join("data", "pdf_prueba.pdf"), 'rb') as pdf_file:
                     await update.message.reply_document(pdf_file)
             except Exception as e:
                 logger.warning(f"No se pudo enviar PDF: {e}")

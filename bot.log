@@ -30,3 +30,47 @@
 2025-07-02 21:08:00,140 - __main__ - INFO - Callback recibido de usuario 8101815097: course_db747b9e-2872-47a4-a75e-6d6280b1829e
 2025-07-02 21:08:00,895 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/editMessageText "HTTP/1.1 200 OK"
 2025-07-02 21:08:09,600 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 22:12:12,434 - __main__ - INFO - Iniciando aplicación principal
+2025-07-02 22:12:12,435 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-02 22:12:12,435 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-02 22:12:12,648 - __main__ - WARNING - MyChatMemberHandler no disponible en esta versión de telegram.ext
+2025-07-02 22:12:12,649 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-02 22:12:12,649 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-02 22:12:12,650 - __main__ - INFO - Iniciando polling...
+2025-07-02 22:12:13,268 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-02 22:12:13,442 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-02 22:12:13,443 - telegram.ext.Application - INFO - Application started
+2025-07-02 22:12:23,970 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 22:12:34,147 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 22:12:37,883 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 22:12:37,885 - __main__ - INFO - Mensaje recibido de usuario 8101815097: 'Hola Aprende y Aplique IA, vengo de la página web ...'
+2025-07-02 22:12:47,061 - __main__ - INFO - Memoria cargada para usuario 8101815097
+2025-07-02 22:12:47,062 - __main__ - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-02 22:12:47,595 - __main__ - WARNING - Intento de guardar lead sin user_id o email: 8101815097
+2025-07-02 22:12:48,227 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-02 22:12:48,523 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-02 22:12:56,560 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-02 22:12:56,562 - __main__ - INFO - Mensaje recibido de usuario 8101815097: 'Gael...'
+2025-07-02 22:13:04,919 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-02 22:13:05,608 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendPhoto "HTTP/1.1 200 OK"
+2025-07-02 22:13:06,028 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendDocument "HTTP/1.1 200 OK"
+2025-07-02 22:13:06,030 - __main__ - ERROR - Error inesperado en handle_message: name 'send_grouped_messages' is not defined
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 229, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 2041, in handle_message
+    await send_grouped_messages(update, messages, keyboard, msg_critico=True)
+NameError: name 'send_grouped_messages' is not defined
+2025-07-02 22:13:06,335 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-02 22:13:06,336 - telegram.ext.Application - ERROR - No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_application.py", line 1298, in process_update
+    await coroutine
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_handlers\basehandler.py", line 158, in handle_update
+    return await self.callback(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 229, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 2041, in handle_message
+    await send_grouped_messages(update, messages, keyboard, msg_critico=True)
+NameError: name 'send_grouped_messages' is not defined
+2025-07-02 22:13:14,804 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
