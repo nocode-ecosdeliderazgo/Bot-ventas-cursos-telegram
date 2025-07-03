@@ -1001,3 +1001,96 @@ telegram.error.BadRequest: Message is not modified: specified new message conten
 2025-07-03 07:57:00,811 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/editMessageText "HTTP/1.1 200 OK"
 2025-07-03 07:57:10,054 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
 2025-07-03 07:57:20,209 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 07:59:44,782 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 07:59:44,782 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 07:59:44,782 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 07:59:45,053 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 07:59:45,053 - bot.memory - ERROR - Error limpiando memorias antiguas: [WinError 3] El sistema no puede encontrar la ruta especificada: 'd:\\EcosDeLiderazgo\\ProyectosEcosDeLiderazgo\\En Desarrollo\\Bot_ventas\\bot\\memorias'
+2025-07-03 07:59:45,053 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 07:59:45,726 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 07:59:45,921 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 07:59:45,926 - telegram.ext.Application - INFO - Application started
+2025-07-03 07:59:56,321 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 07:59:56,323 - bot.handlers - INFO - Mensaje recibido de usuario 8101815097: '💰 Promociones...'
+2025-07-03 07:59:57,347 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 07:59:59,666 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 07:59:59,924 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 07:59:59,926 - bot.handlers - INFO - Callback recibido de usuario 8101815097: cta_plan_pagos
+2025-07-03 07:59:59,927 - bot.memory - INFO - Memoria cargada para usuario 8101815097
+2025-07-03 08:00:00,198 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 08:00:01,703 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:00:01,976 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 08:00:01,978 - bot.handlers - INFO - Callback recibido de usuario 8101815097: edit_contact_data
+2025-07-03 08:00:02,247 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/editMessageText "HTTP/1.1 200 OK"
+2025-07-03 08:00:08,961 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:00:08,963 - bot.handlers - INFO - Mensaje recibido de usuario 8101815097: '💰 Promociones...'
+2025-07-03 08:00:09,635 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 08:00:11,490 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:00:11,758 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 08:00:11,760 - bot.handlers - INFO - Callback recibido de usuario 8101815097: cta_plan_pagos
+2025-07-03 08:00:12,023 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/editMessageText "HTTP/1.1 200 OK"
+2025-07-03 08:00:12,292 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 08:00:21,364 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:00:21,368 - bot.handlers - INFO - Mensaje recibido de usuario 8101815097: 'dgfglez@gmail.com...'
+2025-07-03 08:00:25,472 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 08:00:30,352 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:00:30,356 - bot.handlers - INFO - Mensaje recibido de usuario 8101815097: '5614686075...'
+2025-07-03 08:00:35,228 - bot.services - INFO - Obtenidos 4 cursos publicados
+2025-07-03 08:00:35,906 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 08:00:45,385 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:00:55,552 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:00:55,756 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:00:55,757 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-07-03 08:00:55,758 - telegram.ext.Application - INFO - Application.stop() complete
+2025-07-03 08:00:55,759 - __main__ - INFO - Bot de Telegram finalizado
+2025-07-03 08:00:55,760 - __main__ - INFO - Bot finalizado normalmente
+2025-07-03 08:02:39,102 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 08:02:39,102 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 08:02:39,102 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 08:02:39,410 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 08:02:39,410 - bot.memory - ERROR - Error limpiando memorias antiguas: [WinError 3] El sistema no puede encontrar la ruta especificada: 'd:\\EcosDeLiderazgo\\ProyectosEcosDeLiderazgo\\En Desarrollo\\Bot_ventas\\bot\\memorias'
+2025-07-03 08:02:39,410 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 08:02:40,103 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 08:02:40,242 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 08:02:40,242 - telegram.ext.Application - INFO - Application started
+2025-07-03 08:02:46,088 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:02:46,088 - bot.handlers - INFO - Mensaje recibido de usuario 8101815097: '💰 Promociones...'
+2025-07-03 08:02:46,898 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 08:02:48,559 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:02:48,852 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 08:02:48,853 - bot.handlers - INFO - Callback recibido de usuario 8101815097: cta_plan_pagos
+2025-07-03 08:02:48,854 - bot.memory - INFO - Memoria cargada para usuario 8101815097
+2025-07-03 08:02:49,118 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/editMessageText "HTTP/1.1 200 OK"
+2025-07-03 08:02:49,292 - bot.services - INFO - Obtenidos 4 cursos publicados
+2025-07-03 08:02:49,558 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 08:02:53,926 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:02:54,187 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 08:02:54,190 - bot.handlers - INFO - Callback recibido de usuario 8101815097: course_db747b9e-2872-47a4-a75e-6d6280b1829e
+2025-07-03 08:02:54,408 - bot.handlers - ERROR - Error en handle_callback_query: local variable 'create_course_selection_keyboard' referenced before assignment
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers.py", line 703, in handle_callback_query
+    keyboard = create_course_selection_keyboard(course_id, course.get('name', 'Curso'))
+UnboundLocalError: local variable 'create_course_selection_keyboard' referenced before assignment
+2025-07-03 08:02:54,673 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/editMessageText "HTTP/1.1 200 OK"
+2025-07-03 08:03:04,373 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:05:08,298 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 08:05:08,298 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 08:05:08,298 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 08:05:08,568 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 08:05:08,568 - bot.memory - ERROR - Error limpiando memorias antiguas: [WinError 3] El sistema no puede encontrar la ruta especificada: 'd:\\EcosDeLiderazgo\\ProyectosEcosDeLiderazgo\\En Desarrollo\\Bot_ventas\\bot\\memorias'
+2025-07-03 08:05:08,568 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 08:05:09,096 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 08:05:09,242 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 08:05:09,250 - telegram.ext.Application - INFO - Application started
+2025-07-03 08:05:12,166 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:05:12,166 - bot.handlers - INFO - Mensaje recibido de usuario 8101815097: '💰 Promociones...'
+2025-07-03 08:05:12,727 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 08:05:14,112 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:05:14,369 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 08:05:14,378 - bot.handlers - INFO - Callback recibido de usuario 8101815097: cta_plan_pagos
+2025-07-03 08:05:14,378 - bot.memory - INFO - Memoria cargada para usuario 8101815097
+2025-07-03 08:05:14,652 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 08:05:18,123 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 08:05:18,383 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 08:05:18,384 - bot.handlers - INFO - Callback recibido de usuario 8101815097: edit_contact_data
+2025-07-03 08:05:18,652 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/editMessageText "HTTP/1.1 200 OK"
