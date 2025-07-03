@@ -17,7 +17,7 @@ from typing import Optional, List, Dict, Any
 from config.settings import settings
 from .memory import Memory
 from .keyboards import (
-    create_main_keyboard, create_main_inline_keyboard, create_courses_list_keyboard, create_contextual_cta_keyboard
+    create_main_keyboard, create_main_inline_keyboard, create_courses_list_keyboard, create_contextual_cta_keyboard, create_course_selection_keyboard
 )
 from .services import (
     get_courses, get_course_detail, get_modules, get_promotions, notify_advisor_contact_request, openai_intent_and_response, save_lead, notify_advisor_reservation_request, get_interest_score, UMBRAL_PROMO
@@ -204,18 +204,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await send_agent_telegram(update, "Por el momento no hay cursos disponibles.")
         return
     elif input_lower in ["hablar con asesor", "asesor", "contactar asesor", "quiero hablar con asesor"]:
-        await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_main_keyboard(), msg_critico=True)
-        user_data = {
-            'user_id': context.bot_data['global_mem'].lead_data.user_id,
-            'name': context.bot_data['global_mem'].lead_data.name,
-            'email': context.bot_data['global_mem'].lead_data.email,
-            'phone': context.bot_data['global_mem'].lead_data.phone,
-            'selected_course': context.bot_data['global_mem'].lead_data.selected_course,
-            'stage': context.bot_data['global_mem'].lead_data.stage
-        }
-        notify_advisor_contact_request(user_data)
+        await contact_advisor_flow(update, context)
         return
-    elif input_lower in ["ver promociones", "promociones", "descuentos", "ver descuentos"]:
+    elif input_lower in ["ver promociones", "promociones", "descuentos", "ver descuentos", "💰 promociones"]:
+        # Usar el mismo flujo que el callback 'cta_promociones'
         promos = get_promotions()
         if promos:
             promo_text = "💰 **Promociones especiales:**\n\n"
@@ -357,8 +349,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await send_agent_telegram(update, "Por favor ingresa un número de teléfono válido (al menos 8 dígitos).")
         return
     elif context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
-        # Aquí no se procesa texto, solo botones, pero por robustez...
-        await send_agent_telegram(update, "Por favor selecciona el curso usando los botones que aparecen debajo.")
+        # Mostrar submenú del curso con opción de seleccionar
+        course_id = user_input.strip()
+        course = get_course_detail(course_id)
+        if course:
+            context.bot_data['global_mem'].lead_data.selected_course = course_id
+            context.bot_data['global_mem'].save()
+            keyboard = create_course_selection_keyboard(course_id, course.get('name', 'Curso'))
+            course_text = (
+                f"📚 <b>{course['name']}</b>\n\n"
+                f"{course.get('short_description', '')}\n\n"
+                f"<b>Detalles:</b>\n"
+                f"• Duración: {course.get('total_duration', 'N/A')} horas\n"
+                f"• Nivel: {course.get('level', 'N/A')}\n"
+                f"• Precio: ${course['price_usd']} {course['currency']}\n"
+                f"• Modalidad: {course.get('modality', 'N/A')}\n\n"
+                f"¿Qué te gustaría hacer?"
+            )
+            await send_agent_telegram(update, course_text, keyboard, msg_critico=True)
+        else:
+            await send_agent_telegram(update, "No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_courses_list_keyboard(get_courses()))
         return
     # El stage 'awaiting_contact_confirmation' se maneja por callback
 
@@ -696,6 +706,70 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 await query.edit_message_text("Por el momento no hay promociones activas, pero puedes contactar a un asesor para consultar descuentos especiales.", reply_markup=create_contextual_cta_keyboard("default", user_id_str))
             return
             
+        elif query.data.startswith("course_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+            # Mostrar submenú del curso con opción de seleccionar
+            course_id = query.data.replace("course_", "")
+            course = get_course_detail(course_id)
+            if course:
+                context.bot_data['global_mem'].lead_data.selected_course = course_id
+                context.bot_data['global_mem'].save()
+                keyboard = create_course_selection_keyboard(course_id, course.get('name', 'Curso'))
+                course_text = (
+                    f"📚 <b>{course['name']}</b>\n\n"
+                    f"{course.get('short_description', '')}\n\n"
+                    f"<b>Detalles:</b>\n"
+                    f"• Duración: {course.get('total_duration', 'N/A')} horas\n"
+                    f"• Nivel: {course.get('level', 'N/A')}\n"
+                    f"• Precio: ${course['price_usd']} {course['currency']}\n"
+                    f"• Modalidad: {course.get('modality', 'N/A')}\n\n"
+                    f"¿Qué te gustaría hacer?"
+                )
+                await query.edit_message_text(course_text, reply_markup=keyboard, parse_mode='HTML')
+            else:
+                await query.edit_message_text("No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_courses_list_keyboard(get_courses()))
+            return
+        elif query.data.startswith("modules_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+            course_id = query.data.replace("modules_", "")
+            modules = get_modules(course_id)
+            if modules:
+                modules_text = "📋 <b>Módulos del curso:</b>\n\n"
+                for i, module in enumerate(modules, 1):
+                    modules_text += f"{i}. <b>{module['name']}</b>\n   Duración: {module.get('duration', 'N/A')} horas\n   {module.get('description', '')}\n\n"
+                from bot.keyboards import create_course_selection_keyboard
+                keyboard = create_course_selection_keyboard(course_id, "")
+                await query.edit_message_text(modules_text, reply_markup=keyboard, parse_mode='HTML')
+            else:
+                await query.edit_message_text("No se encontraron módulos para este curso.", reply_markup=None)
+            return
+        elif query.data.startswith("info_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+            course_id = query.data.replace("info_", "")
+            course = get_course_detail(course_id)
+            if course:
+                info_text = (
+                    f"<b>Información del curso:</b>\n\n"
+                    f"{course.get('long_description', course.get('short_description', ''))}\n\n"
+                )
+                from bot.keyboards import create_course_selection_keyboard
+                keyboard = create_course_selection_keyboard(course_id, course.get('name', 'Curso'))
+                await query.edit_message_text(info_text, reply_markup=keyboard, parse_mode='HTML')
+            else:
+                await query.edit_message_text("No se encontró información adicional para este curso.", reply_markup=None)
+            return
+        elif query.data.startswith("select_course_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+            course_id = query.data.replace("select_course_", "")
+            context.bot_data['global_mem'].lead_data.selected_course = course_id
+            context.bot_data['global_mem'].save()
+            # Continuar flujo de confirmación de datos
+            await contact_advisor_flow(update, context, query)
+            return
+        elif query.data == "change_course" and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+            cursos = get_courses()
+            if cursos:
+                keyboard = create_courses_list_keyboard(cursos)
+                await query.edit_message_text("Selecciona el curso de tu interés:", reply_markup=keyboard)
+            else:
+                await query.edit_message_text("No hay cursos disponibles en este momento.")
+            return
         else:
             # Callback no reconocido
             logger.warning(f"Callback no reconocido: {query.data}")

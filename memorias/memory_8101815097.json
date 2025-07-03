@@ -3,9 +3,9 @@
         "user_id": "8101815097",
         "email": "dgfglez@gmail.com",
         "phone": "5614686075",
-        "stage": "awaiting_course_contact",
+        "stage": "awaiting_contact_confirmation",
         "courses_seen": [],
-        "selected_course": null,
+        "selected_course": "db747b9e-2872-47a4-a75e-6d6280b1829e",
         "escalation_pending": false,
         "name": "Gael",
         "role": null,
@@ -17,5 +17,5 @@
     },
     "history": [],
     "last_presented_courses": [],
-    "last_activity": 1751550267.6511114
+    "last_activity": 1751551013.0514674
 }

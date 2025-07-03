@@ -40,7 +40,6 @@ def create_courses_list_keyboard(courses: List[Dict]):
             f"{i+1}. {course['name']}", 
             callback_data=f"course_{course['id']}"
         )])
-    keyboard.append([InlineKeyboardButton("🔙 Volver", callback_data="main_menu")])
     return InlineKeyboardMarkup(keyboard)
 
 def create_cta_keyboard(context_type="default", user_id=None):
@@ -172,3 +171,13 @@ def get_cta_buttons(context_type="default"):
         cta_buttons.append({"text": "🏠 Volver al inicio", "callback_data": "cta_inicio", "priority": 99})
     cta_buttons.sort(key=lambda x: x.get('priority', 999))
     return cta_buttons
+
+def create_course_selection_keyboard(course_id: str, course_name: str):
+    """Teclado para submenús de selección de curso, con botón para seleccionar el curso actual."""
+    keyboard = [
+        [InlineKeyboardButton("📋 Ver Módulos", callback_data=f"modules_{course_id}")],
+        [InlineKeyboardButton("❓ Más Información", callback_data=f"info_{course_id}")],
+        [InlineKeyboardButton("✅ Seleccionar este curso", callback_data=f"select_course_{course_id}")],
+        [InlineKeyboardButton("🔙 Cambiar de curso", callback_data="change_course")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
