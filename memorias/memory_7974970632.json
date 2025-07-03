@@ -1,21 +1,21 @@
 {
     "lead_data": {
-        "user_id": "8101815097",
-        "email": null,
-        "phone": null,
+        "user_id": "7974970632",
+        "email": "",
+        "phone": "",
         "stage": "info",
         "courses_seen": [],
-        "selected_course": "a392bf83-4908-4807-89a9-95d0acc807c9",
+        "selected_course": null,
         "escalation_pending": false,
-        "name": "Gael",
+        "name": "Rosita",
         "role": null,
-        "interests": "A, D, S, I, M, _, 0, 1",
-        "lead_score": 1,
+        "interests": "",
+        "lead_score": 0,
         "awaiting_ack": false,
         "last_ack_time": null,
         "privacy_accepted": true
     },
     "history": [],
     "last_presented_courses": [],
-    "last_activity": 1751529942.4104314
+    "last_activity": 1751530910.9400773
 }

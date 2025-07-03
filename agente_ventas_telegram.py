@@ -1371,9 +1371,11 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             logger.info(f"Usuario {user_id_str} aceptó la privacidad")
             # Enviar nuevo mensaje de bienvenida con botones, sin editar el aviso
             if not global_mem.lead_data.name:
-                welcome_text = "¡Perfecto! 👋 Ahora puedo ayudarte mejor.\n\n¿Cómo te llamas?"
+                welcome_text = "¡Perfecto! 👋 Ahora puedo ayudarte mejor."
+                question_text = "¿Cómo te gustaría que te llame? 😊"
                 keyboard = create_contextual_cta_keyboard("default", user_id_str)
-                await send_agent_telegram(update, welcome_text, keyboard, msg_critico=True)
+                await send_agent_telegram(update, welcome_text, None, msg_critico=True)
+                await send_agent_telegram(update, question_text, keyboard, msg_critico=True)
                 global_mem.lead_data.stage = "awaiting_name"
                 global_mem.save()
             else:
@@ -1956,8 +1958,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         save_lead(global_mem.lead_data)
         global_mem.save()
         saludo = f"Hola {nombre_usuario or 'amigo'} 😄 ¿cómo estás? Mi nombre es Brenda. Soy un sistema inteligente, parte del equipo de Aprende y Aplica IA. Recibí tu solicitud de información sobre el curso: *{curso_info['name']}*. ¡Con gusto te ayudo!"
-        await send_agent_telegram(update, saludo)
-        await send_agent_telegram(update, "Antes de continuar, ¿cómo te gustaría que te llame?")
+        await send_agent_telegram(update, saludo, None)
+        await send_agent_telegram(update, "Antes de continuar, ¿cómo te gustaría que te llame?", create_nav_keyboard())
         global_mem.lead_data.stage = "awaiting_preferred_name"
         global_mem.save()
         return
