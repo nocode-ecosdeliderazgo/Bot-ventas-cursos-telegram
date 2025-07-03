@@ -60,7 +60,7 @@ if __name__ == "__main__":
     try:
         main_telegram_bot()
         logger.info("Bot finalizado normalmente")
-    except KeyboardInterrupt:
+    except KeyboardInterrupt: 
         logger.info("Bot interrumpido por el usuario (Ctrl+C)")
     except Exception as e:
         logger.error(f"Error fatal en la aplicación principal: {e}", exc_info=True)

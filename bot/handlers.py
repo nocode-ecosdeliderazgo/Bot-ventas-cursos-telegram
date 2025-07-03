@@ -628,8 +628,10 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         elif query.data in ["cta_inicio"]:
             await query.edit_message_text("Has vuelto al inicio. ¿En qué puedo ayudarte hoy?", reply_markup=None)
             keyboard = create_main_keyboard()
+            inline_keyboard = create_main_inline_keyboard()
             if query.message and query.message.chat:
                 await context.bot.send_message(chat_id=query.message.chat.id, text="Menú principal:", reply_markup=keyboard)
+                await context.bot.send_message(chat_id=query.message.chat.id, text="Menú principal:", reply_markup=inline_keyboard)
             return
             
         # --- NUEVOS CTAs CONTEXTUALES ---
@@ -648,8 +650,9 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                     f"Después de la compra, recibirás acceso inmediato al curso. "
                     f"¿Necesitas ayuda con algo más?"
                 )
-                await query.edit_message_text(buy_msg, reply_markup=None, parse_mode='HTML')
-                # No notifiques ni muestres error técnico si el enlace es ficticio
+                # Teclado útil después de comprar
+                post_buy_keyboard = create_contextual_cta_keyboard("post_buy", user_id_str)
+                await query.edit_message_text(buy_msg, reply_markup=post_buy_keyboard, parse_mode='HTML')
             else:
                 await query.edit_message_text("Primero necesitas seleccionar un curso. ¿Cuál te interesa?", reply_markup=create_contextual_cta_keyboard("default", user_id_str))
             return
@@ -689,25 +692,16 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 await query.edit_message_text("Por el momento no hay promociones activas, pero puedes contactar a un asesor para consultar descuentos especiales.", reply_markup=create_contextual_cta_keyboard("default", user_id_str))
             return
             
-        elif query.data.startswith("course_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
-            # Mostrar submenú del curso con opción de seleccionar
+        elif query.data.startswith("course_"):
+            # Unificar el flujo: guardar el curso y continuar con el flujo de contacto robusto
             course_id = query.data.replace("course_", "")
             course = get_course_detail(course_id)
             if course:
                 context.bot_data['global_mem'].lead_data.selected_course = course_id
+                context.bot_data['global_mem'].lead_data.stage = "awaiting_course_contact"
                 context.bot_data['global_mem'].save()
-                keyboard = create_course_selection_keyboard(course_id, course.get('name', 'Curso'))
-                course_text = (
-                    f"📚 <b>{course['name']}</b>\n\n"
-                    f"{course.get('short_description', '')}\n\n"
-                    f"<b>Detalles:</b>\n"
-                    f"• Duración: {course.get('total_duration', 'N/A')} horas\n"
-                    f"• Nivel: {course.get('level', 'N/A')}\n"
-                    f"• Precio: ${course['price_usd']} {course['currency']}\n"
-                    f"• Modalidad: {course.get('modality', 'N/A')}\n\n"
-                    f"¿Qué te gustaría hacer?"
-                )
-                await query.edit_message_text(course_text, reply_markup=keyboard, parse_mode='HTML')
+                # Llamar al flujo robusto de contacto (pide email, teléfono y confirma datos)
+                await contact_advisor_flow(update, context, query)
             else:
                 await query.edit_message_text("No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_courses_list_keyboard(get_courses()))
             return

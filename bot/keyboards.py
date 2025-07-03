@@ -81,7 +81,8 @@ def create_contextual_cta_keyboard(context_type: str, user_id: Optional[str] = N
         buttons = [
             [InlineKeyboardButton("💳 Comprar Ahora", callback_data="cta_comprar_ahora")],
             [InlineKeyboardButton("📅 Plan de Pagos", callback_data="cta_plan_pagos")],
-            [InlineKeyboardButton("🎫 Usar Cupón", callback_data="cta_cupon")]
+            [InlineKeyboardButton("🎫 Usar Cupón", callback_data="cta_cupon")],
+            [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
         ]
     elif context_type == "purchase_intent":
         buttons = [
@@ -93,6 +94,13 @@ def create_contextual_cta_keyboard(context_type: str, user_id: Optional[str] = N
         buttons = [
             [InlineKeyboardButton("🎯 Reservar Lugar", callback_data="cta_reservar")],
             [InlineKeyboardButton("📞 Llamada Inmediata", callback_data="cta_llamar")]
+        ]
+    elif context_type == "post_buy":
+        buttons = [
+            [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")],
+            [InlineKeyboardButton("📚 Ver Cursos", callback_data="cta_ver_cursos")],
+            [InlineKeyboardButton("👨‍💼 Hablar con Asesor", callback_data="cta_asesor")],
+            [InlineKeyboardButton("💰 Ver Promociones", callback_data="cta_promociones")]
         ]
     # Verificar interest_score para high_interest
     if context_type == "high_interest" and user_id:
