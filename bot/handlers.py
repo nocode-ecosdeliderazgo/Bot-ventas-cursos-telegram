@@ -327,33 +327,40 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         context.bot_data['global_mem'].save()
         return
 
-    # --- FLUJO DE CAPTURA DE DATOS INICIALES ---
-    if context.bot_data['global_mem'].lead_data.stage == "awaiting_email":
-        if "@" in user_input and "." in user_input:
+    # --- FLUJO DE CAPTURA DE DATOS PARA CONTACTO DE ASESOR ---
+    if context.bot_data['global_mem'].lead_data.stage == "awaiting_email_contact":
+        from bot.utils import validar_email
+        if validar_email(user_input):
             context.bot_data['global_mem'].lead_data.email = user_input
-            context.bot_data['global_mem'].lead_data.stage = "awaiting_phone"
+            context.bot_data['global_mem'].lead_data.stage = "awaiting_phone_contact"
             context.bot_data['global_mem'].save()
-            await send_agent_telegram(update, "¡Gracias! ¿Y tu número de celular (opcional, para avisos importantes)?")
+            await send_agent_telegram(update, "¡Gracias! Ahora, por favor ingresa tu número de teléfono:")
         else:
-            await send_agent_telegram(update, "¿Podés ingresar un correo válido, por favor? Debe contener @ y un dominio.")
+            await send_agent_telegram(update, "¿Podrías ingresar un correo válido, por favor? Debe tener formato usuario@dominio.com")
         return
-    elif context.bot_data['global_mem'].lead_data.stage == "awaiting_phone":
-        if user_input:
-            context.bot_data['global_mem'].lead_data.phone = user_input
-        context.bot_data['global_mem'].lead_data.stage = "info"
-        if save_lead(context.bot_data['global_mem'].lead_data):
-            logger.info(f"Lead guardado exitosamente para usuario {user_id_str}")
+    elif context.bot_data['global_mem'].lead_data.stage == "awaiting_phone_contact":
+        # Validación simple de teléfono (puedes mejorarla si lo deseas)
+        telefono = user_input.strip()
+        if len(telefono) >= 8 and any(c.isdigit() for c in telefono):
+            context.bot_data['global_mem'].lead_data.phone = telefono
+            context.bot_data['global_mem'].lead_data.stage = "awaiting_course_contact"
+            context.bot_data['global_mem'].save()
+            from .services import get_courses
+            from .keyboards import create_courses_list_keyboard
+            cursos = get_courses()
+            if cursos:
+                keyboard = create_courses_list_keyboard(cursos)
+                await send_agent_telegram(update, "¡Perfecto! Ahora selecciona el curso de tu interés:", keyboard)
+            else:
+                await send_agent_telegram(update, "No hay cursos disponibles en este momento.")
         else:
-            logger.warning(f"No se pudo guardar lead para usuario {user_id_str}")
-        context.bot_data['global_mem'].save()
-        welcome_msg = (
-            "¡Perfecto! 🎉 Ahora puedo ayudarte mejor.\n\n"
-            "¿Qué te gustaría aprender sobre Inteligencia Artificial? "
-            "Tenemos cursos de IA práctica, prompts, generación de imágenes y más."
-        )
-        keyboard = create_main_keyboard()
-        await send_agent_telegram(update, welcome_msg, keyboard)
+            await send_agent_telegram(update, "Por favor ingresa un número de teléfono válido (al menos 8 dígitos).")
         return
+    elif context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+        # Aquí no se procesa texto, solo botones, pero por robustez...
+        await send_agent_telegram(update, "Por favor selecciona el curso usando los botones que aparecen debajo.")
+        return
+    # El stage 'awaiting_contact_confirmation' se maneja por callback
 
     # --- FLUJO NORMAL: NOMBRE, EMAIL, TELÉFONO, ETC. ---
     if context.bot_data['global_mem'].lead_data.stage == "awaiting_name":
@@ -611,18 +618,8 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 logger.warning(f"No se pudo enviar PDF info completa o checar interest_score: {e}")
             return
             
-        elif query.data in ["cta_asesor", "cta_asesor_curso", "cta_asistencia", "cta_llamar"]:
-            # Siempre permitir contactar asesor, sin importar score ni curso
-            await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_main_keyboard(), msg_critico=True)
-            user_data = {
-                'user_id': context.bot_data['global_mem'].lead_data.user_id,
-                'name': context.bot_data['global_mem'].lead_data.name,
-                'email': context.bot_data['global_mem'].lead_data.email,
-                'phone': context.bot_data['global_mem'].lead_data.phone,
-                'selected_course': context.bot_data['global_mem'].lead_data.selected_course,
-                'stage': context.bot_data['global_mem'].lead_data.stage
-            }
-            notify_advisor_contact_request(user_data)
+        elif query.data in ["cta_asesor", "cta_asesor_curso", "cta_asistencia", "cta_llamar", "cta_plan_pagos", "cta_negociar"]:
+            await contact_advisor_flow(update, context, query)
             return
             
         elif query.data in ["cta_ver_cursos", "cta_otros_cursos"]:
@@ -699,81 +696,6 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 await query.edit_message_text("Por el momento no hay promociones activas, pero puedes contactar a un asesor para consultar descuentos especiales.", reply_markup=create_contextual_cta_keyboard("default", user_id_str))
             return
             
-        elif query.data in ["cta_plan_pagos", "cta_negociar"]:
-            await query.edit_message_text("¡Perfecto! Un asesor especializado en planes de pago te contactará para ofrecerte las mejores opciones. ¿Te parece bien?", reply_markup=None)
-            user_data = {
-                'user_id': context.bot_data['global_mem'].lead_data.user_id,
-                'name': context.bot_data['global_mem'].lead_data.name,
-                'email': context.bot_data['global_mem'].lead_data.email,
-                'phone': context.bot_data['global_mem'].lead_data.phone,
-                'selected_course': context.bot_data['global_mem'].lead_data.selected_course,
-                'stage': context.bot_data['global_mem'].lead_data.stage
-            }
-            notify_advisor_contact_request(user_data)
-            return
-            
-        elif query.data in ["cta_promociones"]:
-            promos = get_promotions()
-            if promos:
-                promo_text = "💰 **Promociones especiales:**\n\n"
-                for promo in promos:
-                    promo_text += f"🎁 **{promo['name']}**\n"
-                    promo_text += f"{promo['description']}\n"
-                    if promo.get('code'):
-                        promo_text += f"Código: `{promo['code']}`\n"
-                    promo_text += "\n"
-                
-                keyboard = create_contextual_cta_keyboard("pricing_inquiry", user_id_str)
-                await query.edit_message_text(promo_text, reply_markup=keyboard, parse_mode='Markdown')
-            else:
-                await query.edit_message_text("Por el momento no hay promociones activas, pero puedes contactar a un asesor para consultar descuentos especiales.", reply_markup=create_contextual_cta_keyboard("default", user_id_str))
-            return
-            
-        # --- FLUJO DE NAVEGACIÓN ---
-        elif query.data in ["nav_back", "nav_home", "nav_next"]:
-            # Navegación básica
-            if query.data == "nav_home":
-                await query.edit_message_text("🏠 Has vuelto al inicio. ¿En qué puedo ayudarte?", reply_markup=None)
-                keyboard = create_main_keyboard()
-                if query.message and query.message.chat:
-                    await context.bot.send_message(chat_id=query.message.chat.id, text="Menú principal:", reply_markup=keyboard)
-            elif query.data == "nav_back":
-                await query.edit_message_text("Has regresado al paso anterior. ¿Qué te gustaría hacer ahora?", reply_markup=None)
-                keyboard = create_main_keyboard()
-                if query.message and query.message.chat:
-                    await context.bot.send_message(chat_id=query.message.chat.id, text="Opciones disponibles:", reply_markup=keyboard)
-            elif query.data == "nav_next":
-                await query.edit_message_text("Avanzaste al siguiente paso. ¿Qué te gustaría hacer ahora?", reply_markup=None)
-                keyboard = create_main_keyboard()
-                if query.message and query.message.chat:
-                    await context.bot.send_message(chat_id=query.message.chat.id, text="Opciones disponibles:", reply_markup=keyboard)
-            return
-            
-        # --- FLUJO DE CURSOS ESPECÍFICOS ---
-        elif query.data.startswith("course_"):
-            course_id = query.data.replace("course_", "")
-            course = get_course_detail(course_id)
-            if course:
-                context.bot_data['global_mem'].lead_data.selected_course = course_id
-                context.bot_data['global_mem'].save()
-                
-                course_text = (
-                    f"📚 **{course['name']}**\n\n"
-                    f"{course.get('short_description', '')}\n\n"
-                    f"**Detalles:**\n"
-                    f"• Duración: {course.get('total_duration', 'N/A')} horas\n"
-                    f"• Nivel: {course.get('level', 'N/A')}\n"
-                    f"• Precio: ${course['price_usd']} {course['currency']}\n"
-                    f"• Modalidad: {course.get('modality', 'N/A')}\n\n"
-                    f"¿Te gustaría más información sobre este curso?"
-                )
-                
-                keyboard = create_contextual_cta_keyboard("course_selected", user_id_str)
-                await query.edit_message_text(course_text, reply_markup=keyboard, parse_mode='Markdown')
-            else:
-                await query.edit_message_text("No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_contextual_cta_keyboard("default", user_id_str))
-            return
-            
         else:
             # Callback no reconocido
             logger.warning(f"Callback no reconocido: {query.data}")
@@ -802,3 +724,59 @@ def handle_payment_webhook(user_id: str, payment_data: dict) -> None:
 CURSOS_MAP = {
     "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9"
 }
+
+async def contact_advisor_flow(update, context, query=None):
+    lead = context.bot_data['global_mem'].lead_data
+    missing = []
+    if not lead.email:
+        missing.append('email')
+    if not lead.phone:
+        missing.append('phone')
+    if not lead.selected_course:
+        missing.append('selected_course')
+    chat_id = None
+    if query and query.message and query.message.chat:
+        chat_id = query.message.chat.id
+    elif update and update.effective_chat:
+        chat_id = update.effective_chat.id
+    else:
+        chat_id = None
+    if missing:
+        if query:
+            await query.edit_message_text("Para que un asesor pueda contactarte, necesito algunos datos.")
+        else:
+            await send_agent_telegram(update, "Para que un asesor pueda contactarte, necesito algunos datos.")
+        if 'email' in missing:
+            lead.stage = "awaiting_email_contact"
+            context.bot_data['global_mem'].save()
+            await context.bot.send_message(chat_id=chat_id, text="Por favor, ingresa tu correo electrónico:")
+            return
+        elif 'phone' in missing:
+            lead.stage = "awaiting_phone_contact"
+            context.bot_data['global_mem'].save()
+            await context.bot.send_message(chat_id=chat_id, text="Ahora, por favor ingresa tu número de teléfono:")
+            return
+        elif 'selected_course' in missing:
+            lead.stage = "awaiting_course_contact"
+            context.bot_data['global_mem'].save()
+            cursos = get_courses()
+            if cursos:
+                keyboard = create_courses_list_keyboard(cursos)
+                await context.bot.send_message(chat_id=chat_id, text="Selecciona el curso de tu interés:", reply_markup=keyboard)
+            else:
+                await context.bot.send_message(chat_id=chat_id, text="No hay cursos disponibles en este momento.")
+            return
+    # Si ya tiene todos los datos, mostrar confirmación
+    lead.stage = "awaiting_contact_confirmation"
+    context.bot_data['global_mem'].save()
+    resumen = f"Por favor confirma que tus datos son correctos:\n\n" \
+        f"Correo: {lead.email or 'No proporcionado'}\n" \
+        f"Teléfono: {lead.phone or 'No proporcionado'}\n" \
+        f"Curso: {lead.selected_course or 'No seleccionado'}\n\n" \
+        f"¿Son correctos?"
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("✅ Sí, son correctos", callback_data="confirm_contact_data")],
+        [InlineKeyboardButton("❌ No, quiero corregirlos", callback_data="edit_contact_data")]
+    ])
+    await context.bot.send_message(chat_id=chat_id, text=resumen, reply_markup=keyboard)
+    return

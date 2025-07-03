@@ -1,9 +1,9 @@
 {
     "lead_data": {
         "user_id": "8101815097",
-        "email": "",
-        "phone": "",
-        "stage": "info",
+        "email": "dgfglez@gmail.com",
+        "phone": "5614686075",
+        "stage": "awaiting_course_contact",
         "courses_seen": [],
         "selected_course": null,
         "escalation_pending": false,
@@ -17,5 +17,5 @@
     },
     "history": [],
     "last_presented_courses": [],
-    "last_activity": 1751548608.7109685
+    "last_activity": 1751550267.6511114
 }
