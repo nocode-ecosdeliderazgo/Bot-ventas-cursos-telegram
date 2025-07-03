@@ -309,3 +309,93 @@ NameError: name 'send_grouped_messages' is not defined
 2025-07-03 02:28:42,562 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
 2025-07-03 02:28:52,729 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
 2025-07-03 02:29:02,893 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:40:11,960 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 02:40:11,960 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 02:40:11,960 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 02:40:12,162 - __main__ - WARNING - MyChatMemberHandler no disponible en esta versión de telegram.ext
+2025-07-03 02:40:12,162 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 02:40:12,162 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 02:40:12,162 - __main__ - INFO - Iniciando polling...
+2025-07-03 02:40:12,792 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 02:40:12,960 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 02:40:12,960 - telegram.ext.Application - INFO - Application started
+2025-07-03 02:40:19,270 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:40:19,271 - __main__ - INFO - Comando /start recibido de usuario 8101815097
+2025-07-03 02:40:19,272 - __main__ - INFO - Archivo de memoria no encontrado para usuario 8101815097, inicializando nueva
+2025-07-03 02:40:19,272 - __main__ - INFO - Usuario 8101815097 no ha aceptado privacidad, mostrando aviso
+2025-07-03 02:40:19,933 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:40:22,650 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:40:22,931 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 02:40:22,932 - __main__ - INFO - Callback recibido de usuario 8101815097: privacy_accept
+2025-07-03 02:40:22,933 - __main__ - INFO - Usuario 8101815097 aceptó la privacidad
+2025-07-03 02:40:23,246 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:40:23,636 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:40:32,814 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:40:42,985 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:40:43,155 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:40:43,156 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-07-03 02:40:43,157 - telegram.ext.Application - INFO - Application.stop() complete
+2025-07-03 02:40:43,159 - __main__ - INFO - Bot de Telegram finalizado
+2025-07-03 02:40:43,159 - __main__ - INFO - Bot finalizado normalmente
+2025-07-03 02:43:01,594 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 02:43:01,594 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 02:43:01,595 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 02:43:01,804 - __main__ - WARNING - MyChatMemberHandler no disponible en esta versión de telegram.ext
+2025-07-03 02:43:01,805 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 02:43:01,805 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 02:43:01,807 - __main__ - INFO - Iniciando polling...
+2025-07-03 02:43:02,358 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 02:43:02,532 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 02:43:02,534 - telegram.ext.Application - INFO - Application started
+2025-07-03 02:43:13,055 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:43:23,221 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:43:24,071 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:43:24,073 - __main__ - INFO - Comando /start recibido de usuario 8101815097
+2025-07-03 02:43:24,073 - __main__ - INFO - Archivo de memoria no encontrado para usuario 8101815097, inicializando nueva
+2025-07-03 02:43:24,073 - __main__ - INFO - Usuario 8101815097 no ha aceptado privacidad, mostrando aviso
+2025-07-03 02:43:24,700 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:43:25,947 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:43:26,230 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 02:43:26,231 - __main__ - INFO - Callback recibido de usuario 8101815097: privacy_accept
+2025-07-03 02:43:26,233 - __main__ - INFO - Usuario 8101815097 aceptó la privacidad
+2025-07-03 02:43:26,643 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:43:26,934 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:43:36,111 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:43:46,286 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:43:46,484 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:43:46,485 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-07-03 02:43:46,486 - telegram.ext.Application - INFO - Application.stop() complete
+2025-07-03 02:43:46,487 - __main__ - INFO - Bot de Telegram finalizado
+2025-07-03 02:43:46,487 - __main__ - INFO - Bot finalizado normalmente
+2025-07-03 02:46:04,980 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 02:46:04,980 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 02:46:04,980 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 02:46:05,164 - __main__ - WARNING - MyChatMemberHandler no disponible en esta versión de telegram.ext
+2025-07-03 02:46:05,164 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 02:46:05,180 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 02:46:05,180 - __main__ - INFO - Iniciando polling...
+2025-07-03 02:46:05,880 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 02:46:06,058 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 02:46:06,059 - telegram.ext.Application - INFO - Application started
+2025-07-03 02:46:08,912 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:46:08,913 - __main__ - INFO - Comando /start recibido de usuario 8101815097
+2025-07-03 02:46:08,914 - __main__ - INFO - Archivo de memoria no encontrado para usuario 8101815097, inicializando nueva
+2025-07-03 02:46:08,914 - __main__ - INFO - Usuario 8101815097 no ha aceptado privacidad, mostrando aviso
+2025-07-03 02:46:09,216 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:46:10,245 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:46:10,526 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 02:46:10,528 - __main__ - INFO - Callback recibido de usuario 8101815097: privacy_accept
+2025-07-03 02:46:10,530 - __main__ - INFO - Usuario 8101815097 aceptó la privacidad
+2025-07-03 02:46:10,816 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:46:11,100 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:46:14,366 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:46:14,367 - __main__ - INFO - Mensaje recibido de usuario 8101815097: 'Gael...'
+2025-07-03 02:46:23,620 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 02:46:33,487 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:46:43,666 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:46:53,845 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:46:54,011 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:46:54,012 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-07-03 02:46:54,013 - telegram.ext.Application - INFO - Application.stop() complete
+2025-07-03 02:46:54,013 - __main__ - INFO - Bot de Telegram finalizado
+2025-07-03 02:46:54,013 - __main__ - INFO - Bot finalizado normalmente

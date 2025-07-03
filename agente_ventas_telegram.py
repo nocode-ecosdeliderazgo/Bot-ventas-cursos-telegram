@@ -9,7 +9,7 @@ import re
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
-from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler, PollAnswerHandler
 import asyncio
 import nest_asyncio
@@ -591,11 +591,10 @@ def get_promotions():
 # TELEGRAM INTERACTIVE BUTTONS
 # ==============================
 def create_main_keyboard():
-    """Crea teclado principal con opciones básicas"""
     keyboard = [
-        ["📚 Ver Cursos", "💰 Promociones"],
-        ["❓ Preguntas Frecuentes", "📞 Contactar Asesor"],
-        ["🔄 Reiniciar Conversación"]
+        [KeyboardButton("📚 Ver Cursos"), KeyboardButton("💰 Promociones")],
+        [KeyboardButton("❓ Preguntas Frecuentes"), KeyboardButton("📞 Contactar Asesor")],
+        [KeyboardButton("🔄 Reiniciar Conversación")]
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=False)
 
@@ -1273,30 +1272,6 @@ def process_user_input(user_input: str, memory: Memory) -> str:
 global_mem = Memory()
 global_user_id = None # This will be set per user in real Telegram scenario
 
-def create_nav_keyboard(show_back=True, show_home=True, show_next=True):
-    buttons = []
-    row = []
-    if show_back:
-        row.append(InlineKeyboardButton("⬅️ Atrás", callback_data="nav_back"))
-    if show_home:
-        row.append(InlineKeyboardButton("🏠 Inicio", callback_data="nav_home"))
-    if show_next:
-        row.append(InlineKeyboardButton("➡️ Siguiente", callback_data="nav_next"))
-    if row:
-        buttons.append(row)
-    return InlineKeyboardMarkup(buttons) if buttons else InlineKeyboardMarkup([])
-
-def combine_keyboards(kb1, kb2):
-    # Combina dos InlineKeyboardMarkup en uno solo
-    if kb1 is None and kb2 is None:
-        return None
-    rows = []
-    if kb1 is not None and hasattr(kb1, 'inline_keyboard'):
-        rows.extend(kb1.inline_keyboard)
-    if kb2 is not None and hasattr(kb2, 'inline_keyboard'):
-        rows.extend(kb2.inline_keyboard)
-    return InlineKeyboardMarkup(rows) if rows else None
-
 @handle_telegram_errors
 async def send_agent_telegram(update: Update, msg: str, keyboard=None, msg_critico=False) -> None:
     """Sends a message to the user via Telegram. Si msg_critico=True, muestra el teclado pasado; si False, no muestra teclado."""
@@ -1329,7 +1304,7 @@ async def edit_message(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message
     """Edita un mensaje existente usando el contexto. Si no se pasa teclado, agrega el de navegación persistente."""
     try:
         if keyboard is None:
-            keyboard = create_nav_keyboard()
+            keyboard = create_main_keyboard()
         await context.bot.edit_message_text(new_text, chat_id=chat_id, message_id=message_id, reply_markup=keyboard)
     except Exception as e:
         logger.warning(f"No se pudo editar mensaje: {e}")
@@ -1373,9 +1348,8 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             if not global_mem.lead_data.name:
                 welcome_text = "¡Perfecto! 👋 Ahora puedo ayudarte mejor."
                 question_text = "¿Cómo te gustaría que te llame? 😊"
-                keyboard = create_contextual_cta_keyboard("default", user_id_str)
                 await send_agent_telegram(update, welcome_text, None, msg_critico=True)
-                await send_agent_telegram(update, question_text, keyboard, msg_critico=True)
+                await send_agent_telegram(update, question_text, None, msg_critico=True)
                 global_mem.lead_data.stage = "awaiting_name"
                 global_mem.save()
             else:
@@ -1451,7 +1425,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             
         elif query.data in ["cta_asesor", "cta_asesor_curso", "cta_asistencia", "cta_llamar"]:
             # Siempre permitir contactar asesor, sin importar score ni curso
-            await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_nav_keyboard(), msg_critico=True)
+            await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_main_keyboard(), msg_critico=True)
             user_data = {
                 'user_id': global_mem.lead_data.user_id,
                 'name': global_mem.lead_data.name,
@@ -1793,10 +1767,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
     # Si ya aceptó privacidad, continuar con el flujo normal
     if not global_mem.lead_data.name:
-        # Si no tiene nombre, pedir nombre
-        welcome_text = "¡Hola! 👋 Soy tu asistente virtual para cursos de Inteligencia Artificial.\n\n¿Cómo te llamas?"
-        keyboard = create_contextual_cta_keyboard("default", user_id_str)
-        await send_agent_telegram(update, welcome_text, keyboard, msg_critico=True)
+        welcome_text = "¡Perfecto! 👋 Ahora puedo ayudarte mejor."
+        question_text = "¿Cómo te gustaría que te llame? 😊"
+        await send_agent_telegram(update, welcome_text, None, msg_critico=True)
+        await send_agent_telegram(update, question_text, None, msg_critico=True)
         global_mem.lead_data.stage = "awaiting_name"
         global_mem.save()
         return
@@ -1845,7 +1819,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await send_agent_telegram(update, "Por el momento no hay cursos disponibles.")
         return
     elif input_lower in ["hablar con asesor", "asesor", "contactar asesor", "quiero hablar con asesor"]:
-        await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_nav_keyboard(), msg_critico=True)
+        await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_main_keyboard(), msg_critico=True)
         user_data = {
             'user_id': global_mem.lead_data.user_id,
             'name': global_mem.lead_data.name,
@@ -1891,7 +1865,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 await send_agent_telegram(update, "Por el momento no hay cursos disponibles.")
             return
         elif "asesor" in intent:
-            await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_nav_keyboard(), msg_critico=True)
+            await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_main_keyboard(), msg_critico=True)
             user_data = {
                 'user_id': global_mem.lead_data.user_id,
                 'name': global_mem.lead_data.name,
@@ -1959,7 +1933,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         global_mem.save()
         saludo = f"Hola {nombre_usuario or 'amigo'} 😄 ¿cómo estás? Mi nombre es Brenda. Soy un sistema inteligente, parte del equipo de Aprende y Aplica IA. Recibí tu solicitud de información sobre el curso: *{curso_info['name']}*. ¡Con gusto te ayudo!"
         await send_agent_telegram(update, saludo, None)
-        await send_agent_telegram(update, "Antes de continuar, ¿cómo te gustaría que te llame?", create_nav_keyboard())
+        await send_agent_telegram(update, "Antes de continuar, ¿cómo te gustaría que te llame?", create_main_keyboard())
         global_mem.lead_data.stage = "awaiting_preferred_name"
         global_mem.save()
         return
@@ -1999,9 +1973,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             global_mem.lead_data.name = nombre.title()
             global_mem.lead_data.stage = "info"
             global_mem.save()
-            await send_agent_telegram(update, f"¡Gracias, {global_mem.lead_data.name}! ¿En qué puedo ayudarte hoy?", create_nav_keyboard(), msg_critico=True)
+            mensaje_bienvenida = (
+                f"¡Gracias, {global_mem.lead_data.name}! 🎉 Ahora sí, dime ¿qué te gustaría aprender sobre Inteligencia Artificial? "
+                "Tenemos cursos prácticos, generación de imágenes, prompts y mucho más para que lleves tu conocimiento al siguiente nivel."
+            )
+            await send_agent_telegram(update, mensaje_bienvenida, create_main_keyboard(), msg_critico=True)
         else:
-            await send_agent_telegram(update, "Por favor, ingresa un nombre válido (solo letras y espacios).", create_nav_keyboard(), msg_critico=True)
+            await send_agent_telegram(update, "Por favor, ingresa un nombre válido (solo letras y espacios).", None, msg_critico=True)
         return
 
     # --- FLUJO DE NOMBRE PREFERIDO ---
@@ -2346,8 +2324,7 @@ INSTRUCCIONES ESPECÍFICAS:
 CONTEXTO DEL USUARIO:
 - Nombre: {name}
 - Curso seleccionado: {selected_course}
-- Intereses: {interests}
-- Etapa: {stage} 
+- Intereses: {interests} 
 
 CURSOS DISPONIBLES:
 {available_courses}
