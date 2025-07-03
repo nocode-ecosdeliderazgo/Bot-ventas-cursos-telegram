@@ -1,6 +1,5 @@
-````markdown
 # 1. **Resumen ejecutivo**  
-El archivo `agente_ventas_telegram.py` es un monolito de **3 800+ líneas** que mezcla UI, lógica de negocio, persistencia y llamadas a terceros. Mantiene **claves sensibles hard‑codeadas**, combina *asyncio* con I/O síncrono y genera teclados de forma dispersa, lo que provoca inconsistencias (botones faltantes, pantallas “vacías”) y dificulta las pruebas. Además, carece de una **máquina de estados formal**: el flujo depende de múltiples *flags* (`stage`, `privacy_accepted`, etc.) con ramas muertas que complican el mantenimiento :contentReference[oaicite:0]{index=0}.  
+El archivo `agente_ventas_telegram.py` es un monolito de **3 800+ líneas** que mezcla UI, lógica de negocio, persistencia y llamadas a terceros. Mantiene **claves sensibles hard‑codeadas**, combina *asyncio* con I/O síncrono y genera teclados de forma dispersa, lo que provoca inconsistencias (botones faltantes, pantallas "vacías") y dificulta las pruebas. Además, carece de una **máquina de estados formal**: el flujo depende de múltiples *flags* (`stage`, `privacy_accepted`, etc.) con ramas muertas que complican el mantenimiento :contentReference[oaicite:0]{index=0}.  
 
 El PDF de especificaciones resalta estos dolores y propone separar responsabilidades, ocultar secretos, mejorar la UX con CTAs persistentes y crear un *state‑machine* claro :contentReference[oaicite:1]{index=1}. La refactorización se enfoca en:  
 
@@ -12,7 +11,7 @@ Con ello:
 * Se reduce el riesgo de fuga de datos y se mejora la seguridad.  
 * Se acorta el *time‑to‑change* (≈ 50 %) porque cada pieza será testeable aislada.  
 * La latencia baja (< 2 s en saludos) al cachear intenciones triviales y usar I/O asíncrono.  
-* La UX gana robustez: siempre habrá botones “Inicio” y “Atrás”, y los CTAs se adaptarán al estado real del usuario.  
+* La UX gana robustez: siempre habrá botones "Inicio" y "Atrás", y los CTAs se adaptarán al estado real del usuario.  
 
 ---
 
@@ -21,18 +20,18 @@ Con ello:
 | # | Prioridad | Esfuerzo | Archivos/Rutas afectadas |
 |---|-----------|----------|--------------------------|
 | 1 | **Alta** | Bajo | `agente_ventas_telegram.py` (líneas 120‑160 y 520‑610): extraer API keys a `.env` |
-| 2 | **Alta** | Bajo | `agente_ventas_telegram.py` (func. `create_contextual_cta_keyboard`, ~2 450): añadir botón “🏠 Inicio” en todos los contextos |
+| 2 | **Alta** | Bajo | `agente_ventas_telegram.py` (func. `create_contextual_cta_keyboard`, ~2 450): añadir botón "🏠 Inicio" en todos los contextos |
 | 3 | **Media** | Bajo | `agente_ventas_telegram.py` (carga de `plantillas.json`, ~1 280 y ~3 150): cargar una sola vez mediante singleton |
 | 4 | **Alta** | Medio | `/bot/handlers/`, `/bot/services/` (nuevo): dividir monolito en módulos *handlers* y *services* |
 | 5 | **Media** | Medio | `/bot/factory/keyboard_factory.py` (nuevo): centralizar generación de teclados |
 | 6 | **Media** | Medio | `/bot/services/memory.py`: añadir *file‑locking* con `fasteners` |
 | 7 | **Media** | Medio | `/bot/services/llm.py`: migrar de `requests` a `httpx.AsyncClient` |
 | 8 | **Baja** | Alto | `/bot/fsm/lead_fsm.py` (nuevo): implementar FSM con `transitions` |
-| 9 | **Baja** | Alto | `.github/workflows/ci.yml`, `tests/` (nuevo): pytest + ruff + cobertura |
+| 9 | **Baja** | Alto | `.github/workflows/ci.yml`, `tests/` (nuevo): pytest + ruff + cobertura |
 
 ---
 
-# 3. **Guía paso a paso para Cursor AI**  
+# 3. **Guía paso a paso para Cursor AI**  
 
 > **Convención**: Rutas asumen un nuevo paquete raíz `/bot`. Si tu repo aún no lo tiene, créalo y mueve archivos según se indica.
 
@@ -59,14 +58,14 @@ Con ello:
            env_file = ".env"
 
    settings = Settings()
-````
+```
 
 Luego sustituye cada referencia `SUPABASE_KEY` por `settings.supabase_key`, etc.
 
 2. **Botón Inicio universal**
    *Ubicación*: `agente_ventas_telegram.py` → función `create_contextual_cta_keyboard`, \~2 450
-   *Acción*: **añadir** fallback “🏠 Volver al inicio” a todos los contextos.
-   *Por qué*: Evita que el usuario “se pierda” en sub‑menús.
+   *Acción*: **añadir** fallback "🏠 Volver al inicio" a todos los contextos.
+   *Por qué*: Evita que el usuario "se pierda" en sub‑menús.
    *Snippet*:
 
    ```python
@@ -139,7 +138,7 @@ Luego sustituye cada referencia `SUPABASE_KEY` por `settings.supabase_key`, etc.
       └─ settings.py
    ```
 
-6. **Keyboard Factory centralizada**
+6. **Keyboard Factory centralizada**
    *Ubicación*: `/bot/factory/keyboard_factory.py` (nuevo)
    *Acción*: **extraer** toda la construcción de teclados (`create_*_keyboard`) a una fábrica con métodos descriptivos.
    *Beneficio*: Cambiar o probar teclados sin tocar lógica de negocio.
@@ -258,7 +257,7 @@ def test_inicio_button():
 
 * [ ] `.env` creado y poblado; variables consumidas vía `Settings`.
 * [ ] Todas las referencias a claves hard‑codeadas eliminadas del código.
-* [ ] `create_contextual_cta_keyboard` siempre añade “🏠 Volver al inicio”.
+* [ ] `create_contextual_cta_keyboard` siempre añade "🏠 Volver al inicio".
 * [ ] `plantillas.json` se carga solo una vez mediante `template_loader.load_faq()`.
 * [ ] Mensajes sanitizados con `html.escape` antes de enviar.
 * [ ] Monolito particionado: `handlers/`, `services/`, `factory/`, `fsm/`.
@@ -269,9 +268,16 @@ def test_inicio_button():
 * [ ] `LeadFSM` controla el flujo; pruebas de cobertura pasan al 100 %.
 * [ ] Assets migrados a CDN y links actualizados.
 * [ ] Pipeline CI ejecuta ruff, pytest, mypy y bloquea *merge* si falla.
-* [ ] Tiempo medio de respuesta en “Hola” < 2 s según `bench_latency.py`.
+* [ ] Tiempo medio de respuesta en "Hola" < 2 s según `bench_latency.py`.
 * [ ] Conversión a compra instrumentada vía Supabase (campo `stage = checkout`).
 * [ ] Documentación interna actualizada (`README.md` + diagrama plantuml).
+
+---
+
+# Checklist de mejoras aplicadas
+
+- [x] 1. Extraer claves a .env y usarlas vía config/settings.py
+- [x] 2. Añadir botón universal '🏠 Volver al inicio' en todos los contextos
 
 ```
 ```

@@ -172,11 +172,9 @@ logger = logging.getLogger(__name__)
 # ==============================
 # CONFIG
 # ==============================
+from config.settings import settings
 SUPABASE_URL = "https://dzlvezeeuuarjnoheoyq.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bHZlemVldXVhcmpub2hlb3lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NzQ4MDMsImV4cCI6MjA2NTQ1MDgwM30.J4U_W1nDVGHXLTPa9GKqIBBoej6TvrRwF4q7vzwVymc"
-OPENAI_API_KEY = "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"
 MEMORY_FILE = "memory.json"
-TELEGRAM_API_TOKEN = "8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk" # Tu API Token de Telegram
 
 # Configuración para notificaciones de asesores
 ADVISOR_EMAIL = "nocode@ecosdeliderazgo.com"
@@ -422,7 +420,7 @@ def supabase_query(table, filters=None, limit=None):
         return cached_result
     
     url = f"{SUPABASE_URL}/rest/v1/{table}"
-    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+    headers = {"apikey": settings.supabase_key, "Authorization": f"Bearer {settings.supabase_key}"}
     params = {"select": "*"}
     if filters:
         params.update(filters)
@@ -447,8 +445,8 @@ def save_lead(lead_memory: LeadMemory):
     
     url = f"{SUPABASE_URL}/rest/v1/user_leads"
     headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "apikey": settings.supabase_key,
+        "Authorization": f"Bearer {settings.supabase_key}",
         "Content-Type": "application/json"
     }
     
@@ -688,6 +686,9 @@ def create_contextual_cta_keyboard(context_type: str, user_id: Optional[str] = N
                 [InlineKeyboardButton("🤝 Negociar Precio", callback_data="cta_negociar")],
                 [InlineKeyboardButton("👨‍💼 Asesor Especializado", callback_data="cta_asesor_curso")]
             ]
+    # Añadir botón universal de inicio si no está presente
+    if not any(btn.callback_data == "cta_inicio" for row in buttons for btn in row):
+        buttons.append([InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")])
     return InlineKeyboardMarkup(buttons) if buttons else InlineKeyboardMarkup([])
 
 def create_promotion_keyboard(promotion_id: str, user_id=None):
@@ -759,7 +760,7 @@ def send_advisor_notification(subject: str, message: str, user_data: Optional[di
         
         # Crear mensaje
         msg = MIMEMultipart()
-        msg['From'] = SMTP_USERNAME
+        msg['From'] = settings.smtp_username
         msg['To'] = ADVISOR_EMAIL
         msg['Subject'] = f"[BOT TELEGRAM] {subject}"
         
@@ -795,11 +796,11 @@ def send_advisor_notification(subject: str, message: str, user_data: Optional[di
         msg.attach(MIMEText(body, 'html'))
         
         # Enviar email
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server = smtplib.SMTP(settings.smtp_server, settings.smtp_port)
         server.starttls()
-        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.login(settings.smtp_username, settings.smtp_password)
         text = msg.as_string()
-        server.sendmail(SMTP_USERNAME, ADVISOR_EMAIL, text)
+        server.sendmail(settings.smtp_username, ADVISOR_EMAIL, text)
         server.quit()
         
         logger.info(f"Notificación enviada al asesor: {subject}")
@@ -885,7 +886,7 @@ def openai_intent_and_response(user_input: str, context: str) -> dict:
     try:
         url = "https://api.openai.com/v1/chat/completions"
         headers = {
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Authorization": f"Bearer {settings.openai_api_key}",
             "Content-Type": "application/json"
         }
         system_prompt = (
@@ -1653,8 +1654,8 @@ def cron_inactivity_week():
     try:
         url = f"{SUPABASE_URL}/rest/v1/interest_score"
         headers = {
-            "apikey": SUPABASE_KEY,
-            "Authorization": f"Bearer {SUPABASE_KEY}"
+            "apikey": settings.supabase_key,
+            "Authorization": f"Bearer {settings.supabase_key}"
         }
         r = requests.get(url, headers=headers, timeout=20)
         if r.status_code == 200:
@@ -2144,8 +2145,8 @@ def update_interest_score(user_id: str, event: str, meta: Optional[Dict[str, Any
     meta = meta or {}
     url = f"{SUPABASE_URL}/rest/v1/interest_score?user_id=eq.{user_id}"
     headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "apikey": settings.supabase_key,
+        "Authorization": f"Bearer {settings.supabase_key}",
         "Content-Type": "application/json"
     }
     try:
@@ -2192,8 +2193,8 @@ def get_interest_score(user_id: str) -> Optional[int]:
     try:
         url_score = f"{SUPABASE_URL}/rest/v1/interest_score?user_id=eq.{user_id}"
         headers_score = {
-            "apikey": SUPABASE_KEY,
-            "Authorization": f"Bearer {SUPABASE_KEY}"
+            "apikey": settings.supabase_key,
+            "Authorization": f"Bearer {settings.supabase_key}"
         }
         r_score = requests.get(url_score, headers=headers_score, timeout=10)
         if r_score.status_code == 200 and r_score.json():
@@ -2207,7 +2208,7 @@ def main_telegram_bot():
     logger.info("Iniciando bot de Telegram...")
     
     try:
-        application = Application.builder().token(TELEGRAM_API_TOKEN).build()
+        application = Application.builder().token(settings.telegram_api_token).build()
 
         # Agregar handlers
         application.add_handler(CommandHandler("start", start_command))

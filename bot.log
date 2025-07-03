@@ -74,3 +74,13 @@ Traceback (most recent call last):
     await send_grouped_messages(update, messages, keyboard, msg_critico=True)
 NameError: name 'send_grouped_messages' is not defined
 2025-07-02 22:13:14,804 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 02:02:32,340 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 02:02:32,348 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 02:02:32,349 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 02:02:33,513 - __main__ - WARNING - MyChatMemberHandler no disponible en esta versión de telegram.ext
+2025-07-03 02:02:33,513 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 02:02:33,513 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 02:02:33,513 - __main__ - INFO - Iniciando polling...
+2025-07-03 02:02:34,303 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 02:02:34,484 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 02:02:34,486 - telegram.ext.Application - INFO - Application started
