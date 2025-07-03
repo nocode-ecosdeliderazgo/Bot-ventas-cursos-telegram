@@ -3,7 +3,7 @@
         "user_id": "8101815097",
         "email": "dgfglez@gmail.com",
         "phone": "5614686075",
-        "stage": "info",
+        "stage": "exploring_course",
         "courses_seen": [],
         "selected_course": "db747b9e-2872-47a4-a75e-6d6280b1829e",
         "escalation_pending": false,
@@ -15,7 +15,26 @@
         "last_ack_time": null,
         "privacy_accepted": true
     },
-    "history": [],
+    "history": [
+        {
+            "user_input": "\ud83d\udcda Ver Cursos",
+            "bot_reply": {
+                "intent": "LIST_COURSES",
+                "response": "\u00a1Genial! Tenemos una variedad de cursos de Inteligencia Artificial emocionantes para ti. Algunos de estos son 'IA para Principiantes', 'IA para Marketing', 'IA para Medicina' y 'IA para Finanzas'. Cada uno de ellos est\u00e1 dise\u00f1ado para equiparte con habilidades pr\u00e1cticas y conocimientos profundos. \u00bfHay alguno que te llame la atenci\u00f3n?",
+                "course_name": null
+            },
+            "timestamp": 1751570499.8710926
+        },
+        {
+            "user_input": "\ud83d\udcda Ver Cursos",
+            "bot_reply": {
+                "intent": "LIST_COURSES",
+                "response": "Tenemos una gran variedad de cursos disponibles para ti. Desde 'AI para principiantes' hasta 'AI avanzada para profesionales'. Cada uno est\u00e1 dise\u00f1ado para proporcionarte las habilidades necesarias para dominar la Inteligencia Artificial. \u00bfHay alg\u00fan curso espec\u00edfico que te interese?",
+                "course_name": null
+            },
+            "timestamp": 1751570851.771547
+        }
+    ],
     "last_presented_courses": [],
-    "last_activity": 1751566500.4454331
+    "last_activity": 1751570910.3102999
 }

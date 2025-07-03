@@ -4,20 +4,22 @@
 # Este módulo contiene los decoradores de manejo de errores, los handlers de comandos y mensajes,
 # y los helpers de integración con la lógica de negocio y memoria.
 
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup
+import os
+import json
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from functools import wraps
 import asyncio
 import httpx
 import requests
 import re
-import os
 import time
 from typing import Optional, List, Dict, Any
 from config.settings import settings
 from .memory import Memory
 from .keyboards import (
-    create_main_keyboard, create_main_inline_keyboard, create_courses_list_keyboard, create_contextual_cta_keyboard, create_course_selection_keyboard
+    create_main_keyboard, create_main_inline_keyboard, create_courses_list_keyboard, create_contextual_cta_keyboard, create_course_selection_keyboard, create_course_explore_keyboard
 )
 from .services import (
     get_courses, get_course_detail, get_modules, get_promotions, notify_advisor_contact_request, openai_intent_and_response, save_lead, notify_advisor_reservation_request, get_interest_score, UMBRAL_PROMO
@@ -90,7 +92,6 @@ def ensure_privacy(update, context) -> bool:
 
 async def send_privacy_notice(update, context=None) -> None:
     """Envía el aviso de privacidad con botones de aceptación."""
-    from telegram import InlineKeyboardMarkup, InlineKeyboardButton
     privacy_text = (
         "🔒 **Aviso de Privacidad**\n\n"
         "Para continuar, necesito que aceptes nuestro aviso de privacidad:\n\n"
@@ -221,6 +222,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await send_grouped_messages(send_agent_telegram, update, [promo_text], keyboard, msg_critico=True)
         else:
             await send_agent_telegram(update, "Por el momento no hay promociones activas, pero puedes contactar a un asesor para consultar descuentos especiales.", create_contextual_cta_keyboard("default", user_id_str))
+        return
+    elif input_lower in ["preguntas frecuentes", "faq", "❓ preguntas frecuentes"]:
+        faq_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "plantillas.json"))
+        with open(faq_path, "r", encoding="utf-8") as f:
+            plantillas = json.load(f)
+        buttons = [[InlineKeyboardButton(p['pregunta'], callback_data=f"faq_q_{i}")] for i, p in enumerate(plantillas)]
+        buttons.append([InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")])
+        keyboard = InlineKeyboardMarkup(buttons)
+        await send_agent_telegram(update, "❓ Preguntas Frecuentes: Elige una pregunta:", keyboard, msg_critico=True)
         return
     # --- NUEVO: Clasificación de intención con OpenAI para frases ambiguas o con errores ---
     else:
@@ -611,8 +621,63 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 logger.warning(f"No se pudo enviar PDF info completa o checar interest_score: {e}")
             return
             
-        elif query.data in ["cta_asesor", "cta_asesor_curso", "cta_asistencia", "cta_llamar", "cta_plan_pagos", "cta_negociar"]:
-            await contact_advisor_flow(update, context, query)
+        elif query.data in ["cta_asesor", "cta_asesor_curso", "cta_asistencia", "cta_llamar", "cta_plan_pagos", "cta_negociar", "cta_reservar", "cta_finalizar_compra", "cta_inscribirse"]:
+            await contactar_asesor(update, context)
+            return
+        # En FAQ, solo mostrar_lista_cursos y responder FAQ, nunca contacto
+        elif query.data in ["cta_faq", "faq_menu"]:
+            faq_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "plantillas.json"))
+            with open(faq_path, "r", encoding="utf-8") as f:
+                plantillas = json.load(f)
+            buttons = [[InlineKeyboardButton(p['pregunta'], callback_data=f"faq_q_{i}")] for i, p in enumerate(plantillas)]
+            buttons.append([InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")])
+            keyboard = InlineKeyboardMarkup(buttons)
+            await query.edit_message_text("❓ Preguntas Frecuentes: Elige una pregunta:", reply_markup=keyboard)
+            return
+        elif query.data.startswith("faq_q_"):
+            faq_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "plantillas.json"))
+            with open(faq_path, "r", encoding="utf-8") as f:
+                plantillas = json.load(f)
+            idx = int(query.data.replace("faq_q_", ""))
+            plantilla = plantillas[idx]
+            pregunta = plantilla['pregunta']
+            respuesta = plantilla['respuesta']
+            campos = plantilla.get('campos', [])
+            # Si la respuesta requiere datos de curso, SIEMPRE pedir al usuario que seleccione un curso
+            if campos and any(c in ['price_usd', 'currency', 'total_duration', 'level', 'language', 'modules_list', 'purchase_link', 'demo_request_link'] for c in campos):
+                await mostrar_lista_cursos(update, context, mensaje="Por favor, selecciona el curso sobre el que quieres saber:")
+                context.bot_data['faq_pending'] = idx
+                return
+            else:
+                buttons = [
+                    [InlineKeyboardButton("🔙 Volver a Preguntas Frecuentes", callback_data="faq_menu")],
+                    [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
+                ]
+                keyboard = InlineKeyboardMarkup(buttons)
+                await query.edit_message_text(f"❓ {pregunta}\n\n{respuesta}", reply_markup=keyboard)
+                return
+        elif query.data.startswith("course_") and 'faq_pending' in context.bot_data:
+            course_id = query.data.replace("course_", "")
+            context.bot_data['global_mem'].lead_data.selected_course = course_id
+            context.bot_data['global_mem'].save()
+            idx = context.bot_data.pop('faq_pending')
+            faq_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "plantillas.json"))
+            with open(faq_path, "r", encoding="utf-8") as f:
+                plantillas = json.load(f)
+            plantilla = plantillas[idx]
+            pregunta = plantilla['pregunta']
+            respuesta = plantilla['respuesta']
+            campos = plantilla.get('campos', [])
+            course = get_course_detail(course_id)
+            for campo in campos:
+                valor = course.get(campo, f"[{campo}]") if course else f"[{campo}]"
+                respuesta = respuesta.replace(f"[{campo}]", str(valor))
+            buttons = [
+                [InlineKeyboardButton("🔙 Volver a Preguntas Frecuentes", callback_data="faq_menu")],
+                [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
+            ]
+            keyboard = InlineKeyboardMarkup(buttons)
+            await query.edit_message_text(f"❓ {pregunta}\n\n{respuesta}", reply_markup=keyboard)
             return
             
         elif query.data in ["cta_ver_cursos", "cta_otros_cursos"]:
@@ -709,19 +774,21 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             return
 
         elif query.data.startswith("course_"):
-            # Unificar el flujo: guardar el curso y continuar con el flujo de contacto robusto
+            # Nuevo flujo: mostrar menú de opciones del curso sin contactar a un asesor
             course_id = query.data.replace("course_", "")
             course = get_course_detail(course_id)
             if course:
                 context.bot_data['global_mem'].lead_data.selected_course = course_id
-                context.bot_data['global_mem'].lead_data.stage = "awaiting_course_contact"
+                context.bot_data['global_mem'].lead_data.stage = "exploring_course"
                 context.bot_data['global_mem'].save()
-                # Llamar al flujo robusto de contacto (pide email, teléfono y confirma datos)
-                await contact_advisor_flow(update, context, query)
+                # Mostrar menú de opciones del curso (exploración)
+                keyboard = create_course_explore_keyboard(course_id, course.get('name', 'Curso'))
+                info_text = f"<b>{course.get('name', 'Curso')}</b>\n\n{course.get('short_description', '')}\n\n¿Qué te gustaría hacer?"
+                await query.edit_message_text(info_text, reply_markup=keyboard, parse_mode='HTML')
             else:
                 await query.edit_message_text("No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_courses_list_keyboard(get_courses()))
             return
-        elif query.data.startswith("modules_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+        elif query.data.startswith("modules_") and context.bot_data['global_mem'].lead_data.stage in ["awaiting_course_contact", "exploring_course"]:
             course_id = query.data.replace("modules_", "")
             modules = get_modules(course_id)
             if modules:
@@ -733,7 +800,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             else:
                 await query.edit_message_text("No se encontraron módulos para este curso.", reply_markup=None)
             return
-        elif query.data.startswith("info_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+        elif query.data.startswith("info_") and context.bot_data['global_mem'].lead_data.stage in ["awaiting_course_contact", "exploring_course"]:
             course_id = query.data.replace("info_", "")
             course = get_course_detail(course_id)
             if course:
@@ -746,14 +813,20 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             else:
                 await query.edit_message_text("No se encontró información adicional para este curso.", reply_markup=None)
             return
-        elif query.data.startswith("select_course_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+        elif query.data.startswith("select_course_") and context.bot_data['global_mem'].lead_data.stage == "exploring_course":
             course_id = query.data.replace("select_course_", "")
             context.bot_data['global_mem'].lead_data.selected_course = course_id
             context.bot_data['global_mem'].save()
-            # Continuar flujo de confirmación de datos
-            await contact_advisor_flow(update, context, query)
+            # Volver a mostrar el menú de opciones del curso
+            course = get_course_detail(course_id)
+            if course:
+                keyboard = create_course_selection_keyboard(course_id, course.get('name', 'Curso'))
+                info_text = f"<b>{course.get('name', 'Curso')}</b>\n\n{course.get('short_description', '')}\n\n¿Qué te gustaría hacer?"
+                await query.edit_message_text(info_text, reply_markup=keyboard, parse_mode='HTML')
+            else:
+                await query.edit_message_text("No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_courses_list_keyboard(get_courses()))
             return
-        elif query.data == "change_course" and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+        elif query.data == "change_course" and context.bot_data['global_mem'].lead_data.stage in ["awaiting_course_contact", "exploring_course"]:
             cursos = get_courses()
             if cursos:
                 keyboard = create_courses_list_keyboard(cursos)
@@ -776,7 +849,10 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             context.bot_data['global_mem'].save()
             await query.edit_message_text("¡Listo! Un asesor se pondrá en contacto contigo pronto.")
             await context.bot.send_message(chat_id=query.message.chat.id, text="¿Puedo ayudarte en algo más?")
-            await context.bot.send_message(chat_id=query.message.chat.id, text="Menú principal:", reply_markup=create_main_keyboard())
+            keyboard = create_main_keyboard()
+            inline_keyboard = create_main_inline_keyboard()
+            await context.bot.send_message(chat_id=query.message.chat.id, text="Menú principal:", reply_markup=keyboard)
+            await context.bot.send_message(chat_id=query.message.chat.id, text="Menú principal:", reply_markup=inline_keyboard)
             return
         elif query.data == "edit_contact_data" and context.bot_data['global_mem'].lead_data.stage == "awaiting_contact_confirmation":
             lead = context.bot_data['global_mem'].lead_data
@@ -786,6 +862,61 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             lead.stage = "awaiting_email_contact"
             context.bot_data['global_mem'].save()
             await query.edit_message_text("Vamos a corregir tus datos. Por favor, ingresa tu correo electrónico:")
+            return
+        elif query.data in ["cta_faq", "faq_menu"]:
+            faq_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "plantillas.json"))
+            with open(faq_path, "r", encoding="utf-8") as f:
+                plantillas = json.load(f)
+            buttons = [[InlineKeyboardButton(p['pregunta'], callback_data=f"faq_q_{i}")] for i, p in enumerate(plantillas)]
+            buttons.append([InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")])
+            keyboard = InlineKeyboardMarkup(buttons)
+            await query.edit_message_text("❓ Preguntas Frecuentes: Elige una pregunta:", reply_markup=keyboard)
+            return
+        elif query.data.startswith("faq_q_"):
+            faq_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "plantillas.json"))
+            with open(faq_path, "r", encoding="utf-8") as f:
+                plantillas = json.load(f)
+            idx = int(query.data.replace("faq_q_", ""))
+            plantilla = plantillas[idx]
+            pregunta = plantilla['pregunta']
+            respuesta = plantilla['respuesta']
+            campos = plantilla.get('campos', [])
+            # Si la respuesta requiere datos de curso, SIEMPRE pedir al usuario que seleccione un curso
+            if campos and any(c in ['price_usd', 'currency', 'total_duration', 'level', 'language', 'modules_list', 'purchase_link', 'demo_request_link'] for c in campos):
+                cursos = get_courses()
+                keyboard = create_courses_list_keyboard(cursos)
+                # Guardar el índice de la FAQ pendiente
+                context.bot_data['faq_pending'] = idx
+                await query.edit_message_text("Por favor, selecciona el curso sobre el que quieres saber:", reply_markup=keyboard)
+                return
+            else:
+                # Si no requiere datos de curso, responder directamente
+                buttons = [
+                    [InlineKeyboardButton("🔙 Volver a Preguntas Frecuentes", callback_data="faq_menu")],
+                    [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
+                ]
+                keyboard = InlineKeyboardMarkup(buttons)
+                await query.edit_message_text(f"❓ {pregunta}\n\n{respuesta}", reply_markup=keyboard)
+                return
+        elif query.data.startswith("buy_course_") and context.bot_data['global_mem'].lead_data.stage == "exploring_course":
+            course_id = query.data.replace("buy_course_", "")
+            course = get_course_detail(course_id)
+            user_id_str = str(update.effective_user.id) if update.effective_user else ""
+            if course:
+                purchase_link = course.get("purchase_link") if course else None
+                if not purchase_link:
+                    purchase_link = "https://www.ejemplo.com/compra-curso"
+                buy_msg = (
+                    f"💳 <b>Comprar: {course['name'] if course else 'Curso seleccionado'}</b>\n\n"
+                    f"Precio: ${course['price_usd'] if course else 'N/A'} {course['currency'] if course else ''}\n\n"
+                    f"<a href='{purchase_link}'>Haz clic aquí para comprar</a>\n\n"
+                    f"Después de la compra, recibirás acceso inmediato al curso. "
+                    f"¿Necesitas ayuda con algo más?"
+                )
+                post_buy_keyboard = create_contextual_cta_keyboard("post_buy", user_id_str)
+                await query.edit_message_text(buy_msg, reply_markup=post_buy_keyboard, parse_mode='HTML')
+            else:
+                await query.edit_message_text("No se encontró información del curso para comprar.")
             return
         else:
             # Callback no reconocido
@@ -811,6 +942,81 @@ def handle_payment_webhook(user_id: str, payment_data: dict) -> None:
     """Llamar cuando se reciba un pago exitoso (webhook externo)."""
     if user_id:
         logger.info(f"Pago registrado para usuario {user_id}")
+
+# --- NUEVAS FUNCIONES REUTILIZABLES ---
+async def mostrar_lista_cursos(update, context, mensaje="Selecciona el curso de tu interés:"):
+    cursos = get_courses()
+    if cursos:
+        keyboard = create_courses_list_keyboard(cursos)
+        if hasattr(update, 'callback_query') and update.callback_query:
+            await update.callback_query.edit_message_text(mensaje, reply_markup=keyboard)
+        else:
+            await send_agent_telegram(update, mensaje, keyboard, msg_critico=True)
+    else:
+        if hasattr(update, 'callback_query') and update.callback_query:
+            await update.callback_query.edit_message_text("No hay cursos disponibles en este momento.")
+        else:
+            await send_agent_telegram(update, "No hay cursos disponibles en este momento.")
+
+async def solicitar_datos_contacto(update, context):
+    lead = context.bot_data['global_mem'].lead_data
+    if not lead.email:
+        lead.stage = "awaiting_email_contact"
+        context.bot_data['global_mem'].save()
+        if hasattr(update, 'callback_query') and update.callback_query:
+            await update.callback_query.edit_message_text("Para que un asesor pueda contactarte, necesito algunos datos.")
+            await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="Por favor, ingresa tu correo electrónico:")
+        else:
+            await send_agent_telegram(update, "Para que un asesor pueda contactarte, necesito algunos datos.")
+            await send_agent_telegram(update, "Por favor, ingresa tu correo electrónico:")
+        return False
+    if not lead.phone:
+        lead.stage = "awaiting_phone_contact"
+        context.bot_data['global_mem'].save()
+        if hasattr(update, 'callback_query') and update.callback_query:
+            await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="Ahora, por favor ingresa tu número de teléfono:")
+        else:
+            await send_agent_telegram(update, "Ahora, por favor ingresa tu número de teléfono:")
+        return False
+    return True
+
+async def contactar_asesor(update, context):
+    if not await solicitar_datos_contacto(update, context):
+        return
+    lead = context.bot_data['global_mem'].lead_data
+    user_data = {
+        'user_id': lead.user_id,
+        'name': lead.name,
+        'email': lead.email,
+        'phone': lead.phone,
+        'selected_course': lead.selected_course,
+        'stage': lead.stage
+    }
+    notify_advisor_contact_request(user_data)
+    lead.stage = "info"
+    context.bot_data['global_mem'].save()
+    if hasattr(update, 'callback_query') and update.callback_query:
+        await update.callback_query.edit_message_text("¡Listo! Un asesor se pondrá en contacto contigo pronto.")
+        await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="¿Puedo ayudarte en algo más?")
+        keyboard = create_main_keyboard()
+        inline_keyboard = create_main_inline_keyboard()
+        await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="Menú principal:", reply_markup=keyboard)
+        await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="Menú principal:", reply_markup=inline_keyboard)
+    else:
+        await send_agent_telegram(update, "¡Listo! Un asesor se pondrá en contacto contigo pronto.")
+        await send_agent_telegram(update, "¿Puedo ayudarte en algo más?")
+        await send_agent_telegram(update, "Menú principal:", create_main_keyboard())
+        await send_agent_telegram(update, "Menú principal:", create_main_inline_keyboard())
+
+# --- USO EN FLUJOS ---
+# En FAQ: nunca llamar a contactar_asesor ni solicitar_datos_contacto, solo mostrar_lista_cursos y responder FAQ.
+# En promociones y submenús de contacto: reemplaza la lógica por llamadas a solicitar_datos_contacto y contactar_asesor según corresponda.
+
+# --- REEMPLAZO EN FLUJOS DE PROMOCIONES Y CONTACTO ---
+# Ejemplo para un flujo de contacto:
+# await contactar_asesor(update, context)
+# Ejemplo para mostrar cursos:
+# await mostrar_lista_cursos(update, context)
 
 CURSOS_MAP = {
     "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9"
