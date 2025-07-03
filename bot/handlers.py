@@ -206,7 +206,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif input_lower in ["hablar con asesor", "asesor", "contactar asesor", "quiero hablar con asesor"]:
         await contact_advisor_flow(update, context)
         return
-    elif input_lower in ["ver promociones", "promociones", "descuentos", "ver descuentos", "💰 promociones"]:
+    elif input_lower in ["ver promociones", "promociones", "descuentos", "ver descuentos", "💰 promociones", "💰 promociones"]:
         # Usar el mismo flujo que el callback 'cta_promociones'
         promos = get_promotions()
         if promos:
@@ -692,6 +692,22 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 await query.edit_message_text("Por el momento no hay promociones activas, pero puedes contactar a un asesor para consultar descuentos especiales.", reply_markup=create_contextual_cta_keyboard("default", user_id_str))
             return
             
+        elif query.data in ["cta_promociones"]:
+            promos = get_promotions()
+            if promos:
+                promo_text = "💰 **Promociones especiales:**\n\n"
+                for promo in promos:
+                    promo_text += f"🎁 **{promo['name']}**\n"
+                    promo_text += f"{promo['description']}\n"
+                    if promo.get('code'):
+                        promo_text += f"Código: `{promo['code']}`\n"
+                    promo_text += "\n"
+                keyboard = create_contextual_cta_keyboard("pricing_inquiry", user_id_str)
+                await query.edit_message_text(promo_text, reply_markup=keyboard, parse_mode='Markdown')
+            else:
+                await query.edit_message_text("Por el momento no hay promociones activas, pero puedes contactar a un asesor para consultar descuentos especiales.", reply_markup=create_contextual_cta_keyboard("default", user_id_str))
+            return
+
         elif query.data.startswith("course_"):
             # Unificar el flujo: guardar el curso y continuar con el flujo de contacto robusto
             course_id = query.data.replace("course_", "")
