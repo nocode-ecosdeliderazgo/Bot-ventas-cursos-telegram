@@ -25,6 +25,7 @@ from .services import (
 from .utils import send_grouped_messages, detect_negative_feedback
 from .faq import generar_faq_contexto
 import logging
+
 logger = logging.getLogger(__name__)
 
 # ==============================
@@ -83,10 +84,9 @@ def handle_supabase_errors(func):
 # TODO: Add LLM-powered personalized sales flows (already partially done below)
 # TODO: Store conversations/user state in DB for multidevice/multi-session memory
 
-def ensure_privacy(update) -> bool:
+def ensure_privacy(update, context) -> bool:
     """Verifica si el usuario ya aceptó la privacidad."""
-    global global_mem
-    return getattr(global_mem.lead_data, 'privacy_accepted', False)
+    return getattr(context.bot_data['global_mem'].lead_data, 'privacy_accepted', False)
 
 async def send_privacy_notice(update, context=None) -> None:
     """Envía el aviso de privacidad con botones de aceptación."""
@@ -112,7 +112,6 @@ async def send_privacy_notice(update, context=None) -> None:
 @handle_telegram_errors
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Maneja el comando /start, verifica privacidad y muestra menú principal."""
-    global global_mem, global_user_id
     if not update.effective_user:
         logger.error("Usuario efectivo es None en start_command")
         return
@@ -120,45 +119,46 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     logger.info(f"Comando /start recibido de usuario {user_id_str}")
 
     # Ensure memory is loaded for this specific user
-    if global_user_id != user_id_str or not global_mem.lead_data.user_id:
-        global_user_id = user_id_str
-        global_mem = Memory()
-        global_mem.load(global_user_id)
-        global_mem.lead_data.user_id = user_id_str
-        if not global_mem.lead_data.user_id:
-            global_mem.lead_data.user_id = user_id_str
-            global_mem.lead_data.stage = "inicio"
-            global_mem.save()
+    if 'global_user_id' not in context.bot_data:
+        context.bot_data['global_user_id'] = None
+    if 'global_mem' not in context.bot_data:
+        context.bot_data['global_mem'] = Memory()
+    if context.bot_data['global_user_id'] != user_id_str or not context.bot_data['global_mem'].lead_data.user_id:
+        context.bot_data['global_user_id'] = user_id_str
+        context.bot_data['global_mem'] = Memory()
+        context.bot_data['global_mem'].load(context.bot_data['global_user_id'])
+        context.bot_data['global_mem'].lead_data.user_id = user_id_str
+        if not context.bot_data['global_mem'].lead_data.user_id:
+            context.bot_data['global_mem'].lead_data.user_id = user_id_str
+            context.bot_data['global_mem'].lead_data.stage = "inicio"
+            context.bot_data['global_mem'].save()
     # Verificar si ya aceptó la privacidad
-    if not ensure_privacy(update):
+    if not ensure_privacy(update, context):
         logger.info(f"Usuario {user_id_str} no ha aceptado privacidad, mostrando aviso")
         await send_privacy_notice(update, context)
         return
     # Si ya aceptó privacidad, continuar con el flujo normal
-    if not global_mem.lead_data.name:
+    if not context.bot_data['global_mem'].lead_data.name:
         welcome_text = "¡Perfecto! 👋 Ahora puedo ayudarte mejor."
         question_text = "¿Cómo te gustaría que te llame? 😊"
         await send_agent_telegram(update, welcome_text, None, msg_critico=True)
         await send_agent_telegram(update, question_text, None, msg_critico=True)
-        global_mem.lead_data.stage = "awaiting_name"
-        global_mem.save()
+        context.bot_data['global_mem'].lead_data.stage = "awaiting_name"
+        context.bot_data['global_mem'].save()
         return
     # Si ya tiene nombre, mostrar menú principal
     welcome_msg = (
-        f"¡Hola {global_mem.lead_data.name or 'amigo'}! 👋\n\n"
+        f"¡Hola {context.bot_data['global_mem'].lead_data.name or 'amigo'}! 👋\n\n"
         "¿Qué te gustaría aprender sobre Inteligencia Artificial? "
         "Tenemos cursos de IA práctica, prompts, generación de imágenes y más."
     )
     keyboard = create_contextual_cta_keyboard("default", user_id_str)
     await send_agent_telegram(update, welcome_msg, keyboard, msg_critico=True)
-    global_mem.save()
+    context.bot_data['global_mem'].save()
 
 @handle_telegram_errors
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Procesa mensajes de usuario de forma robusta, con manejo de sesión, validaciones y CTAs contextuales."""
-    global global_mem, global_user_id
-
-    # Verificar que el mensaje y el usuario no sean None
     if not update.message or not update.message.text:
         logger.warning("Mensaje o texto del mensaje es None")
         return
@@ -176,11 +176,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         user_memory_file = os.path.join("memorias", f"memory_{user_id_str}.json")
         if os.path.exists(user_memory_file):
             os.remove(user_memory_file)
-        global_mem = Memory()
-        global_mem.load(user_id_str)
-        global_mem.lead_data.user_id = user_id_str
-        global_mem.lead_data.stage = "inicio"
-        global_mem.save()
+        context.bot_data['global_mem'] = Memory()
+        context.bot_data['global_mem'].load(user_id_str)
+        context.bot_data['global_mem'].lead_data.user_id = user_id_str
+        context.bot_data['global_mem'].lead_data.stage = "inicio"
+        context.bot_data['global_mem'].save()
         await send_agent_telegram(update, "¡Conversación reiniciada!", create_main_keyboard(), msg_critico=True)
         await send_agent_telegram(update, "Menú principal:", create_main_inline_keyboard(), msg_critico=True)
         await send_privacy_notice(update, context)
@@ -188,8 +188,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     # Si el usuario pide ver todos los cursos, resetea el curso seleccionado
     if user_input.strip().lower() == 'ver todos los cursos':
-        global_mem.lead_data.selected_course = None
-        global_mem.save()
+        context.bot_data['global_mem'].lead_data.selected_course = None
+        context.bot_data['global_mem'].save()
 
     # --- NUEVO: Mapeo de intenciones a flujos de botones ---
     input_lower = user_input.strip().lower()
@@ -206,12 +206,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif input_lower in ["hablar con asesor", "asesor", "contactar asesor", "quiero hablar con asesor"]:
         await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_main_keyboard(), msg_critico=True)
         user_data = {
-            'user_id': global_mem.lead_data.user_id,
-            'name': global_mem.lead_data.name,
-            'email': global_mem.lead_data.email,
-            'phone': global_mem.lead_data.phone,
-            'selected_course': global_mem.lead_data.selected_course,
-            'stage': global_mem.lead_data.stage
+            'user_id': context.bot_data['global_mem'].lead_data.user_id,
+            'name': context.bot_data['global_mem'].lead_data.name,
+            'email': context.bot_data['global_mem'].lead_data.email,
+            'phone': context.bot_data['global_mem'].lead_data.phone,
+            'selected_course': context.bot_data['global_mem'].lead_data.selected_course,
+            'stage': context.bot_data['global_mem'].lead_data.stage
         }
         notify_advisor_contact_request(user_data)
         return
@@ -252,12 +252,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif "asesor" in intent:
             await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_main_keyboard(), msg_critico=True)
             user_data = {
-                'user_id': global_mem.lead_data.user_id,
-                'name': global_mem.lead_data.name,
-                'email': global_mem.lead_data.email,
-                'phone': global_mem.lead_data.phone,
-                'selected_course': global_mem.lead_data.selected_course,
-                'stage': global_mem.lead_data.stage
+                'user_id': context.bot_data['global_mem'].lead_data.user_id,
+                'name': context.bot_data['global_mem'].lead_data.name,
+                'email': context.bot_data['global_mem'].lead_data.email,
+                'phone': context.bot_data['global_mem'].lead_data.phone,
+                'selected_course': context.bot_data['global_mem'].lead_data.selected_course,
+                'stage': context.bot_data['global_mem'].lead_data.stage
             }
             notify_advisor_contact_request(user_data)
             return
@@ -279,18 +279,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # Si no se detecta intención clara, sigue el flujo conversacional normal
 
     # Ensure memory is loaded for this specific user
-    if global_user_id != user_id_str or not global_mem.lead_data.user_id:
-        global_user_id = user_id_str
-        global_mem = Memory()
-        global_mem.load(global_user_id)
-        global_mem.lead_data.user_id = user_id_str
-        if not global_mem.lead_data.user_id:
-            global_mem.lead_data.user_id = user_id_str
-            global_mem.lead_data.stage = "inicio"
-            global_mem.save()
+    if 'global_user_id' not in context.bot_data:
+        context.bot_data['global_user_id'] = None
+    if 'global_mem' not in context.bot_data:
+        context.bot_data['global_mem'] = Memory()
+    if context.bot_data['global_user_id'] != user_id_str or not context.bot_data['global_mem'].lead_data.user_id:
+        context.bot_data['global_user_id'] = user_id_str
+        context.bot_data['global_mem'] = Memory()
+        context.bot_data['global_mem'].load(context.bot_data['global_user_id'])
+        context.bot_data['global_mem'].lead_data.user_id = user_id_str
+        if not context.bot_data['global_mem'].lead_data.user_id:
+            context.bot_data['global_mem'].lead_data.user_id = user_id_str
+            context.bot_data['global_mem'].lead_data.stage = "inicio"
+            context.bot_data['global_mem'].save()
 
     # Verificar si ya aceptó la privacidad
-    if not ensure_privacy(update):
+    if not ensure_privacy(update, context):
         logger.info(f"Usuario {user_id_str} no ha aceptado privacidad, mostrando aviso")
         await send_privacy_notice(update, context)
         return
@@ -309,39 +313,39 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         if not curso_info:
             await send_agent_telegram(update, "No se encontró información del curso en la base de datos. Un asesor te contactará.")
             return
-        global_mem.lead_data.selected_course = id_curso
-        global_mem.lead_data.stage = "info"
+        context.bot_data['global_mem'].lead_data.selected_course = id_curso
+        context.bot_data['global_mem'].lead_data.stage = "info"
         nombre_usuario = update.effective_user.first_name if update.effective_user and update.effective_user.first_name else None
-        global_mem.lead_data.name = nombre_usuario or "Usuario"
-        global_mem.lead_data.interests = [codigo_anuncio]
-        save_lead(global_mem.lead_data)
-        global_mem.save()
+        context.bot_data['global_mem'].lead_data.name = nombre_usuario or "Usuario"
+        context.bot_data['global_mem'].lead_data.interests = [codigo_anuncio]
+        save_lead(context.bot_data['global_mem'].lead_data)
+        context.bot_data['global_mem'].save()
         saludo = f"Hola {nombre_usuario or 'amigo'} 😄 ¿cómo estás? Mi nombre es Brenda. Soy un sistema inteligente, parte del equipo de Aprende y Aplica IA. Recibí tu solicitud de información sobre el curso: *{curso_info['name']}*. ¡Con gusto te ayudo!"
         await send_agent_telegram(update, saludo, None)
         await send_agent_telegram(update, "Antes de continuar, ¿cómo te gustaría que te llame?", create_main_keyboard())
-        global_mem.lead_data.stage = "awaiting_preferred_name"
-        global_mem.save()
+        context.bot_data['global_mem'].lead_data.stage = "awaiting_preferred_name"
+        context.bot_data['global_mem'].save()
         return
 
     # --- FLUJO DE CAPTURA DE DATOS INICIALES ---
-    if global_mem.lead_data.stage == "awaiting_email":
+    if context.bot_data['global_mem'].lead_data.stage == "awaiting_email":
         if "@" in user_input and "." in user_input:
-            global_mem.lead_data.email = user_input
-            global_mem.lead_data.stage = "awaiting_phone"
-            global_mem.save()
+            context.bot_data['global_mem'].lead_data.email = user_input
+            context.bot_data['global_mem'].lead_data.stage = "awaiting_phone"
+            context.bot_data['global_mem'].save()
             await send_agent_telegram(update, "¡Gracias! ¿Y tu número de celular (opcional, para avisos importantes)?")
         else:
             await send_agent_telegram(update, "¿Podés ingresar un correo válido, por favor? Debe contener @ y un dominio.")
         return
-    elif global_mem.lead_data.stage == "awaiting_phone":
+    elif context.bot_data['global_mem'].lead_data.stage == "awaiting_phone":
         if user_input:
-            global_mem.lead_data.phone = user_input
-        global_mem.lead_data.stage = "info"
-        if save_lead(global_mem.lead_data):
+            context.bot_data['global_mem'].lead_data.phone = user_input
+        context.bot_data['global_mem'].lead_data.stage = "info"
+        if save_lead(context.bot_data['global_mem'].lead_data):
             logger.info(f"Lead guardado exitosamente para usuario {user_id_str}")
         else:
             logger.warning(f"No se pudo guardar lead para usuario {user_id_str}")
-        global_mem.save()
+        context.bot_data['global_mem'].save()
         welcome_msg = (
             "¡Perfecto! 🎉 Ahora puedo ayudarte mejor.\n\n"
             "¿Qué te gustaría aprender sobre Inteligencia Artificial? "
@@ -352,14 +356,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
 
     # --- FLUJO NORMAL: NOMBRE, EMAIL, TELÉFONO, ETC. ---
-    if global_mem.lead_data.stage == "awaiting_name":
+    if context.bot_data['global_mem'].lead_data.stage == "awaiting_name":
         nombre = user_input.strip()
         if len(nombre) > 1 and all(x.isalpha() or x.isspace() for x in nombre):
-            global_mem.lead_data.name = nombre.title()
-            global_mem.lead_data.stage = "info"
-            global_mem.save()
+            context.bot_data['global_mem'].lead_data.name = nombre.title()
+            context.bot_data['global_mem'].lead_data.stage = "info"
+            context.bot_data['global_mem'].save()
             mensaje_bienvenida = (
-                f"¡Gracias, {global_mem.lead_data.name}! 🎉 Ahora sí, dime ¿qué te gustaría aprender sobre Inteligencia Artificial? "
+                f"¡Gracias, {context.bot_data['global_mem'].lead_data.name}! 🎉 Ahora sí, dime ¿qué te gustaría aprender sobre Inteligencia Artificial? "
                 "Tenemos cursos prácticos, generación de imágenes, prompts y mucho más para que lleves tu conocimiento al siguiente nivel."
             )
             await send_agent_telegram(update, mensaje_bienvenida, create_main_keyboard(), msg_critico=True)
@@ -369,20 +373,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
 
     # --- FLUJO DE NOMBRE PREFERIDO ---
-    if global_mem.lead_data.stage == "awaiting_preferred_name":
+    if context.bot_data['global_mem'].lead_data.stage == "awaiting_preferred_name":
         nombre_preferido = user_input.strip()
         if len(nombre_preferido) > 1 and not any(x in nombre_preferido.lower() for x in ["no", "igual", "como quieras", "da igual", "me da igual"]):
-            global_mem.lead_data.name = nombre_preferido.title()
-            global_mem.lead_data.stage = "info"
-            global_mem.save()
-            await send_agent_telegram(update, f"¡Perfecto, {global_mem.lead_data.name}! A partir de ahora me dirigiré a ti así. 😊")
+            context.bot_data['global_mem'].lead_data.name = nombre_preferido.title()
+            context.bot_data['global_mem'].lead_data.stage = "info"
+            context.bot_data['global_mem'].save()
+            await send_agent_telegram(update, f"¡Perfecto, {context.bot_data['global_mem'].lead_data.name}! A partir de ahora me dirigiré a ti así. 😊")
         else:
             nombre_telegram = update.effective_user.first_name if update.effective_user and update.effective_user.first_name else "amigo"
-            global_mem.lead_data.name = nombre_telegram
-            global_mem.lead_data.stage = "info"
-            global_mem.save()
-            await send_agent_telegram(update, f"¡Perfecto! Me dirigiré a ti como {global_mem.lead_data.name}.")
-        curso_info = get_course_detail(global_mem.lead_data.selected_course)
+            context.bot_data['global_mem'].lead_data.name = nombre_telegram
+            context.bot_data['global_mem'].lead_data.stage = "info"
+            context.bot_data['global_mem'].save()
+            await send_agent_telegram(update, f"¡Perfecto! Me dirigiré a ti como {context.bot_data['global_mem'].lead_data.name}.")
+        curso_info = get_course_detail(context.bot_data['global_mem'].lead_data.selected_course)
         if curso_info:
             messages = []
             try:
@@ -395,7 +399,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                     await update.message.reply_document(pdf_file)
             except Exception as e:
                 logger.warning(f"No se pudo enviar PDF: {e}")
-            messages.append(f"{global_mem.lead_data.name}, aquí tienes toda la información detallada y el temario del curso. Si tienes alguna pregunta, ¡estoy para ayudarte en todo momento!")
+            messages.append(f"{context.bot_data['global_mem'].lead_data.name}, aquí tienes toda la información detallada y el temario del curso. Si tienes alguna pregunta, ¡estoy para ayudarte en todo momento!")
             resumen = (
                 f"*Modalidad:* {curso_info.get('modality', 'No especificado')}\n"
                 f"*Duración:* {curso_info.get('total_duration', 'N/A')} horas\n"
@@ -417,17 +421,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     # --- PROCESAMIENTO PRINCIPAL Y RESPUESTA ---
     try:
-        bot_reply = process_user_input(user_input, global_mem)
-        if global_mem.lead_data.email:
-            global_mem.history.append({
+        bot_reply = openai_intent_and_response(user_input, "")
+        if context.bot_data['global_mem'].lead_data.email:
+            context.bot_data['global_mem'].history.append({
                 "user_input": user_input,
                 "bot_reply": bot_reply,
                 "timestamp": time.time()
             })
-        global_mem.save()
+        context.bot_data['global_mem'].save()
         # Determinar el tipo de contexto para los CTAs
         context_type = "default"
-        if global_mem.lead_data.selected_course:
+        if context.bot_data['global_mem'].lead_data.selected_course:
             context_type = "course_selected"
         if any(word in user_input.lower() for word in ['precio', 'costo', 'cuánto', 'cuanto', 'pagar']):
             context_type = "pricing_inquiry"
@@ -448,12 +452,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if detect_negative_feedback(user_input):
         logger.info(f"NEGATIVE feedback detectado para usuario {user_id_str}")
     # --- Interest Score: READ_VALUE ---
-    if hasattr(global_mem.lead_data, 'awaiting_ack') and global_mem.lead_data.awaiting_ack:
-        last_ack = getattr(global_mem.lead_data, 'last_ack_time', None)
+    if hasattr(context.bot_data['global_mem'].lead_data, 'awaiting_ack') and context.bot_data['global_mem'].lead_data.awaiting_ack:
+        last_ack = getattr(context.bot_data['global_mem'].lead_data, 'last_ack_time', None)
         if last_ack and (time.time() - last_ack < 600):
             logger.info(f"READ_VALUE disparado para usuario {user_id_str}")
-        global_mem.lead_data.awaiting_ack = False
-        global_mem.save()
+        context.bot_data['global_mem'].lead_data.awaiting_ack = False
+        context.bot_data['global_mem'].save()
 
 @handle_telegram_errors
 async def send_agent_telegram(update: Update, msg: str, keyboard=None, msg_critico=False) -> None:
@@ -495,8 +499,6 @@ async def edit_message(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message
 @handle_telegram_errors
 async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Maneja las respuestas a botones interactivos con nuevos CTAs y privacidad."""
-    global global_mem, global_user_id
-    
     query = update.callback_query
     if not query:
         logger.warning("Callback query es None")
@@ -511,33 +513,37 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     logger.info(f"Callback recibido de usuario {user_id_str}: {query.data}")
     
     # Ensure memory is loaded
-    if global_user_id != user_id_str or not global_mem.lead_data.user_id:
-        global_user_id = user_id_str
-        global_mem = Memory()
-        global_mem.load(global_user_id)
-        global_mem.lead_data.user_id = user_id_str
-        if not global_mem.lead_data.user_id:
-            global_mem.lead_data.user_id = user_id_str
-            global_mem.lead_data.stage = "inicio"
-            global_mem.save()
+    if 'global_user_id' not in context.bot_data:
+        context.bot_data['global_user_id'] = None
+    if 'global_mem' not in context.bot_data:
+        context.bot_data['global_mem'] = Memory()
+    if context.bot_data['global_user_id'] != user_id_str or not context.bot_data['global_mem'].lead_data.user_id:
+        context.bot_data['global_user_id'] = user_id_str
+        context.bot_data['global_mem'] = Memory()
+        context.bot_data['global_mem'].load(context.bot_data['global_user_id'])
+        context.bot_data['global_mem'].lead_data.user_id = user_id_str
+        if not context.bot_data['global_mem'].lead_data.user_id:
+            context.bot_data['global_mem'].lead_data.user_id = user_id_str
+            context.bot_data['global_mem'].lead_data.stage = "inicio"
+            context.bot_data['global_mem'].save()
     
     try:
         # --- FLUJO DE PRIVACIDAD ---
         if query.data == "privacy_accept":
-            global_mem.lead_data.privacy_accepted = True
-            global_mem.save()
+            context.bot_data['global_mem'].lead_data.privacy_accepted = True
+            context.bot_data['global_mem'].save()
             logger.info(f"Usuario {user_id_str} aceptó la privacidad")
             # Enviar nuevo mensaje de bienvenida con botones, sin editar el aviso
-            if not global_mem.lead_data.name:
+            if not context.bot_data['global_mem'].lead_data.name:
                 welcome_text = "¡Perfecto! 👋 Ahora puedo ayudarte mejor."
                 question_text = "¿Cómo te gustaría que te llame? 😊"
                 await send_agent_telegram(update, welcome_text, None, msg_critico=True)
                 await send_agent_telegram(update, question_text, None, msg_critico=True)
-                global_mem.lead_data.stage = "awaiting_name"
-                global_mem.save()
+                context.bot_data['global_mem'].lead_data.stage = "awaiting_name"
+                context.bot_data['global_mem'].save()
             else:
                 welcome_msg = (
-                    f"¡Hola {global_mem.lead_data.name}! 👋\n\n"
+                    f"¡Hola {context.bot_data['global_mem'].lead_data.name}! 👋\n\n"
                     "¿Qué te gustaría aprender sobre Inteligencia Artificial? "
                     "Tenemos cursos de IA práctica, prompts, generación de imágenes y más."
                 )
@@ -576,12 +582,12 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         elif query.data in ["cta_reservar"]:
             await query.edit_message_text("¡Perfecto! 🎉 Hemos registrado tu interés en reservar tu lugar. Un asesor se pondrá en contacto contigo para finalizar el proceso. ¿Te gustaría dejar tu número de WhatsApp o prefieres que te contactemos por aquí?", reply_markup=None)
             user_data = {
-                'user_id': global_mem.lead_data.user_id,
-                'name': global_mem.lead_data.name,
-                'email': global_mem.lead_data.email,
-                'phone': global_mem.lead_data.phone,
-                'selected_course': global_mem.lead_data.selected_course,
-                'stage': global_mem.lead_data.stage
+                'user_id': context.bot_data['global_mem'].lead_data.user_id,
+                'name': context.bot_data['global_mem'].lead_data.name,
+                'email': context.bot_data['global_mem'].lead_data.email,
+                'phone': context.bot_data['global_mem'].lead_data.phone,
+                'selected_course': context.bot_data['global_mem'].lead_data.selected_course,
+                'stage': context.bot_data['global_mem'].lead_data.stage
             }
             notify_advisor_reservation_request(user_data)
             return
@@ -609,12 +615,12 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             # Siempre permitir contactar asesor, sin importar score ni curso
             await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_main_keyboard(), msg_critico=True)
             user_data = {
-                'user_id': global_mem.lead_data.user_id,
-                'name': global_mem.lead_data.name,
-                'email': global_mem.lead_data.email,
-                'phone': global_mem.lead_data.phone,
-                'selected_course': global_mem.lead_data.selected_course,
-                'stage': global_mem.lead_data.stage
+                'user_id': context.bot_data['global_mem'].lead_data.user_id,
+                'name': context.bot_data['global_mem'].lead_data.name,
+                'email': context.bot_data['global_mem'].lead_data.email,
+                'phone': context.bot_data['global_mem'].lead_data.phone,
+                'selected_course': context.bot_data['global_mem'].lead_data.selected_course,
+                'stage': context.bot_data['global_mem'].lead_data.stage
             }
             notify_advisor_contact_request(user_data)
             return
@@ -638,7 +644,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             
         # --- NUEVOS CTAs CONTEXTUALES ---
         elif query.data in ["cta_comprar_curso", "cta_comprar_ahora", "cta_finalizar_compra", "cta_inscribirse"]:
-            course_id = global_mem.lead_data.selected_course
+            course_id = context.bot_data['global_mem'].lead_data.selected_course
             if course_id:
                 course = get_course_detail(course_id)
                 # Simular siempre un enlace de compra aunque no exista en la base
@@ -659,7 +665,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             return
             
         elif query.data in ["cta_ver_modulos"]:
-            course_id = global_mem.lead_data.selected_course
+            course_id = context.bot_data['global_mem'].lead_data.selected_course
             if course_id:
                 modules = get_modules(course_id)
                 if modules:
@@ -696,12 +702,12 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         elif query.data in ["cta_plan_pagos", "cta_negociar"]:
             await query.edit_message_text("¡Perfecto! Un asesor especializado en planes de pago te contactará para ofrecerte las mejores opciones. ¿Te parece bien?", reply_markup=None)
             user_data = {
-                'user_id': global_mem.lead_data.user_id,
-                'name': global_mem.lead_data.name,
-                'email': global_mem.lead_data.email,
-                'phone': global_mem.lead_data.phone,
-                'selected_course': global_mem.lead_data.selected_course,
-                'stage': global_mem.lead_data.stage
+                'user_id': context.bot_data['global_mem'].lead_data.user_id,
+                'name': context.bot_data['global_mem'].lead_data.name,
+                'email': context.bot_data['global_mem'].lead_data.email,
+                'phone': context.bot_data['global_mem'].lead_data.phone,
+                'selected_course': context.bot_data['global_mem'].lead_data.selected_course,
+                'stage': context.bot_data['global_mem'].lead_data.stage
             }
             notify_advisor_contact_request(user_data)
             return
@@ -748,8 +754,8 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             course_id = query.data.replace("course_", "")
             course = get_course_detail(course_id)
             if course:
-                global_mem.lead_data.selected_course = course_id
-                global_mem.save()
+                context.bot_data['global_mem'].lead_data.selected_course = course_id
+                context.bot_data['global_mem'].save()
                 
                 course_text = (
                     f"📚 **{course['name']}**\n\n"

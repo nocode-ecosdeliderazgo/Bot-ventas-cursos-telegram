@@ -506,3 +506,96 @@ NameError: name 'user_input' is not defined. Did you mean: 'user_id_str'?
 2025-07-03 04:11:26,264 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
 2025-07-03 04:11:26,433 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
 2025-07-03 04:11:26,435 - telegram.ext.Application - INFO - Application started
+2025-07-03 04:13:11,337 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 04:13:11,337 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 04:13:11,338 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 04:13:11,517 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 04:13:11,517 - bot.memory - ERROR - Error limpiando memorias antiguas: [WinError 3] El sistema no puede encontrar la ruta especificada: 'd:\\EcosDeLiderazgo\\ProyectosEcosDeLiderazgo\\En Desarrollo\\Bot_ventas\\bot\\memorias'
+2025-07-03 04:13:11,517 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 04:13:12,074 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 04:13:12,236 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 04:13:12,238 - telegram.ext.Application - INFO - Application started
+2025-07-03 04:13:18,577 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:13:18,578 - bot.handlers - INFO - Comando /start recibido de usuario 8101815097
+2025-07-03 04:13:18,578 - bot.handlers - ERROR - Error inesperado en start_command: name 'global_user_id' is not defined
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers.py", line 40, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers.py", line 123, in start_command
+    if global_user_id != user_id_str or not global_mem.lead_data.user_id:
+NameError: name 'global_user_id' is not defined
+2025-07-03 04:13:19,222 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 04:13:19,223 - telegram.ext.Application - ERROR - No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_application.py", line 1298, in process_update
+    await coroutine
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_handlers\basehandler.py", line 158, in handle_update
+    return await self.callback(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers.py", line 40, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers.py", line 123, in start_command
+    if global_user_id != user_id_str or not global_mem.lead_data.user_id:
+NameError: name 'global_user_id' is not defined
+2025-07-03 04:13:28,752 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:13:38,937 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:13:49,104 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:13:59,274 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:14:09,442 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:14:09,602 - __main__ - INFO - Bot de Telegram finalizado
+2025-07-03 04:14:09,602 - __main__ - INFO - Bot interrumpido por el usuario (Ctrl+C)
+2025-07-03 04:16:18,676 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 04:16:18,677 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 04:16:18,677 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 04:16:18,851 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 04:16:18,851 - bot.memory - ERROR - Error limpiando memorias antiguas: [WinError 3] El sistema no puede encontrar la ruta especificada: 'd:\\EcosDeLiderazgo\\ProyectosEcosDeLiderazgo\\En Desarrollo\\Bot_ventas\\bot\\memorias'
+2025-07-03 04:16:18,851 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 04:16:19,390 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 04:16:19,556 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 04:16:19,557 - telegram.ext.Application - INFO - Application started
+2025-07-03 04:16:22,192 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:16:22,193 - bot.handlers - INFO - Comando /start recibido de usuario 8101815097
+2025-07-03 04:16:22,194 - bot.handlers - ERROR - Error inesperado en start_command: 'global_user_id'
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers.py", line 41, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers.py", line 122, in start_command
+    if context.bot_data['global_user_id'] != user_id_str or not context.bot_data['global_mem'].lead_data.user_id:
+KeyError: 'global_user_id'
+2025-07-03 04:16:22,473 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 04:16:22,474 - telegram.ext.Application - ERROR - No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_application.py", line 1298, in process_update
+    await coroutine
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_handlers\basehandler.py", line 158, in handle_update
+    return await self.callback(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers.py", line 41, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers.py", line 122, in start_command
+    if context.bot_data['global_user_id'] != user_id_str or not context.bot_data['global_mem'].lead_data.user_id:
+KeyError: 'global_user_id'
+2025-07-03 04:16:32,352 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:16:42,523 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:16:52,681 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:16:52,852 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:16:52,853 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-07-03 04:16:52,853 - telegram.ext.Application - INFO - Application.stop() complete
+2025-07-03 04:16:52,855 - __main__ - INFO - Bot de Telegram finalizado
+2025-07-03 04:16:52,855 - __main__ - INFO - Bot finalizado normalmente
+2025-07-03 04:18:02,276 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 04:18:02,276 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 04:18:02,276 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 04:18:02,467 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 04:18:02,467 - bot.memory - ERROR - Error limpiando memorias antiguas: [WinError 3] El sistema no puede encontrar la ruta especificada: 'd:\\EcosDeLiderazgo\\ProyectosEcosDeLiderazgo\\En Desarrollo\\Bot_ventas\\bot\\memorias'
+2025-07-03 04:18:02,467 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 04:18:03,104 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 04:18:03,277 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 04:18:03,278 - telegram.ext.Application - INFO - Application started
+2025-07-03 04:18:06,148 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:18:06,148 - bot.handlers - INFO - Comando /start recibido de usuario 8101815097
+2025-07-03 04:18:06,149 - bot.memory - INFO - Archivo de memoria no encontrado para usuario 8101815097, inicializando nueva
+2025-07-03 04:18:06,149 - bot.handlers - INFO - Usuario 8101815097 no ha aceptado privacidad, mostrando aviso
+2025-07-03 04:18:06,438 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 04:18:12,630 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:18:22,806 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:18:27,988 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 04:18:32,528 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
