@@ -331,29 +331,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await send_agent_telegram(update, "¿Podrías ingresar un correo válido, por favor? Debe tener formato usuario@dominio.com")
         return
     elif context.bot_data['global_mem'].lead_data.stage == "awaiting_phone_contact":
-        # Validación simple de teléfono (puedes mejorarla si lo deseas)
         telefono = user_input.strip()
         if len(telefono) >= 8 and any(c.isdigit() for c in telefono):
             context.bot_data['global_mem'].lead_data.phone = telefono
             context.bot_data['global_mem'].lead_data.stage = "awaiting_course_contact"
             context.bot_data['global_mem'].save()
-            from .services import get_courses
-            from .keyboards import create_courses_list_keyboard
             cursos = get_courses()
             if cursos:
                 keyboard = create_courses_list_keyboard(cursos)
-                await send_agent_telegram(update, "¡Perfecto! Ahora selecciona el curso de tu interés:", keyboard)
+                await send_agent_telegram(update, "¡Perfecto! Ahora selecciona el curso de tu interés:", keyboard, msg_critico=True)
             else:
                 await send_agent_telegram(update, "No hay cursos disponibles en este momento.")
         else:
             await send_agent_telegram(update, "Por favor ingresa un número de teléfono válido (al menos 8 dígitos).")
         return
     elif context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
-        # Siempre mostrar la lista de cursos como botones, ignorando el texto
         cursos = get_courses()
         if cursos:
             keyboard = create_courses_list_keyboard(cursos)
-            await send_agent_telegram(update, "Selecciona el curso de tu interés:", keyboard)
+            await send_agent_telegram(update, "Selecciona el curso de tu interés:", keyboard, msg_critico=True)
         else:
             await send_agent_telegram(update, "No hay cursos disponibles en este momento.")
         return
