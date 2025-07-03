@@ -39,7 +39,7 @@ def main_telegram_bot():
         application = Application.builder().token(settings.telegram_api_token).build()
         application.add_handler(CommandHandler("start", start_command))
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-        # application.add_handler(CallbackQueryHandler(handle_callback_query))
+        application.add_handler(CallbackQueryHandler(handle_callback_query))
         # application.add_handler(PollAnswerHandler(handle_poll_answer))
         # Elimino MyChatMemberHandler y handle_stop si no existen
         logger.info("Bot de Telegram configurado. Listo para iniciar polling.")

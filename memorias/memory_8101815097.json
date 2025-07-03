@@ -1,0 +1,21 @@
+{
+    "lead_data": {
+        "user_id": "8101815097",
+        "email": "",
+        "phone": "",
+        "stage": "info",
+        "courses_seen": [],
+        "selected_course": null,
+        "escalation_pending": false,
+        "name": "Gael",
+        "role": null,
+        "interests": "",
+        "lead_score": 0,
+        "awaiting_ack": false,
+        "last_ack_time": null,
+        "privacy_accepted": true
+    },
+    "history": [],
+    "last_presented_courses": [],
+    "last_activity": 1751548608.7109685
+}
