@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     smtp_port: int
     smtp_username: str
     smtp_password: str
-
+    advisor_email: str
     class Config:
         env_file = ".env"
 
