@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 # === Carga de plantillas FAQ desde archivo JSON ===
 PLANTILLAS_FAQ = []
 try:
-    with open(os.path.join(os.path.dirname(__file__), "data", "plantillas.json"), "r", encoding="utf-8") as f:
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    faq_path = os.path.join(base_dir, 'data', 'plantillas.json')
+    with open(faq_path, "r", encoding="utf-8") as f:
         PLANTILLAS_FAQ = json.load(f)
 except Exception as e:
     print(f"[Error] No se pudo cargar plantillas.json: {e}")

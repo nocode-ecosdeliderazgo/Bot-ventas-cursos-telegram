@@ -621,6 +621,10 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 logger.warning(f"No se pudo enviar PDF info completa o checar interest_score: {e}")
             return
             
+        elif query.data in ["cta_asesor", "cta_asesor_curso", "cta_comprar_curso", "cta_comprar_ahora", "cta_finalizar_compra", "cta_inscribirse", "cta_plan_pagos"]:
+            await forzar_seleccion_curso(update, context)
+            return    
+
         elif query.data in ["cta_asesor", "cta_asesor_curso", "cta_asistencia", "cta_llamar", "cta_plan_pagos", "cta_negociar", "cta_reservar", "cta_finalizar_compra", "cta_inscribirse"]:
             await contactar_asesor(update, context)
             return
@@ -774,19 +778,34 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             return
 
         elif query.data.startswith("course_"):
-            # Nuevo flujo: mostrar menú de opciones del curso sin contactar a un asesor
             course_id = query.data.replace("course_", "")
             course = get_course_detail(course_id)
             if course:
                 context.bot_data['global_mem'].lead_data.selected_course = course_id
-                context.bot_data['global_mem'].lead_data.stage = "exploring_course"
-                context.bot_data['global_mem'].save()
-                # Mostrar menú de opciones del curso (exploración)
-                keyboard = create_course_explore_keyboard(course_id, course.get('name', 'Curso'))
-                info_text = f"<b>{course.get('name', 'Curso')}</b>\n\n{course.get('short_description', '')}\n\n¿Qué te gustaría hacer?"
-                await query.edit_message_text(info_text, reply_markup=keyboard, parse_mode='HTML')
+                if context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+                    context.bot_data['global_mem'].save()
+                    await mostrar_menu_curso_contacto(query, course)
+                else:
+                    context.bot_data['global_mem'].lead_data.stage = "exploring_course"
+                    context.bot_data['global_mem'].save()
+                    await mostrar_menu_curso_exploracion(query, course)
             else:
                 await query.edit_message_text("No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_courses_list_keyboard(get_courses()))
+            return
+        # En el handler de select_course_ para stage == 'awaiting_course_contact', después de seleccionar el curso, actualizar el stage y mostrar la confirmación
+        elif query.data.startswith("select_course_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+            course_id = query.data.replace("select_course_", "")
+            context.bot_data['global_mem'].lead_data.selected_course = course_id
+            context.bot_data['global_mem'].lead_data.stage = "awaiting_contact_confirmation"
+            context.bot_data['global_mem'].save()
+            await mostrar_confirmacion_datos(update, context, query)
+            return
+        # Unifica el manejo de confirm_contact_data y edit_contact_data
+        elif query.data == "confirm_contact_data" and context.bot_data['global_mem'].lead_data.stage == "awaiting_contact_confirmation":
+            await contactar_asesor(update, context)
+            return
+        elif query.data == "edit_contact_data" and context.bot_data['global_mem'].lead_data.stage == "awaiting_contact_confirmation":
+            await editar_datos_contacto(update, context, query)
             return
         elif query.data.startswith("modules_") and context.bot_data['global_mem'].lead_data.stage in ["awaiting_course_contact", "exploring_course"]:
             course_id = query.data.replace("modules_", "")
@@ -826,7 +845,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             else:
                 await query.edit_message_text("No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_courses_list_keyboard(get_courses()))
             return
-        elif query.data == "change_course" and context.bot_data['global_mem'].lead_data.stage in ["awaiting_course_contact", "exploring_course"]:
+        elif query.data == "change_course" and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
             cursos = get_courses()
             if cursos:
                 keyboard = create_courses_list_keyboard(cursos)
@@ -918,6 +937,27 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             else:
                 await query.edit_message_text("No se encontró información del curso para comprar.")
             return
+        # --- Selección de curso en flujos de contacto/promociones/plan de pagos ---
+        elif query.data.startswith("course_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+            course_id = query.data.replace("course_", "")
+            course = get_course_detail(course_id)
+            if course:
+                context.bot_data['global_mem'].lead_data.selected_course = course_id
+                context.bot_data['global_mem'].save()
+                # Mostrar menú de selección de curso (con botón 'Seleccionar este curso')
+                keyboard = create_course_selection_keyboard(course_id, course.get('name', 'Curso'))
+                info_text = f"<b>{course.get('name', 'Curso')}</b>\n\n{course.get('short_description', '')}\n\n¿Qué te gustaría hacer?"
+                await query.edit_message_text(info_text, reply_markup=keyboard, parse_mode='HTML')
+            else:
+                await query.edit_message_text("No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_courses_list_keyboard(get_courses()))
+            return
+        elif query.data.startswith("select_course_") and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+            course_id = query.data.replace("select_course_", "")
+            context.bot_data['global_mem'].lead_data.selected_course = course_id
+            context.bot_data['global_mem'].save()
+            # Continuar flujo de confirmación de datos y luego contacto
+            await contact_advisor_flow(update, context, query)
+            return
         else:
             # Callback no reconocido
             logger.warning(f"Callback no reconocido: {query.data}")
@@ -943,23 +983,22 @@ def handle_payment_webhook(user_id: str, payment_data: dict) -> None:
     if user_id:
         logger.info(f"Pago registrado para usuario {user_id}")
 
-# --- NUEVAS FUNCIONES REUTILIZABLES ---
-async def mostrar_lista_cursos(update, context, mensaje="Selecciona el curso de tu interés:"):
-    cursos = get_courses()
-    if cursos:
-        keyboard = create_courses_list_keyboard(cursos)
-        if hasattr(update, 'callback_query') and update.callback_query:
-            await update.callback_query.edit_message_text(mensaje, reply_markup=keyboard)
-        else:
-            await send_agent_telegram(update, mensaje, keyboard, msg_critico=True)
-    else:
-        if hasattr(update, 'callback_query') and update.callback_query:
-            await update.callback_query.edit_message_text("No hay cursos disponibles en este momento.")
-        else:
-            await send_agent_telegram(update, "No hay cursos disponibles en este momento.")
+# --- FUNCIONES REUTILIZABLES DE MENÚS Y FLUJOS DE CONTACTO ---
+async def mostrar_menu_curso_exploracion(query, course):
+    """Muestra el menú de curso con botón 'Comprar este curso' (exploración)."""
+    keyboard = create_course_explore_keyboard(course['id'], course.get('name', 'Curso'))
+    info_text = f"<b>{course.get('name', 'Curso')}</b>\n\n{course.get('short_description', '')}\n\n¿Qué te gustaría hacer?"
+    await query.edit_message_text(info_text, reply_markup=keyboard, parse_mode='HTML')
+
+async def mostrar_menu_curso_contacto(query, course):
+    """Muestra el menú de curso con botón 'Seleccionar este curso' (contacto/promociones)."""
+    keyboard = create_course_selection_keyboard(course['id'], course.get('name', 'Curso'))
+    info_text = f"<b>{course.get('name', 'Curso')}</b>\n\n{course.get('short_description', '')}\n\n¿Qué te gustaría hacer?"
+    await query.edit_message_text(info_text, reply_markup=keyboard, parse_mode='HTML')
 
 async def solicitar_datos_contacto(update, context):
     lead = context.bot_data['global_mem'].lead_data
+    # 1. Solicitar correo
     if not lead.email:
         lead.stage = "awaiting_email_contact"
         context.bot_data['global_mem'].save()
@@ -970,6 +1009,7 @@ async def solicitar_datos_contacto(update, context):
             await send_agent_telegram(update, "Para que un asesor pueda contactarte, necesito algunos datos.")
             await send_agent_telegram(update, "Por favor, ingresa tu correo electrónico:")
         return False
+    # 2. Solicitar teléfono
     if not lead.phone:
         lead.stage = "awaiting_phone_contact"
         context.bot_data['global_mem'].save()
@@ -978,7 +1018,53 @@ async def solicitar_datos_contacto(update, context):
         else:
             await send_agent_telegram(update, "Ahora, por favor ingresa tu número de teléfono:")
         return False
+    # 3. Solicitar selección de curso
+    if not lead.selected_course:
+        lead.stage = "awaiting_course_contact"
+        context.bot_data['global_mem'].save()
+        cursos = get_courses()
+        if cursos:
+            keyboard = create_courses_list_keyboard(cursos)
+            if hasattr(update, 'callback_query') and update.callback_query:
+                await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="Selecciona el curso de tu interés:", reply_markup=keyboard)
+            else:
+                await send_agent_telegram(update, "Selecciona el curso de tu interés:", keyboard)
+        else:
+            if hasattr(update, 'callback_query') and update.callback_query:
+                await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="No hay cursos disponibles en este momento.")
+            else:
+                await send_agent_telegram(update, "No hay cursos disponibles en este momento.")
+        return False
+
+    
+    # Si ya tiene todos los datos, pasar a confirmación
     return True
+
+async def mostrar_confirmacion_datos(update, context, query=None):
+    lead = context.bot_data['global_mem'].lead_data
+    chat_id = query.message.chat.id if query and query.message and query.message.chat else (update.effective_chat.id if update and update.effective_chat else None)
+    resumen = f"Por favor confirma que tus datos son correctos:\n\n" \
+        f"Correo: {lead.email or 'No proporcionado'}\n" \
+        f"Teléfono: {lead.phone or 'No proporcionado'}\n" \
+        f"Curso: {lead.selected_course or 'No seleccionado'}\n\n" \
+        f"¿Son correctos?"
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("✅ Sí, son correctos", callback_data="confirm_contact_data")],
+        [InlineKeyboardButton("❌ No, quiero corregirlos", callback_data="edit_contact_data")]
+    ])
+    await context.bot.send_message(chat_id=chat_id, text=resumen, reply_markup=keyboard)
+
+async def editar_datos_contacto(update, context, query=None):
+    lead = context.bot_data['global_mem'].lead_data
+    lead.email = ""
+    lead.phone = ""
+    lead.selected_course = None
+    lead.stage = "awaiting_email_contact"
+    context.bot_data['global_mem'].save()
+    if query:
+        await query.edit_message_text("Vamos a corregir tus datos. Por favor, ingresa tu correo electrónico:")
+    else:
+        await send_agent_telegram(update, "Vamos a corregir tus datos. Por favor, ingresa tu correo electrónico:")
 
 async def contactar_asesor(update, context):
     if not await solicitar_datos_contacto(update, context):
@@ -1008,15 +1094,15 @@ async def contactar_asesor(update, context):
         await send_agent_telegram(update, "Menú principal:", create_main_keyboard())
         await send_agent_telegram(update, "Menú principal:", create_main_inline_keyboard())
 
-# --- USO EN FLUJOS ---
-# En FAQ: nunca llamar a contactar_asesor ni solicitar_datos_contacto, solo mostrar_lista_cursos y responder FAQ.
-# En promociones y submenús de contacto: reemplaza la lógica por llamadas a solicitar_datos_contacto y contactar_asesor según corresponda.
-
-# --- REEMPLAZO EN FLUJOS DE PROMOCIONES Y CONTACTO ---
-# Ejemplo para un flujo de contacto:
-# await contactar_asesor(update, context)
-# Ejemplo para mostrar cursos:
-# await mostrar_lista_cursos(update, context)
+# --- USO DE FUNCIONES SEGÚN CONTEXTO ---
+# En exploración de cursos:
+#   - mostrar_menu_curso_exploracion
+# En promociones/contacto/plan de pagos:
+#   - mostrar_menu_curso_contacto
+#   - solicitar_datos_contacto
+#   - mostrar_confirmacion_datos
+#   - editar_datos_contacto
+#   - contactar_asesor
 
 CURSOS_MAP = {
     "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9"
@@ -1077,3 +1163,27 @@ async def contact_advisor_flow(update, context, query=None):
     ])
     await context.bot.send_message(chat_id=chat_id, text=resumen, reply_markup=keyboard)
     return
+
+# En los flujos de contactar asesor, comprar, promociones, etc., fuerza siempre la selección de curso antes de continuar
+async def forzar_seleccion_curso(update, context, mensaje="Selecciona el curso de tu interés:"):
+    lead = context.bot_data['global_mem'].lead_data
+    lead.selected_course = None
+    lead.stage = "awaiting_course_contact"
+    context.bot_data['global_mem'].save()
+    cursos = get_courses()
+    if cursos:
+        keyboard = create_courses_list_keyboard(cursos)
+        if hasattr(update, 'callback_query') and update.callback_query:
+            await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text=mensaje, reply_markup=keyboard)
+        else:
+            await send_agent_telegram(update, mensaje, keyboard)
+    else:
+        if hasattr(update, 'callback_query') and update.callback_query:
+            await context.bot.send_message(chat_id=update.callback_query.message.chat.id, text="No hay cursos disponibles en este momento.")
+        else:
+            await send_agent_telegram(update, "No hay cursos disponibles en este momento.")
+    return False
+
+# En todos los flujos que impliquen contacto, compra, promociones, etc., llama a forzar_seleccion_curso antes de continuar
+# Ejemplo en el handler de cta_asesor, cta_comprar_curso, cta_comprar_ahora, cta_finalizar_compra, cta_inscribirse, cta_plan_pagos, etc.
+

@@ -1,0 +1,31 @@
+{
+    "lead_data": {
+        "user_id": "7974970632",
+        "email": "vlf65081@gmail.com",
+        "phone": "2382205550",
+        "stage": "exploring_course",
+        "courses_seen": [],
+        "selected_course": "a392bf83-4908-4807-89a9-95d0acc807c9",
+        "escalation_pending": false,
+        "name": "Rosita Fresita",
+        "role": null,
+        "interests": "",
+        "lead_score": 0,
+        "awaiting_ack": false,
+        "last_ack_time": null,
+        "privacy_accepted": true
+    },
+    "history": [
+        {
+            "user_input": "\ud83d\udcda Ver Cursos",
+            "bot_reply": {
+                "intent": "LIST_COURSES",
+                "response": "\u00a1Claro! Tenemos una variedad de cursos impresionantes en Inteligencia Artificial. Algunos de los m\u00e1s populares incluyen IA para negocios, IA para principiantes, IA avanzada y IA para marketing. \u00bfEn cu\u00e1l est\u00e1s m\u00e1s interesado?",
+                "course_name": null
+            },
+            "timestamp": 1751572837.733991
+        }
+    ],
+    "last_presented_courses": [],
+    "last_activity": 1751572885.3335621
+}
