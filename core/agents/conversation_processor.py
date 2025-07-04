@@ -143,7 +143,7 @@ class ConversationProcessor:
             
             async with aiohttp.ClientSession() as session:
                 payload = {
-                    "model": "gpt-4o-mini",
+                    "model": "gpt-4.1-mini",
                     "messages": [
                         {"role": "system", "content": "Eres un experto analizador de intenciones. Responde solo en JSON válido."},
                         {"role": "user", "content": prompt}

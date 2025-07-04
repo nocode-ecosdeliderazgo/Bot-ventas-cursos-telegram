@@ -9419,3 +9419,406 @@ Traceback (most recent call last):
 RuntimeError: This Application is still running!
 2025-07-04 14:29:48,604 - __main__ - INFO - Bot detenido correctamente
 2025-07-04 14:29:48,604 - __main__ - INFO - Bot finalizado
+2025-07-04 16:23:45,185 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 16:23:45,186 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 16:23:45,188 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 16:23:45,255 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 16:23:45,276 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 16:23:45,277 - __main__ - INFO - Iniciando bot...
+2025-07-04 16:23:45,896 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 16:23:45,898 - telegram.ext.Application - INFO - Application started
+2025-07-04 16:23:45,898 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 16:23:46,061 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 16:23:56,026 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:23:56,027 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 16:23:56,908 - core.services.supabase_service - ERROR - Error HTTP guardando lead 8101815097: Status 400
+2025-07-04 16:23:56,908 - core.agents.smart_sales_agent - WARNING - No se pudo guardar el lead en la base de datos para usuario 8101815097
+2025-07-04 16:23:57,586 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:24:06,247 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:24:16,427 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:24:24,382 - __main__ - INFO - Bot detenido por el usuario
+2025-07-04 16:24:24,382 - __main__ - INFO - Deteniendo bot...
+2025-07-04 16:24:24,870 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:24:24,870 - __main__ - ERROR - Error en start: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 240, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 226, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 16:24:24,873 - __main__ - ERROR - Error en la ejecución del bot: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 240, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 264, in main
+    await bot_app.start()
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 226, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 16:24:24,874 - __main__ - INFO - Bot detenido correctamente
+2025-07-04 16:24:24,874 - __main__ - INFO - Bot finalizado
+2025-07-04 16:24:49,757 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 16:24:49,758 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 16:24:49,759 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 16:24:49,814 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 16:24:49,837 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 16:24:49,837 - __main__ - INFO - Iniciando bot...
+2025-07-04 16:24:50,371 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 16:24:50,372 - telegram.ext.Application - INFO - Application started
+2025-07-04 16:24:50,372 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 16:24:50,530 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 16:25:00,090 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:25:00,091 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 16:25:00,855 - core.services.supabase_service - ERROR - Error HTTP guardando lead 8101815097: Status 400
+2025-07-04 16:25:00,855 - core.agents.smart_sales_agent - WARNING - No se pudo guardar el lead en la base de datos para usuario 8101815097
+2025-07-04 16:25:01,480 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:25:10,322 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:25:20,518 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:25:25,407 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:25:26,052 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:25:26,346 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:25:26,746 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendPhoto "HTTP/1.1 200 OK"
+2025-07-04 16:25:27,276 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendDocument "HTTP/1.1 200 OK"
+2025-07-04 16:25:27,572 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:25:35,578 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:25:45,750 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:25:55,911 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:26:06,102 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:26:16,268 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:26:26,432 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:26:36,600 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:26:46,767 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:26:56,930 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:27:07,643 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:27:17,834 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:27:27,996 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:27:38,158 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:27:48,331 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:27:48,741 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:27:50,580 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:27:50,592 - core.agents.intelligent_sales_agent - ERROR - Error extrayendo información del usuario: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\intelligent_sales_agent.py", line 169, in _extract_and_update_user_info
+    extracted_info = json.loads(response.choices[0].message.content)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-07-04 16:27:53,169 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:27:53,814 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:27:59,272 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:28:09,447 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:28:19,620 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:28:29,787 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:28:39,273 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:28:40,701 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:28:40,702 - core.agents.intelligent_sales_agent - ERROR - Error extrayendo información del usuario: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\intelligent_sales_agent.py", line 169, in _extract_and_update_user_info
+    extracted_info = json.loads(response.choices[0].message.content)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-07-04 16:28:42,219 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:28:42,848 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:28:49,439 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:28:59,603 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:29:09,767 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:29:19,925 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:29:30,098 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:29:40,262 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:29:50,423 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:30:00,592 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:30:10,762 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:30:20,929 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:30:31,093 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:30:41,257 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:30:51,422 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:31:01,587 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:31:11,760 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:31:19,735 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:31:19,736 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 16:31:20,596 - core.services.supabase_service - ERROR - Error HTTP guardando lead 8101815097: Status 400
+2025-07-04 16:31:20,597 - core.agents.smart_sales_agent - WARNING - No se pudo guardar el lead en la base de datos para usuario 8101815097
+2025-07-04 16:31:21,292 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:31:24,470 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:31:24,755 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:31:25,045 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:31:25,343 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendPhoto "HTTP/1.1 200 OK"
+2025-07-04 16:31:25,859 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendDocument "HTTP/1.1 200 OK"
+2025-07-04 16:31:26,187 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:31:34,632 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:31:44,803 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:31:44,981 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:31:46,211 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:31:46,214 - core.agents.intelligent_sales_agent - ERROR - Error extrayendo información del usuario: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\intelligent_sales_agent.py", line 169, in _extract_and_update_user_info
+    extracted_info = json.loads(response.choices[0].message.content)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-07-04 16:31:48,312 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:31:48,923 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:31:55,154 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:32:05,312 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:32:15,468 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:32:25,646 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:32:35,829 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:32:41,357 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:32:43,133 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:32:43,136 - core.agents.intelligent_sales_agent - ERROR - Error extrayendo información del usuario: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\intelligent_sales_agent.py", line 169, in _extract_and_update_user_info
+    extracted_info = json.loads(response.choices[0].message.content)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-07-04 16:32:45,358 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:32:45,976 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:32:51,523 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:33:01,703 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:33:11,868 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:33:22,034 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:33:32,210 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:33:42,384 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:33:52,556 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:34:02,718 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:34:12,889 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:34:23,057 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:34:33,219 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:34:43,383 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:34:53,548 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:35:03,717 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:35:13,886 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:35:24,050 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:35:34,214 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:35:44,389 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:35:54,553 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:36:04,712 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:36:14,889 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:36:25,063 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:36:35,228 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:36:45,401 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:36:55,564 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:37:05,739 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:37:15,906 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:37:26,072 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:37:36,236 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:37:46,397 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:37:56,558 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:38:06,720 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:38:16,889 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:38:27,056 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:38:37,223 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:38:47,394 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:38:57,557 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:39:07,727 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:39:17,890 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:39:28,054 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:39:38,233 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:39:48,405 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:39:58,576 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:40:08,749 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:40:18,910 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:40:29,070 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:40:39,230 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:40:49,397 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:40:59,562 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:41:09,716 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:41:20,259 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:41:30,443 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:41:40,618 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:41:44,472 - __main__ - INFO - Bot detenido por el usuario
+2025-07-04 16:41:44,472 - __main__ - INFO - Deteniendo bot...
+2025-07-04 16:41:44,984 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:41:44,985 - __main__ - ERROR - Error en start: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 240, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 226, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 16:41:44,988 - __main__ - ERROR - Error en la ejecución del bot: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 240, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 264, in main
+    await bot_app.start()
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 226, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 16:41:44,989 - __main__ - INFO - Bot detenido correctamente
+2025-07-04 16:41:44,989 - __main__ - INFO - Bot finalizado
+2025-07-04 16:51:03,792 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 16:51:03,792 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 16:51:03,793 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 16:51:03,857 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 16:51:03,877 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 16:51:03,878 - __main__ - INFO - Iniciando bot...
+2025-07-04 16:51:04,460 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 16:51:04,461 - telegram.ext.Application - INFO - Application started
+2025-07-04 16:51:04,461 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 16:51:04,639 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 16:51:15,190 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:51:17,407 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:51:17,408 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 16:51:18,264 - core.services.supabase_service - ERROR - Error HTTP guardando lead 8101815097: Status 400
+2025-07-04 16:51:18,265 - core.agents.smart_sales_agent - WARNING - No se pudo guardar el lead en la base de datos para usuario 8101815097
+2025-07-04 16:51:18,917 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:51:22,786 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:51:23,088 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:51:23,385 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:51:23,760 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendPhoto "HTTP/1.1 200 OK"
+2025-07-04 16:51:24,282 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendDocument "HTTP/1.1 200 OK"
+2025-07-04 16:51:24,593 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:51:32,962 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:51:34,032 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:51:35,848 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:51:35,856 - core.agents.intelligent_sales_agent - ERROR - Error extrayendo información del usuario: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\intelligent_sales_agent.py", line 171, in _extract_and_update_user_info
+    extracted_info = json.loads(raw_content)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-07-04 16:51:37,197 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:51:37,822 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:51:44,612 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:51:54,788 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:52:00,189 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:52:01,812 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:52:01,815 - core.agents.intelligent_sales_agent - ERROR - Error extrayendo información del usuario: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\intelligent_sales_agent.py", line 171, in _extract_and_update_user_info
+    extracted_info = json.loads(raw_content)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-07-04 16:52:03,304 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:52:03,977 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:52:10,356 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:52:20,536 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:52:30,711 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:52:33,756 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:52:35,676 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:52:35,679 - core.agents.intelligent_sales_agent - ERROR - Error extrayendo información del usuario: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\intelligent_sales_agent.py", line 171, in _extract_and_update_user_info
+    extracted_info = json.loads(raw_content)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-07-04 16:52:37,781 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-07-04 16:52:38,403 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 16:52:43,933 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:52:54,098 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:53:04,270 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:53:14,437 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:53:24,595 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:53:34,763 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:53:44,924 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:53:55,093 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:54:05,268 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:54:15,435 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:54:25,600 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:54:35,765 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:54:45,934 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:54:56,094 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:55:06,269 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 16:55:16,431 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"

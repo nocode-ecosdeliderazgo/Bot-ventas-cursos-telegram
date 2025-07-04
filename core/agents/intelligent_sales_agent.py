@@ -18,7 +18,8 @@ from core.utils.memory import LeadMemory
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """
-Eres Brenda, una asesora experta en ventas de IA de Ecos de Liderazgo. Tu objetivo es convertir leads en ventas del curso de Inteligencia Artificial de manera natural y estratégica.
+Eres Brenda, una asesora experta en ventas de IA de Ecos de Liderazgo. Tu objetivo es convertir leads en ventas del curso de Inteligencia Artificial 
+de manera natural y estratégica.
 
 REGLAS IMPORTANTES:
 1. NO saludes en cada mensaje - solo al primer contacto
@@ -89,7 +90,7 @@ class IntelligentSalesAgent:
             
             # Generar respuesta con OpenAI
             response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-mini",
                 messages=[
                     {"role": "system", "content": self.system_prompt},
                     {"role": "user", "content": user_prompt}
@@ -98,7 +99,7 @@ class IntelligentSalesAgent:
                 temperature=0.7
             )
             
-            response_text = response.choices[0].message.content
+            response_text = response.choices[0].message.content or ""
             
             # Procesar respuesta y manejar múltiples mensajes
             messages = await self._process_response(response_text, str(user_memory.user_id), user_memory.to_dict())
@@ -158,7 +159,7 @@ Solo extrae información que esté claramente presente en el mensaje.
 """
             
             response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-mini",
                 messages=[{"role": "user", "content": extraction_prompt}],
                 max_tokens=300,
                 temperature=0.1
@@ -166,7 +167,8 @@ Solo extrae información que esté claramente presente en el mensaje.
             
             # Parsear respuesta JSON
             import json
-            extracted_info = json.loads(response.choices[0].message.content)
+            raw_content = response.choices[0].message.content or ""
+            extracted_info = json.loads(raw_content)
             
             # Actualizar memoria del usuario
             if extracted_info.get('profession'):
