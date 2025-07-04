@@ -1,70 +1,128 @@
-# -*- coding: utf-8 -*-
-import logging
-import sys
-import asyncio
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
-from config.settings import settings
-from bot.handlers import (
-    start_command, handle_callback_query, mostrar_menu_principal
-)
-from bot.memory import Memory
+"""
+Bot de ventas para Telegram que utiliza un agente inteligente para convertir leads.
+"""
 
+import os
+import logging
+from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters
+from telegram import Update
+from bot.services.database import DatabaseService
+from bot.sales_agent import AgenteSalesTools
+from bot.handlers.ads_flow import AdsFlowHandler
+from dotenv import load_dotenv
+
+# Configurar logging
 logging.basicConfig(
-    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('bot.log', encoding='utf-8'),
-        logging.StreamHandler()
-    ]
+    level=logging.INFO,
+    filename='bot.log'
 )
 logger = logging.getLogger(__name__)
 
-# ==============================
-# CONFIGURACIÓN GLOBAL
-# ==============================
-CURSOS_MAP = {
-    "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9"
-}
+# Cargar variables de entorno
+load_dotenv()
 
-global_mem = Memory()
-global_user_id = None
+class VentasBot:
+    def __init__(self):
+        # Inicializar servicios
+        self.db = DatabaseService(os.getenv('DATABASE_URL'))
+        self.agent = AgenteSalesTools(self.db, None)  # Se actualizará con la API de Telegram
+        self.ads_handler = AdsFlowHandler(self.db, self.agent)
 
-async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Maneja los mensajes de texto mostrando el menú principal."""
-    await mostrar_menu_principal(update, context)
+    async def start(self):
+        """Inicia el bot y configura los handlers."""
+        # Crear aplicación
+        self.app = Application.builder().token(os.getenv('TELEGRAM_TOKEN')).build()
+        
+        # Actualizar agente con API de Telegram
+        self.agent.telegram = self.app.bot
+        
+        # Conectar a la base de datos
+        await self.db.connect()
+        
+        # Configurar handlers
+        self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
+        self.app.add_handler(CallbackQueryHandler(self.handle_callback))
+        
+        # Iniciar bot
+        await self.app.initialize()
+        await self.app.start()
+        await self.app.run_polling()
 
-# ==============================
-# MAIN BOT LAUNCHER
-# ==============================
-def main_telegram_bot():
-    logger.info("Iniciando bot de Telegram...")
-    try:
-        application = Application.builder().token(settings.telegram_api_token).build()
-        application.add_handler(CommandHandler("start", start_command))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
-        application.add_handler(CallbackQueryHandler(handle_callback_query))
-        logger.info("Bot de Telegram configurado. Listo para iniciar polling.")
-        Memory.cleanup_old_memories()
-        logger.info("Limpieza de memorias antiguas completada")
-        application.run_polling(allowed_updates=None)
-    except Exception as e:
-        logger.error(f"Error fatal en main_telegram_bot: {e}", exc_info=True)
-        raise
-    finally:
-        logger.info("Bot de Telegram finalizado")
+    async def handle_message(self, update: Update, context):
+        """
+        Maneja todos los mensajes entrantes.
+        Detecta si el mensaje viene de un anuncio y lo procesa adecuadamente.
+        """
+        try:
+            message = update.message
+            user = message.from_user
+            
+            # Verificar si el mensaje viene de un anuncio (tiene hashtags)
+            if '#' in message.text:
+                response, buttons = await self.ads_handler.handle_ad_message(
+                    {
+                        'text': message.text,
+                        'chat_id': message.chat_id,
+                        'message_id': message.message_id
+                    },
+                    {
+                        'id': user.id,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
+                        'username': user.username
+                    }
+                )
+                
+                # Enviar respuesta con botones
+                await message.reply_text(
+                    response,
+                    reply_markup=buttons,
+                    parse_mode='Markdown'
+                )
+            else:
+                # Procesar mensaje normal
+                # TODO: Implementar procesamiento de mensajes regulares
+                pass
 
-if __name__ == "__main__":
-    logger.info("Iniciando aplicación principal")
-    if sys.platform == "win32":
-        logger.info("Configurando WindowsSelectorEventLoopPolicy para Windows")
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    try:
-        main_telegram_bot()
-        logger.info("Bot finalizado normalmente")
-    except KeyboardInterrupt: 
-        logger.info("Bot interrumpido por el usuario (Ctrl+C)")
-    except Exception as e:
-        logger.error(f"Error fatal en la aplicación principal: {e}", exc_info=True)
-        sys.exit(1)
+        except Exception as e:
+            logger.error(f"Error handling message: {str(e)}", exc_info=True)
+            await message.reply_text(
+                "Lo siento, hubo un error procesando tu mensaje. Por favor, intenta nuevamente."
+            )
+
+    async def handle_callback(self, update: Update, context):
+        """
+        Maneja las interacciones con botones.
+        """
+        try:
+            query = update.callback_query
+            data = query.data
+            user_id = query.from_user.id
+            
+            # Extraer acción y course_id del callback_data
+            action, course_id = data.split('_', 1)
+            
+            # Ejecutar acción correspondiente
+            if action == 'show_syllabus':
+                await self.agent.mostrar_syllabus_interactivo(user_id, course_id)
+            elif action == 'show_preview':
+                await self.agent.enviar_preview_curso(user_id, course_id)
+            elif action == 'show_pricing':
+                await self.agent.presentar_oferta_limitada(user_id, course_id)
+            elif action == 'schedule_call':
+                await self.agent.agendar_demo_personalizada(user_id, course_id)
+            
+            # Confirmar la acción al usuario
+            await query.answer()
+
+        except Exception as e:
+            logger.error(f"Error handling callback: {str(e)}", exc_info=True)
+            await query.answer("Error procesando tu solicitud. Intenta nuevamente.")
+
+if __name__ == '__main__':
+    # Iniciar el bot
+    bot = VentasBot()
+    import asyncio
+    asyncio.run(bot.start())
  

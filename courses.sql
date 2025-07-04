@@ -1,0 +1,1 @@
+https://tuempresa.com/assets/thumbnail-agentes-ia.jpg
