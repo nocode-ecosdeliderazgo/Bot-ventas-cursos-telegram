@@ -6867,3 +6867,32 @@ telegram.error.NetworkError: httpx.ConnectError: All connection attempts failed
 2025-07-03 21:15:54,932 - bot.handlers.menu_handlers - INFO - Callback recibido de usuario 8101815097: cta_inicio
 2025-07-03 21:15:55,215 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
 2025-07-03 21:15:55,527 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 21:15:58,127 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:15:58,403 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 21:15:58,404 - bot.handlers.menu_handlers - INFO - Callback recibido de usuario 8101815097: cta_faq
+2025-07-03 21:15:58,695 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 21:16:08,288 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:16:13,539 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:16:14,162 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 21:16:14,162 - bot.handlers.menu_handlers - INFO - Callback recibido de usuario 8101815097: cta_inicio
+2025-07-03 21:16:14,457 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 21:16:14,749 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 21:16:23,404 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:16:24,022 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 21:16:24,023 - bot.handlers.menu_handlers - INFO - Callback recibido de usuario 8101815097: cta_asesor
+2025-07-03 21:16:24,024 - bot.services - INFO - Obtenidos 4 cursos publicados
+2025-07-03 21:16:24,325 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 21:16:27,591 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:16:27,877 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 21:16:27,878 - bot.handlers.menu_handlers - INFO - Callback recibido de usuario 8101815097: cta_inicio
+2025-07-03 21:16:28,190 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 21:16:28,482 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 21:16:37,759 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:16:47,923 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:16:58,095 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:17:08,263 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:17:18,423 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:17:28,589 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:17:38,753 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:17:48,927 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 21:17:59,094 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
