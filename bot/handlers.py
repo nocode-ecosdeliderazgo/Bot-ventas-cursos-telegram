@@ -195,15 +195,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # --- NUEVO: Mapeo de intenciones a flujos de botones ---
     input_lower = user_input.strip().lower()
     # Frases exactas
-    if input_lower in ["ver todos los cursos", "ver cursos", "cursos", "lista de cursos", "quiero ver cursos"]:
+    if input_lower in ["ver todos los cursos", "ver cursos", "📚 ver cursos", "cursos", "lista de cursos", "quiero ver cursos", "📚 ver cursos..."]:
         await send_processing_message(update)
-        cursos = get_courses()
-        if cursos:
-            keyboard = create_courses_list_keyboard(cursos)
-            await send_grouped_messages(send_agent_telegram, update, ["Te muestro todos los cursos disponibles:"], keyboard, msg_critico=True)
-        else:
-            await send_agent_telegram(update, "Por el momento no hay cursos disponibles.")
+        await send_agent_telegram(update, "Te muestro todos los cursos disponibles:", None)
+        chat_id = update.message.chat.id if update.message and update.message.chat else None
+        await mostrar_lista_cursos(update, context, chat_id=chat_id)
         return
+        
     elif input_lower in ["hablar con asesor", "asesor", "contactar asesor", "quiero hablar con asesor"]:
         await contact_advisor_flow(update, context)
         return
@@ -242,14 +240,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
         intent_result = openai_intent_and_response(user_input, intent_prompt)
         intent = intent_result.get("response", "otra").strip().lower()
+        # --- ASEGURAR MEMORIA ANTES DE USAR ---
+        if 'global_user_id' not in context.bot_data:
+            context.bot_data['global_user_id'] = None
+        if 'global_mem' not in context.bot_data:
+            context.bot_data['global_mem'] = Memory()
+        if context.bot_data['global_user_id'] != user_id_str or not context.bot_data['global_mem'].lead_data.user_id:
+            context.bot_data['global_user_id'] = user_id_str
+            context.bot_data['global_mem'] = Memory()
+            context.bot_data['global_mem'].load(context.bot_data['global_user_id'])
+            context.bot_data['global_mem'].lead_data.user_id = user_id_str
+            if not context.bot_data['global_mem'].lead_data.user_id:
+                context.bot_data['global_mem'].lead_data.user_id = user_id_str
+                context.bot_data['global_mem'].lead_data.stage = "inicio"
+                context.bot_data['global_mem'].save()
+        # --- FIN ASEGURAR MEMORIA ---
         if "ver_cursos" in intent:
             await send_processing_message(update)
-            cursos = get_courses()
-            if cursos:
-                keyboard = create_courses_list_keyboard(cursos)
-                await send_grouped_messages(send_agent_telegram, update, ["Te muestro todos los cursos disponibles:"], keyboard, msg_critico=True)
-            else:
-                await send_agent_telegram(update, "Por el momento no hay cursos disponibles.")
+            await send_agent_telegram(update, "Te muestro todos los cursos disponibles:", None)
+            chat_id = update.message.chat.id if update.message and update.message.chat else None
+            await mostrar_lista_cursos(update, context, chat_id=chat_id)
             return
         elif "asesor" in intent:
             await send_agent_telegram(update, "¡Listo! Un asesor de Aprende y Aplica IA te contactará muy pronto para resolver todas tus dudas y apoyarte en tu inscripción. 😊", create_main_keyboard(), msg_critico=True)
@@ -278,7 +288,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             else:
                 await send_agent_telegram(update, "Por el momento no hay promociones activas, pero puedes contactar a un asesor para consultar descuentos especiales.", create_contextual_cta_keyboard("default", user_id_str))
             return
-    # Si no se detecta intención clara, sigue el flujo conversacional normal
+        else:
+            # Si la intención no es ninguna de las anteriores, muestra la respuesta de la IA normalmente
+            bot_reply = openai_intent_and_response(user_input, "")
+            context_type = "default"
+            if context.bot_data['global_mem'].lead_data.selected_course:
+                context_type = "course_selected"
+            if any(word in user_input.lower() for word in ['precio', 'costo', 'cuánto', 'cuanto', 'pagar']):
+                context_type = "pricing_inquiry"
+            interest_score = get_interest_score(user_id_str) or 0
+            if interest_score >= UMBRAL_PROMO:
+                context_type = "purchase_intent"
+            if interest_score >= 30:
+                context_type = "high_interest"
+            keyboard = create_contextual_cta_keyboard(context_type, user_id_str)
+            await send_grouped_messages(send_agent_telegram, update, [bot_reply], keyboard, msg_critico=True)
+            return
 
     # Ensure memory is loaded for this specific user
     if 'global_user_id' not in context.bot_data:
@@ -340,6 +365,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         else:
             await send_agent_telegram(update, "¿Podrías ingresar un correo válido, por favor? Debe tener formato usuario@dominio.com")
         return
+
+
     elif context.bot_data['global_mem'].lead_data.stage == "awaiting_phone_contact":
         telefono = user_input.strip()
         if len(telefono) >= 8 and any(c.isdigit() for c in telefono):
@@ -397,6 +424,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             context.bot_data['global_mem'].save()
             await send_agent_telegram(update, f"¡Perfecto! Me dirigiré a ti como {context.bot_data['global_mem'].lead_data.name}.")
         curso_info = get_course_detail(context.bot_data['global_mem'].lead_data.selected_course)
+        
         if curso_info:
             messages = []
             try:
@@ -649,7 +677,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             campos = plantilla.get('campos', [])
             # Si la respuesta requiere datos de curso, SIEMPRE pedir al usuario que seleccione un curso
             if campos and any(c in ['price_usd', 'currency', 'total_duration', 'level', 'language', 'modules_list', 'purchase_link', 'demo_request_link'] for c in campos):
-                await mostrar_lista_cursos(update, context, mensaje="Por favor, selecciona el curso sobre el que quieres saber:")
+                await mostrar_lista_cursos(update, context)
                 context.bot_data['faq_pending'] = idx
                 return
             else:
@@ -686,12 +714,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             
         elif query.data in ["cta_ver_cursos", "cta_otros_cursos"]:
             await query.edit_message_text("Te muestro todos los cursos disponibles:", reply_markup=None)
-            cursos = get_courses()
-            if cursos and query.message and query.message.chat:
-                keyboard = create_courses_list_keyboard(cursos)
-                await context.bot.send_message(chat_id=query.message.chat.id, text="Selecciona un curso para más información:", reply_markup=keyboard)
-            elif query.message and query.message.chat:
-                await context.bot.send_message(chat_id=query.message.chat.id, text="Por el momento no hay otros cursos disponibles.")
+            await mostrar_lista_cursos(update, context, chat_id=query.message.chat.id)
             return
             
         elif query.data in ["cta_inicio"]:
@@ -1200,4 +1223,22 @@ async def forzar_seleccion_curso(update, context, mensaje="Selecciona el curso d
 
 # En todos los flujos que impliquen contacto, compra, promociones, etc., llama a forzar_seleccion_curso antes de continuar
 # Ejemplo en el handler de cta_asesor, cta_comprar_curso, cta_comprar_ahora, cta_finalizar_compra, cta_inscribirse, cta_plan_pagos, etc.
+
+# --- NUEVA FUNCIÓN AUXILIAR PARA MOSTRAR CURSOS ---
+async def mostrar_lista_cursos(update, context, chat_id=None):
+    """Muestra la lista de cursos disponibles con teclado inline, reutilizable para reply e inline keyboard."""
+    cursos = get_courses()
+    if not chat_id:
+        # Determinar chat_id según el tipo de update
+        if hasattr(update, 'message') and update.message:
+            chat_id = update.message.chat.id
+        elif hasattr(update, 'callback_query') and update.callback_query and update.callback_query.message:
+            chat_id = update.callback_query.message.chat.id
+        else:
+            return
+    if cursos:
+        keyboard = create_courses_list_keyboard(cursos)
+        await context.bot.send_message(chat_id=chat_id, text="Selecciona un curso para más información:", reply_markup=keyboard)
+    else:
+        await context.bot.send_message(chat_id=chat_id, text="Por el momento no hay cursos disponibles.")
 

@@ -22,6 +22,15 @@ def create_main_keyboard():
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=False)
 
+def create_main_inline_keyboard():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📚 Ver Cursos", callback_data="cta_ver_cursos"), InlineKeyboardButton("💰 Promociones", callback_data="cta_promociones")],
+        [InlineKeyboardButton("❓ Preguntas Frecuentes", callback_data="cta_faq"), InlineKeyboardButton("📞 Contactar Asesor", callback_data="cta_asesor")],
+        [InlineKeyboardButton("🔄 Reiniciar Conversación", callback_data="cta_reiniciar")]
+    ])
+
+
+
 def create_course_keyboard(course_id: str):
     """Teclado específico para un curso con opciones de compra, módulos, promoción e info."""
     keyboard = [
@@ -126,12 +135,6 @@ def create_promotion_keyboard(promotion_id: str, user_id=None):
     ]
     return InlineKeyboardMarkup(keyboard)
     
-def create_main_inline_keyboard():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📚 Ver Cursos", callback_data="cta_ver_cursos"), InlineKeyboardButton("💰 Promociones", callback_data="cta_promociones")],
-        [InlineKeyboardButton("❓ Preguntas Frecuentes", callback_data="cta_faq"), InlineKeyboardButton("📞 Contactar Asesor", callback_data="cta_asesor")],
-        [InlineKeyboardButton("🔄 Reiniciar Conversación", callback_data="cta_reiniciar")]
-    ])
 
 # ==============================
 # BOTONES CTA DINÁMICOS DESDE SUPABASE
