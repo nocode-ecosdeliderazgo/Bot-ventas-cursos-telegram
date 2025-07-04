@@ -2,10 +2,11 @@
 import logging
 import sys
 import asyncio
+from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from config.settings import settings
 from bot.handlers import (
-    start_command, handle_message, handle_callback_query
+    start_command, handle_callback_query, mostrar_menu_principal
 )
 from bot.memory import Memory
 
@@ -29,6 +30,10 @@ CURSOS_MAP = {
 global_mem = Memory()
 global_user_id = None
 
+async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Maneja los mensajes de texto mostrando el menú principal."""
+    await mostrar_menu_principal(update, context)
+
 # ==============================
 # MAIN BOT LAUNCHER
 # ==============================
@@ -37,7 +42,7 @@ def main_telegram_bot():
     try:
         application = Application.builder().token(settings.telegram_api_token).build()
         application.add_handler(CommandHandler("start", start_command))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
         application.add_handler(CallbackQueryHandler(handle_callback_query))
         logger.info("Bot de Telegram configurado. Listo para iniciar polling.")
         Memory.cleanup_old_memories()

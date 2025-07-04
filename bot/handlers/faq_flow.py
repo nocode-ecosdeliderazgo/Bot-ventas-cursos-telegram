@@ -1,88 +1,93 @@
 """
 FAQ flow handlers for the Telegram bot.
-This module handles all FAQ-related interactions.
 """
 
-import os
-import json
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ContextTypes
-from .utils import handle_telegram_errors, send_agent_telegram, send_grouped_messages
 import logging
+from telegram import Update, InlineKeyboardMarkup
+from telegram.ext import ContextTypes
+from typing import Optional
+from ..services import get_courses, get_course_detail
+from ..faq import get_faq_keyboard, format_faq_response
+from .utils import send_agent_telegram, handle_telegram_errors
+from .course_flow import mostrar_lista_cursos
 
 logger = logging.getLogger(__name__)
 
-def generar_faq_contexto(pregunta_idx: int) -> str:
-    """Genera el contexto para una pregunta FAQ específica."""
-    try:
-        faq_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "plantillas.json"))
-        with open(faq_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            plantillas = data.get("preguntas_frecuentes", [])
-        
-        if 0 <= pregunta_idx < len(plantillas):
-            plantilla = plantillas[pregunta_idx]
-            return f"❓ {plantilla['pregunta']}\n\n{plantilla['respuesta']}"
+@handle_telegram_errors
+async def mostrar_faq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Muestra la lista de preguntas frecuentes."""
+    keyboard = get_faq_keyboard()
+    if keyboard:
+        await send_agent_telegram(
+            update,
+            "Selecciona una pregunta para ver la respuesta:",
+            keyboard,
+            msg_critico=True
+        )
+    else:
+        await send_agent_telegram(
+            update,
+            "Lo siento, no pude cargar las preguntas frecuentes en este momento.",
+            None
+        )
+
+@handle_telegram_errors
+async def responder_faq(update: Update, context: ContextTypes.DEFAULT_TYPE, template_idx: int, course_id: Optional[str] = None) -> None:
+    """Responde a una pregunta frecuente específica."""
+    course_data = None
+    if course_id:
+        course_data = get_course_detail(course_id)
+    
+    mensaje, keyboard = format_faq_response(template_idx, course_data)
+    
+    if hasattr(update, 'callback_query') and update.callback_query:
+        if isinstance(keyboard, InlineKeyboardMarkup):
+            await update.callback_query.edit_message_text(
+                mensaje,
+                reply_markup=keyboard,
+                parse_mode='HTML',
+                disable_web_page_preview=True
+            )
         else:
-            return "No se encontró la pregunta solicitada."
-    except Exception as e:
-        logger.error(f"Error al generar contexto FAQ: {e}")
-        return "Lo siento, hubo un error al cargar las preguntas frecuentes."
+            await update.callback_query.edit_message_text(
+                mensaje,
+                parse_mode='HTML',
+                disable_web_page_preview=True
+            )
+    else:
+        if isinstance(keyboard, InlineKeyboardMarkup):
+            await send_agent_telegram(update, mensaje, keyboard, msg_critico=True)
+        else:
+            await send_agent_telegram(update, mensaje, None, msg_critico=True)
 
 @handle_telegram_errors
-async def mostrar_menu_faq(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Muestra el menú de preguntas frecuentes."""
-    try:
-        faq_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "plantillas.json"))
-        with open(faq_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            plantillas = data.get("preguntas_frecuentes", [])
-        
-        keyboard_buttons = []
-        for i, plantilla in enumerate(plantillas):
-            keyboard_buttons.append([InlineKeyboardButton(
-                f"❓ {plantilla['pregunta'][:50]}...",
-                callback_data=f"faq_q_{i}"
-            )])
-        
-        keyboard_buttons.append([InlineKeyboardButton("🏠 Volver al inicio", callback_data="menu_principal")])
-        keyboard = InlineKeyboardMarkup(keyboard_buttons)
-        
+async def mostrar_cursos_para_faq(update: Update, context: ContextTypes.DEFAULT_TYPE, template_idx: int) -> None:
+    """Muestra la lista de cursos para responder una FAQ específica."""
+    cursos = get_courses()
+    if not cursos:
+        await send_agent_telegram(update, "Por el momento no hay cursos disponibles.")
+        return
+    
+    keyboard = []
+    for curso in cursos:
+        keyboard.append([InlineKeyboardButton(
+            curso['name'],
+            callback_data=f"faq_course_{template_idx}_{curso['id']}"
+        )])
+    
+    keyboard.append([InlineKeyboardButton("❓ Ver otras preguntas", callback_data="faq")])
+    keyboard.append([InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")])
+    
+    if hasattr(update, 'callback_query') and update.callback_query:
+        await update.callback_query.edit_message_text(
+            "Selecciona un curso para ver la información específica:",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode='HTML'
+        )
+    else:
         await send_agent_telegram(
             update,
-            "🤔 Preguntas Frecuentes\n\nSelecciona una pregunta para ver la respuesta:",
-            keyboard,
+            "Selecciona un curso para ver la información específica:",
+            InlineKeyboardMarkup(keyboard),
             msg_critico=True
-        )
-    except Exception as e:
-        logger.error(f"Error al mostrar menú FAQ: {e}")
-        await send_agent_telegram(
-            update,
-            "Lo siento, hubo un error al cargar las preguntas frecuentes.",
-            None
-        )
-
-@handle_telegram_errors
-async def mostrar_respuesta_faq(update: Update, context: ContextTypes.DEFAULT_TYPE, pregunta_idx: int) -> None:
-    """Muestra la respuesta a una pregunta específica del FAQ."""
-    try:
-        respuesta = generar_faq_contexto(pregunta_idx)
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("↩️ Volver a FAQ", callback_data="faq")],
-            [InlineKeyboardButton("🏠 Volver al inicio", callback_data="menu_principal")]
-        ])
-        
-        await send_grouped_messages(
-            send_agent_telegram,
-            update,
-            [respuesta],
-            keyboard,
-            msg_critico=True
-        )
-    except Exception as e:
-        logger.error(f"Error al mostrar respuesta FAQ: {e}")
-        await send_agent_telegram(
-            update,
-            "Lo siento, hubo un error al mostrar la respuesta.",
-            None
         ) 
