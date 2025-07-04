@@ -2,10 +2,10 @@
 import logging
 import sys
 import asyncio
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler, PollAnswerHandler
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from config.settings import settings
 from bot.handlers import (
-    start_command, handle_message, handle_callback_query, handle_poll_answer
+    start_command, handle_message, handle_callback_query
 )
 from bot.memory import Memory
 
@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 CURSOS_MAP = {
     "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9"
 }
-UMBRAL_PROMO = 20
 
 global_mem = Memory()
 global_user_id = None
@@ -40,8 +39,6 @@ def main_telegram_bot():
         application.add_handler(CommandHandler("start", start_command))
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
         application.add_handler(CallbackQueryHandler(handle_callback_query))
-        # application.add_handler(PollAnswerHandler(handle_poll_answer))
-        # Elimino MyChatMemberHandler y handle_stop si no existen
         logger.info("Bot de Telegram configurado. Listo para iniciar polling.")
         Memory.cleanup_old_memories()
         logger.info("Limpieza de memorias antiguas completada")

@@ -23,18 +23,19 @@ def create_main_keyboard():
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=False)
 
 def create_main_inline_keyboard():
+    """Teclado inline principal con opciones de cursos, promociones, FAQ, asesor y reinicio."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📚 Ver Cursos", callback_data="cta_ver_cursos"), InlineKeyboardButton("💰 Promociones", callback_data="cta_promociones")],
-        [InlineKeyboardButton("❓ Preguntas Frecuentes", callback_data="cta_faq"), InlineKeyboardButton("📞 Contactar Asesor", callback_data="cta_asesor")],
+        [InlineKeyboardButton("📚 Ver Cursos", callback_data="cta_ver_cursos"), 
+         InlineKeyboardButton("💰 Promociones", callback_data="cta_promociones")],
+        [InlineKeyboardButton("❓ Preguntas Frecuentes", callback_data="cta_faq"), 
+         InlineKeyboardButton("📞 Contactar Asesor", callback_data="cta_asesor")],
         [InlineKeyboardButton("🔄 Reiniciar Conversación", callback_data="cta_reiniciar")]
     ])
-
-
 
 def create_course_keyboard(course_id: str):
     """Teclado específico para un curso con opciones de compra, módulos, promoción e info."""
     keyboard = [
-        [InlineKeyboardButton("💳 Comprar Ahora", callback_data=f"buy_{course_id}")],
+        [InlineKeyboardButton("💳 Comprar Ahora", callback_data=f"buy_course_{course_id}")],
         [InlineKeyboardButton("📋 Ver Módulos", callback_data=f"modules_{course_id}")],
         [InlineKeyboardButton("💰 Aplicar Promoción", callback_data=f"promo_{course_id}")],
         [InlineKeyboardButton("❓ Más Información", callback_data=f"info_{course_id}")]
@@ -49,6 +50,7 @@ def create_courses_list_keyboard(courses: List[Dict]):
             f"{i+1}. {course['name']}", 
             callback_data=f"course_{course['id']}"
         )])
+    keyboard.append([InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")])
     return InlineKeyboardMarkup(keyboard)
 
 def create_cta_keyboard(context_type="default", user_id=None):
@@ -90,8 +92,7 @@ def create_contextual_cta_keyboard(context_type: str, user_id: Optional[str] = N
         buttons = [
             [InlineKeyboardButton("💳 Comprar Ahora", callback_data="cta_comprar_ahora")],
             [InlineKeyboardButton("📅 Plan de Pagos", callback_data="cta_plan_pagos")],
-            [InlineKeyboardButton("🎫 Usar Cupón", callback_data="cta_cupon")],
-            [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
+            [InlineKeyboardButton("🎫 Usar Cupón", callback_data="cta_cupon")]
         ]
     elif context_type == "purchase_intent":
         buttons = [
@@ -106,11 +107,16 @@ def create_contextual_cta_keyboard(context_type: str, user_id: Optional[str] = N
         ]
     elif context_type == "post_buy":
         buttons = [
-            [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")],
             [InlineKeyboardButton("📚 Ver Cursos", callback_data="cta_ver_cursos")],
             [InlineKeyboardButton("👨‍💼 Hablar con Asesor", callback_data="cta_asesor")],
             [InlineKeyboardButton("💰 Ver Promociones", callback_data="cta_promociones")]
         ]
+    elif context_type == "error":
+        buttons = [
+            [InlineKeyboardButton("👨‍💼 Contactar Asesor", callback_data="cta_asesor")],
+            [InlineKeyboardButton("🔄 Reintentar", callback_data="cta_reiniciar")]
+        ]
+    
     # Verificar interest_score para high_interest
     if context_type == "high_interest" and user_id:
         score = get_interest_score_func(user_id)
@@ -120,21 +126,25 @@ def create_contextual_cta_keyboard(context_type: str, user_id: Optional[str] = N
                 [InlineKeyboardButton("🤝 Negociar Precio", callback_data="cta_negociar")],
                 [InlineKeyboardButton("👨‍💼 Asesor Especializado", callback_data="cta_asesor_curso")]
             ]
+    
     # Añadir botón universal de inicio si no está presente
     if not any(btn.callback_data == "cta_inicio" for row in buttons for btn in row):
         buttons.append([InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")])
-    return InlineKeyboardMarkup(buttons) if buttons else InlineKeyboardMarkup([])
+    
+    return InlineKeyboardMarkup(buttons)
 
 def create_promotion_keyboard(promotion_id: str, user_id=None):
+    """Teclado para promociones con opciones de aplicar y ver otras."""
     score = get_interest_score_func(user_id) if user_id is not None else None
     if score is None or score < UMBRAL_PROMO:
         return None
     keyboard = [
         [InlineKeyboardButton("✅ Aplicar Promoción", callback_data=f"apply_promo_{promotion_id}")],
-        [InlineKeyboardButton("🔙 Ver Otras Promociones", callback_data="promotions_list")]
+        [InlineKeyboardButton("🔙 Ver Otras Promociones", callback_data="cta_promociones")],
+        [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
     ]
     return InlineKeyboardMarkup(keyboard)
-    
+
 
 # ==============================
 # BOTONES CTA DINÁMICOS DESDE SUPABASE
@@ -184,21 +194,23 @@ def get_cta_buttons(context_type="default"):
     return cta_buttons
 
 def create_course_selection_keyboard(course_id: str, course_name: str):
-    """Teclado para submenús de selección de curso, con botón para seleccionar el curso actual."""
+    """Teclado para submenús de selección de curso."""
     keyboard = [
         [InlineKeyboardButton("📋 Ver Módulos", callback_data=f"modules_{course_id}")],
         [InlineKeyboardButton("❓ Más Información", callback_data=f"info_{course_id}")],
         [InlineKeyboardButton("✅ Seleccionar este curso", callback_data=f"select_course_{course_id}")],
-        [InlineKeyboardButton("🔙 Cambiar de curso", callback_data="change_course")]
+        [InlineKeyboardButton("🔙 Cambiar de curso", callback_data="change_course")],
+        [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
     ]
     return InlineKeyboardMarkup(keyboard)
 
 def create_course_explore_keyboard(course_id: str, course_name: str):
-    """Teclado para explorar un curso desde el menú de cursos, con botón de comprar."""
+    """Teclado para explorar un curso desde el menú de cursos."""
     keyboard = [
         [InlineKeyboardButton("📋 Ver Módulos", callback_data=f"modules_{course_id}")],
         [InlineKeyboardButton("❓ Más Información", callback_data=f"info_{course_id}")],
         [InlineKeyboardButton("💳 Comprar este curso", callback_data=f"buy_course_{course_id}")],
-        [InlineKeyboardButton("🔙 Cambiar de curso", callback_data="change_course")]
+        [InlineKeyboardButton("🔙 Cambiar de curso", callback_data="change_course")],
+        [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
     ]
     return InlineKeyboardMarkup(keyboard)

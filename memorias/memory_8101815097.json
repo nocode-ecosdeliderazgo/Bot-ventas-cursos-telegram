@@ -3,7 +3,7 @@
         "user_id": "8101815097",
         "email": "",
         "phone": "",
-        "stage": "awaiting_email_contact",
+        "stage": "info",
         "courses_seen": [],
         "selected_course": null,
         "escalation_pending": false,
@@ -15,62 +15,7 @@
         "last_ack_time": null,
         "privacy_accepted": true
     },
-    "history": [
-        {
-            "user_input": "\ud83d\udcda Ver Cursos",
-            "bot_reply": {
-                "intent": "LIST_COURSES",
-                "response": "\u00a1Claro! Tenemos una variedad de cursos fascinantes para ti. Algunos de ellos son 'Introducci\u00f3n a la Inteligencia Artificial', 'Machine Learning para principiantes', 'Curso avanzado de Deep Learning', 'Inteligencia Artificial para marketing', y muchos m\u00e1s. \u00bfHay alg\u00fan curso en particular que te interese conocer m\u00e1s?",
-                "course_name": null
-            },
-            "timestamp": 1751587926.8561277
-        },
-        {
-            "user_input": "\ud83d\udcda Ver Cursos",
-            "bot_reply": {
-                "intent": "LIST_COURSES",
-                "response": "\u00a1Claro! Tenemos una variedad de cursos de Inteligencia Artificial para elegir. Algunos de nuestros cursos m\u00e1s populares son 'Introducci\u00f3n a la IA', 'IA para Marketing' y 'IA para Negocios'. \u00bfEn cu\u00e1l de estos est\u00e1s interesado?",
-                "course_name": null
-            },
-            "timestamp": 1751588414.273823
-        },
-        {
-            "user_input": "\ud83d\udcda Ver Cursos",
-            "bot_reply": {
-                "intent": "LIST_COURSES",
-                "response": "\u00a1Genial! Tenemos una gama de cursos de Inteligencia Artificial que te fascinar\u00e1n. Algunos de ellos son: 'IA para principiantes', 'IA para negocios', 'IA para marketing', 'IA avanzada' y muchos m\u00e1s. \u00bfHay alg\u00fan curso en particular que te interese conocer m\u00e1s a fondo?",
-                "course_name": null
-            },
-            "timestamp": 1751589621.5361383
-        },
-        {
-            "user_input": "\ud83d\udcda Ver Cursos",
-            "bot_reply": {
-                "intent": "LIST_COURSES",
-                "response": "\u00a1Excelente elecci\u00f3n! Tenemos varios cursos de Inteligencia Artificial que te podr\u00edan interesar. Aqu\u00ed est\u00e1n algunos de ellos: 'Introducci\u00f3n a la IA', 'IA para Marketing', 'T\u00e9cnicas de Machine Learning', 'Deep Learning desde cero'. \u00bfHay alg\u00fan curso en particular que te llame la atenci\u00f3n?",
-                "course_name": null
-            },
-            "timestamp": 1751589960.1097977
-        },
-        {
-            "user_input": "\ud83d\udcda Ver Cursos",
-            "bot_reply": {
-                "intent": "LIST_COURSES",
-                "response": "\u00a1Claro! Tenemos una variedad de cursos emocionantes de Inteligencia Artificial. Tenemos 'Inteligencia Artificial para principiantes', 'Aplicaciones de IA en Marketing', 'IA y Machine Learning avanzado' y mucho m\u00e1s. \u00bfHay alg\u00fan curso en particular que te interese?",
-                "course_name": null
-            },
-            "timestamp": 1751590520.5523107
-        },
-        {
-            "user_input": "\ud83d\udcda Ver Cursos",
-            "bot_reply": {
-                "intent": "LIST_COURSES",
-                "response": "\u00a1Por supuesto! Tenemos una amplia variedad de cursos de Inteligencia Artificial para que elijas. Tenemos cursos de IA para principiantes, IA para empresas, IA para ciencias de datos, IA para desarrollo de aplicaciones web y muchos m\u00e1s. \u00bfHay alg\u00fan curso en particular que te interese?",
-                "course_name": null
-            },
-            "timestamp": 1751590753.025138
-        }
-    ],
+    "history": [],
     "last_presented_courses": [],
-    "last_activity": 1751591751.6181495
+    "last_activity": 1751598940.4743423
 }
