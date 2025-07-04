@@ -43,6 +43,13 @@ class LeadMemory:
     score_history: Optional[List[Dict]] = None
     message_history: Optional[List[Dict]] = None
     
+    # Nuevos atributos para el agente inteligente
+    interaction_count: int = 0
+    conversation_history: Optional[List[Dict]] = None
+    pain_points: Optional[List[str]] = None
+    buying_signals: Optional[List[str]] = None
+    interest_level: str = "low"
+    
     # Seguimiento
     last_interaction: Optional[datetime] = None
     ad_source: str = ""
@@ -58,6 +65,12 @@ class LeadMemory:
             self.score_history = []
         if self.message_history is None:
             self.message_history = []
+        if self.conversation_history is None:
+            self.conversation_history = []
+        if self.pain_points is None:
+            self.pain_points = []
+        if self.buying_signals is None:
+            self.buying_signals = []
         if self.created_at is None:
             self.created_at = datetime.now()
         if self.updated_at is None:
@@ -115,9 +128,13 @@ class LeadMemory:
             'interests': lead_data.get('interests', []) if isinstance(lead_data.get('interests'), list) else [],
             'lead_score': lead_data.get('lead_score', 50),
             'ad_source': lead_data.get('ad_source', ''),
-            'created_at': datetime.fromisoformat(lead_data['created_at']) if lead_data.get('created_at') else None,
-            'updated_at': datetime.fromisoformat(lead_data['updated_at']) if lead_data.get('updated_at') else None,
-            'last_interaction': datetime.fromisoformat(lead_data['last_interaction']) if lead_data.get('last_interaction') else None
+            'score_history': [],
+            'message_history': data.get('history', []),
+            'course_presented': bool(data.get('last_presented_courses')),
+            'media_sent': False,
+            'last_interaction': datetime.fromtimestamp(data['last_activity']) if data.get('last_activity') else None,
+            'created_at': datetime.fromtimestamp(data['last_activity']) if data.get('last_activity') else None,
+            'updated_at': datetime.fromtimestamp(data['last_activity']) if data.get('last_activity') else None
         }
         return cls(**mapped_data)
 

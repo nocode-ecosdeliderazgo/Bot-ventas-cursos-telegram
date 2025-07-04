@@ -64,11 +64,31 @@ class BotApplication:
                 # Obtener respuesta del agente
                 response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
                 
-                # Si la respuesta es un diccionario, significa que debemos enviar una secuencia de mensajes
+                # NUEVO: Si la respuesta es una lista, enviar todos los mensajes/archivos en orden
+                if isinstance(response, list):
+                    for msg in response:
+                        if isinstance(msg, dict):
+                            if msg.get("type") == "text":
+                                await update.message.reply_text(msg.get("content", ""), parse_mode="Markdown")
+                            elif msg.get("type") == "image":
+                                if os.path.exists(msg.get("path", "")):
+                                    try:
+                                        with open(msg.get("path", ""), 'rb') as photo:
+                                            await update.message.reply_photo(photo=photo)
+                                    except Exception as e:
+                                        logger.warning(f"No se pudo enviar imagen: {e}")
+                            elif msg.get("type") == "document":
+                                if os.path.exists(msg.get("path", "")):
+                                    try:
+                                        with open(msg.get("path", ""), 'rb') as document:
+                                            await update.message.reply_document(document=document)
+                                    except Exception as e:
+                                        logger.warning(f"No se pudo enviar PDF: {e}")
+                    return
+                # Si la respuesta es un diccionario (flujo legacy), mantener compatibilidad
                 if isinstance(response, dict):
                     # 1. Enviar mensaje de confirmación
-                    await update.message.reply_text(response['confirmation'])
-                    
+                    await update.message.reply_text(response.get('confirmation', ''))
                     # 2. Enviar imagen si se solicita
                     if response.get('send_image'):
                         image_path = "data/imagen_prueba.jpg"
@@ -78,7 +98,6 @@ class BotApplication:
                                     await update.message.reply_photo(photo=photo)
                             except Exception as e:
                                 logger.warning(f"No se pudo enviar imagen: {e}")
-                    
                     # 3. Enviar PDF si se solicita
                     if response.get('send_pdf'):
                         pdf_path = "data/pdf_prueba.pdf"
@@ -88,14 +107,13 @@ class BotApplication:
                                     await update.message.reply_document(document=document)
                             except Exception as e:
                                 logger.warning(f"No se pudo enviar PDF: {e}")
-                    
                     # 4. Enviar mensaje final con resumen si existe
                     if final_message := response.get('final_message'):
-                        mensaje_completo = final_message['text']
+                        mensaje_completo = final_message.get('text', '')
                         if resumen := final_message.get('resumen'):
                             mensaje_completo += "\n\n" + resumen
                         await update.message.reply_text(mensaje_completo, parse_mode='Markdown')
-                
+                    return
                 # Si es una respuesta normal, enviarla como siempre
                 elif response:
                     await update.message.reply_text(response, reply_markup=keyboard, parse_mode='Markdown')
@@ -263,7 +281,7 @@ def run_bot():
         # Ejecutar el bot
         loop.run_until_complete(main())
         
-    except KeyboardInterrupt:
+    except KeyboardInterrupt: 
         logger.info("Bot detenido por el usuario")
     except Exception as e:
         logger.error(f"Error ejecutando el bot: {e}", exc_info=True)

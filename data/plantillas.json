@@ -1,102 +1,102 @@
 {
   "faq_templates": [
-    {
+  {
       "id": "precio",
-      "pregunta": "¿Cuál es el precio del curso?",
-      "respuesta": "El precio del curso es de [price_usd] [currency], e incluye todos los materiales y acceso a la plataforma.",
+    "pregunta": "¿Cuál es el precio del curso?",
+    "respuesta": "El precio del curso es de [price_usd] [currency], e incluye todos los materiales y acceso a la plataforma.",
       "campos": ["price_usd", "currency"],
       "requiere_curso": true
-    },
-    {
+  },
+  {
       "id": "duracion",
-      "pregunta": "¿Cuál es la duración total?",
-      "respuesta": "La duración total del curso es de [total_duration] (horas), repartidas en varios módulos prácticos.",
+    "pregunta": "¿Cuál es la duración total?",
+    "respuesta": "La duración total del curso es de [total_duration] (horas), repartidas en varios módulos prácticos.",
       "campos": ["total_duration"],
       "requiere_curso": true
-    },
-    {
+  },
+  {
       "id": "nivel",
-      "pregunta": "¿Qué nivel tiene el curso?",
-      "respuesta": "Este curso está dirigido a nivel [level], ideal para quienes ya cuentan con conocimientos de base en el tema.",
+    "pregunta": "¿Qué nivel tiene el curso?",
+    "respuesta": "Este curso está dirigido a nivel [level], ideal para quienes ya cuentan con conocimientos de base en el tema.",
       "campos": ["level"],
       "requiere_curso": true
-    },
-    {
+  },
+  {
       "id": "idioma",
-      "pregunta": "¿En qué idioma se imparte?",
-      "respuesta": "El curso se imparte completamente en [language] para garantizar plena comprensión.",
+    "pregunta": "¿En qué idioma se imparte?",
+    "respuesta": "El curso se imparte completamente en [language] para garantizar plena comprensión.",
       "campos": ["language"],
       "requiere_curso": true
-    },
-    {
+  },
+  {
       "id": "modulos",
-      "pregunta": "¿Qué módulos incluye el temario?",
-      "respuesta": "El temario incluye módulos como: [modules_list]",
+    "pregunta": "¿Qué módulos incluye el temario?",
+    "respuesta": "El temario incluye módulos como: [modules_list]",
       "campos": ["modules_list"],
       "requiere_curso": true
-    },
-    {
+  },
+  {
       "id": "inscripcion",
-      "pregunta": "¿Cómo me inscribo?",
-      "respuesta": "Puedes inscribirte a través de este enlace: [purchase_link], donde completarás tu registro y pago.",
+    "pregunta": "¿Cómo me inscribo?",
+    "respuesta": "Puedes inscribirte a través de este enlace: [purchase_link], donde completarás tu registro y pago.",
       "campos": ["purchase_link"],
       "requiere_curso": true
-    },
-    {
+  },
+  {
       "id": "demo",
-      "pregunta": "¿Dónde puedo solicitar una demo o clase muestra?",
-      "respuesta": "Solicita tu demo gratuita aquí: [demo_request_link] y te daremos acceso inmediato a una sesión de prueba.",
+    "pregunta": "¿Dónde puedo solicitar una demo o clase muestra?",
+    "respuesta": "Solicita tu demo gratuita aquí: [demo_request_link] y te daremos acceso inmediato a una sesión de prueba.",
       "campos": ["demo_request_link"],
       "requiere_curso": true
-    },
-    {
+  },
+  {
       "id": "requisitos",
-      "pregunta": "¿Hay requisitos previos?",
-      "respuesta": "No hay requisitos previos: el curso parte desde lo esencial y acompaña paso a paso hasta nivel avanzado.",
+    "pregunta": "¿Hay requisitos previos?",
+    "respuesta": "No hay requisitos previos: el curso parte desde lo esencial y acompaña paso a paso hasta nivel avanzado.",
       "campos": [],
       "requiere_curso": false
-    },
-    {
+  },
+  {
       "id": "certificado",
-      "pregunta": "¿Se entrega certificado?",
-      "respuesta": "Sí. Al completar todas las actividades y el proyecto final recibirás un certificado digital de finalización.",
+    "pregunta": "¿Se entrega certificado?",
+    "respuesta": "Sí. Al completar todas las actividades y el proyecto final recibirás un certificado digital de finalización.",
       "campos": [],
       "requiere_curso": false
-    },
-    {
+  },
+  {
       "id": "acceso_material",
-      "pregunta": "¿Cómo accedo al material durante el curso?",
-      "respuesta": "Todo el material (vídeos, lecturas, ejercicios) está disponible en nuestra plataforma en línea, accesible 24/7.",
+    "pregunta": "¿Cómo accedo al material durante el curso?",
+    "respuesta": "Todo el material (vídeos, lecturas, ejercicios) está disponible en nuestra plataforma en línea, accesible 24/7.",
       "campos": [],
       "requiere_curso": false
-    },
-    {
+  },
+  {
       "id": "instructores",
-      "pregunta": "¿Quiénes son los instructores?",
-      "respuesta": "Nuestro equipo está formado por expertos en IA con amplia experiencia en proyectos reales y docencia profesional.",
+    "pregunta": "¿Quiénes son los instructores?",
+    "respuesta": "Nuestro equipo está formado por expertos en IA con amplia experiencia en proyectos reales y docencia profesional.",
       "campos": [],
       "requiere_curso": false
-    },
-    {
+  },
+  {
       "id": "reembolso",
-      "pregunta": "¿Cuál es la política de reembolso?",
-      "respuesta": "Puedes solicitar reembolso completo hasta 7 días antes del inicio; pasado ese plazo, se aplica una penalización mínima.",
+    "pregunta": "¿Cuál es la política de reembolso?",
+    "respuesta": "Puedes solicitar reembolso completo hasta 7 días antes del inicio; pasado ese plazo, se aplica una penalización mínima.",
       "campos": [],
       "requiere_curso": false
-    },
-    {
+  },
+  {
       "id": "soporte",
-      "pregunta": "¿Qué tipo de soporte ofrecen?",
-      "respuesta": "Contamos con soporte por correo y chat en vivo durante todo el curso, además de foros de discusión comunitarios.",
+    "pregunta": "¿Qué tipo de soporte ofrecen?",
+    "respuesta": "Contamos con soporte por correo y chat en vivo durante todo el curso, además de foros de discusión comunitarios.",
       "campos": [],
       "requiere_curso": false
-    },
-    {
+  },
+  {
       "id": "acceso_posterior",
-      "pregunta": "¿Puedo acceder al contenido tras finalizar?",
-      "respuesta": "Sí, tendrás acceso ilimitado al contenido durante 12 meses después de completar el curso.",
+    "pregunta": "¿Puedo acceder al contenido tras finalizar?",
+    "respuesta": "Sí, tendrás acceso ilimitado al contenido durante 12 meses después de completar el curso.",
       "campos": [],
       "requiere_curso": false
-    }
-  ]
+  }
+]
 }

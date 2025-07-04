@@ -9,15 +9,81 @@
   "stage": "info_sent",
   "selected_course": "a392bf83-4908-4807-89a9-95d0acc807c9",
   "course_presented": false,
-  "media_sent": false,
+  "media_sent": true,
   "profile_type": "",
   "role": "",
   "interests": [],
   "lead_score": 50,
   "score_history": [],
   "message_history": [],
+  "interaction_count": 4,
+  "conversation_history": [
+    {
+      "role": "user",
+      "content": "me sirve este curso si soy arquitecto?",
+      "timestamp": "2025-07-04T14:27:59.050913"
+    },
+    {
+      "role": "assistant",
+      "content": "¡Claro, Gael! La inteligencia artificial puede ser muy útil para arquitectos en varias áreas. Por ejemplo, puedes utilizarla para optimizar el diseño, realizar análisis de datos de proyectos y mejorar la presentación visual de tus ideas.",
+      "timestamp": "2025-07-04T14:27:59.050913"
+    },
+    {
+      "role": "assistant",
+      "content": "También puedes beneficiarte de la automatización de tareas repetitivas, lo que te permite centrarte más en la creatividad y la innovación en tus proyectos. ¿Hay alguna área específica en la que estés interesado en aplicar la inteligencia artificial?",
+      "timestamp": "2025-07-04T14:27:59.050913"
+    },
+    {
+      "role": "user",
+      "content": "que cosas voy a ser capaz de hacer al finalizar el curso?",
+      "timestamp": "2025-07-04T14:28:24.922865"
+    },
+    {
+      "role": "assistant",
+      "content": "Al finalizar el curso, podrás aplicar la inteligencia artificial para optimizar tus diseños arquitectónicos, utilizando herramientas que te ayudarán a crear modelos más eficientes y atractivos.",
+      "timestamp": "2025-07-04T14:28:24.922865"
+    },
+    {
+      "role": "assistant",
+      "content": "También aprenderás a analizar datos de proyectos pasados para tomar decisiones más informadas y mejorar la gestión de tus obras. ¿Te gustaría saber más sobre alguna de estas aplicaciones en particular?",
+      "timestamp": "2025-07-04T14:28:24.922865"
+    },
+    {
+      "role": "user",
+      "content": "okay",
+      "timestamp": "2025-07-04T14:28:48.350872"
+    },
+    {
+      "role": "assistant",
+      "content": "Entiendo que estés considerando las aplicaciones de la inteligencia artificial en tu campo. ¿Hay alguna tarea específica en tu trabajo como arquitecto que te gustaría automatizar o mejorar?",
+      "timestamp": "2025-07-04T14:28:48.350872"
+    },
+    {
+      "role": "assistant",
+      "content": "También me gustaría saber si hay algún desafío particular que enfrentas en tus proyectos que crees que la IA podría ayudar a solucionar. Esto nos puede dar una mejor perspectiva de cómo el curso puede adaptarse a tus necesidades.",
+      "timestamp": "2025-07-04T14:28:48.350872"
+    },
+    {
+      "role": "user",
+      "content": "realizar los planos o los diseños de las construcciones",
+      "timestamp": "2025-07-04T14:29:15.621093"
+    },
+    {
+      "role": "assistant",
+      "content": "La creación de planos y diseños puede ser un proceso muy laborioso. La inteligencia artificial puede ayudarte a generar alternativas de diseño rápidamente, optimizando tus ideas iniciales.",
+      "timestamp": "2025-07-04T14:29:15.621093"
+    },
+    {
+      "role": "assistant",
+      "content": "Además, puedes utilizar IA para analizar la viabilidad de tus diseños en función de diferentes criterios, como el costo, la sostenibilidad o la funcionalidad. ¿Te gustaría explorar cómo estas herramientas podrían integrarse en tu flujo de trabajo?",
+      "timestamp": "2025-07-04T14:29:15.621093"
+    }
+  ],
+  "pain_points": [],
+  "buying_signals": [],
+  "interest_level": "low",
   "last_interaction": null,
   "ad_source": "ADSIM_01",
-  "created_at": "2025-07-04T13:00:58.804806",
-  "updated_at": "2025-07-04T13:01:03.891638"
+  "created_at": "2025-07-04T14:26:57.696086",
+  "updated_at": "2025-07-04T14:29:15.621093"
 }

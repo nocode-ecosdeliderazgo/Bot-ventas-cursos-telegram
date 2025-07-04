@@ -170,7 +170,7 @@ class LeadScorer:
         ]
         if any(indicator in message_lower for indicator in goal_indicators):
             score += 10
-        
+    
         return min(score, 15)
 
     def _score_interaction_frequency(self, user_memory) -> int:
@@ -211,7 +211,7 @@ class LeadScorer:
         ]
         if any(word in message.lower() for word in thoughtful_words):
             score += 5
-        
+    
         return min(score, 10)
 
     def _score_session_progression(self, user_memory) -> int:
