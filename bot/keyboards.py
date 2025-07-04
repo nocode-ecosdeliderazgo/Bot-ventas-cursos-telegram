@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 def create_main_keyboard():
     """Teclado principal con opciones de cursos, promociones, FAQ, asesor y reinicio."""
     keyboard = [
-        [KeyboardButton("📚 Ver Cursos"), KeyboardButton("💰 Promociones")],
-        [KeyboardButton("❓ Preguntas Frecuentes"), KeyboardButton("📞 Contactar Asesor")],
+        [KeyboardButton("📚 Ver Cursos"), KeyboardButton("💰 Ver Promociones")],
+        [KeyboardButton("❓ FAQ"), KeyboardButton("👨‍💼 Hablar con Asesor")],
         [KeyboardButton("🔄 Reiniciar Conversación")]
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=False)
@@ -25,11 +25,11 @@ def create_main_keyboard():
 def create_main_inline_keyboard():
     """Teclado inline principal con opciones de cursos, promociones, FAQ, asesor y reinicio."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📚 Ver Cursos", callback_data="cta_ver_cursos"), 
-         InlineKeyboardButton("💰 Promociones", callback_data="cta_promociones")],
-        [InlineKeyboardButton("❓ Preguntas Frecuentes", callback_data="cta_faq"), 
-         InlineKeyboardButton("📞 Contactar Asesor", callback_data="cta_asesor")],
-        [InlineKeyboardButton("🔄 Reiniciar Conversación", callback_data="cta_reiniciar")]
+        [InlineKeyboardButton("📚 Ver Cursos", callback_data="ver_cursos"), 
+         InlineKeyboardButton("💰 Ver Promociones", callback_data="promociones")],
+        [InlineKeyboardButton("❓ FAQ", callback_data="faq"), 
+         InlineKeyboardButton("👨‍💼 Hablar con Asesor", callback_data="contacto")],
+        [InlineKeyboardButton("🔄 Reiniciar Conversación", callback_data="reiniciar")]
     ])
 
 def create_course_keyboard(course_id: str):
@@ -210,7 +210,7 @@ def create_course_explore_keyboard(course_id: str, course_name: str):
         [InlineKeyboardButton("📋 Ver Módulos", callback_data=f"modules_{course_id}")],
         [InlineKeyboardButton("❓ Más Información", callback_data=f"info_{course_id}")],
         [InlineKeyboardButton("💳 Comprar este curso", callback_data=f"buy_course_{course_id}")],
-        [InlineKeyboardButton("🔙 Cambiar de curso", callback_data="change_course")],
+        [InlineKeyboardButton("�� Cambiar de curso", callback_data="change_course")],
         [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
     ]
     return InlineKeyboardMarkup(keyboard)

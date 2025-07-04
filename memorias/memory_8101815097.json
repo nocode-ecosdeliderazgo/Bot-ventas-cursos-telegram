@@ -13,9 +13,10 @@
         "lead_score": 0,
         "awaiting_ack": false,
         "last_ack_time": null,
-        "privacy_accepted": true
+        "privacy_accepted": true,
+        "source": null
     },
     "history": [],
     "last_presented_courses": [],
-    "last_activity": 1751600701.7825153
+    "last_activity": 1751602123.502139
 }

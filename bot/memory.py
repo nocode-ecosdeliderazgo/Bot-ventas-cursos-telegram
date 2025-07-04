@@ -30,6 +30,7 @@ class LeadMemory:
         self.lead_score: int = 0
         self.awaiting_ack: bool = False
         self.last_ack_time: Optional[float] = None
+        self.source: Optional[str] = None  # Para tracking de origen (ej: anuncios)
 
 class Memory:
     """Memoria completa de usuario, historial y helpers de persistencia."""
@@ -71,6 +72,7 @@ class Memory:
                 self.lead_data.awaiting_ack = data["lead_data"].get("awaiting_ack", False)
                 self.lead_data.last_ack_time = data["lead_data"].get("last_ack_time")
                 self.lead_data.privacy_accepted = data["lead_data"].get("privacy_accepted", False)
+                self.lead_data.source = data["lead_data"].get("source")
                 
             self.history = data.get("history", [])
             self.last_presented_courses = data.get("last_presented_courses", [])
@@ -111,7 +113,8 @@ class Memory:
                     "lead_score": self.lead_data.lead_score,
                     "awaiting_ack": self.lead_data.awaiting_ack,
                     "last_ack_time": self.lead_data.last_ack_time,
-                    "privacy_accepted": self.lead_data.privacy_accepted
+                    "privacy_accepted": self.lead_data.privacy_accepted,
+                    "source": self.lead_data.source
                 },
                 "history": self.history[-50:],  # Mantener solo los últimos 50 mensajes
                 "last_presented_courses": self.last_presented_courses,
