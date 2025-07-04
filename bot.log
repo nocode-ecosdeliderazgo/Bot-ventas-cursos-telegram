@@ -7009,3 +7009,141 @@ telegram.error.NetworkError: httpx.ConnectError: All connection attempts failed
 2025-07-03 22:08:17,203 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
 2025-07-03 22:08:17,379 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
 2025-07-03 22:08:17,380 - telegram.ext.Application - INFO - Application started
+2025-07-03 22:08:21,692 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:08:21,980 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 22:08:21,982 - bot.handlers.menu_handlers - WARNING - Callback no manejado: cta_inicio
+2025-07-03 22:08:21,982 - bot.handlers.menu_handlers - ERROR - Error manejando callback: 'global_mem'
+2025-07-03 22:08:22,304 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 22:08:22,305 - bot.handlers.utils - ERROR - Error inesperado en handle_callback_query: 'global_mem'
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 268, in handle_callback_query
+    await show_main_menu(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 44, in show_main_menu
+    f"¡Hola {context.bot_data['global_mem'].lead_data.name}! 👋\n\n"
+KeyError: 'global_mem'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\utils.py", line 25, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 273, in handle_callback_query
+    await show_main_menu(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 44, in show_main_menu
+    f"¡Hola {context.bot_data['global_mem'].lead_data.name}! 👋\n\n"
+KeyError: 'global_mem'
+2025-07-03 22:08:22,338 - telegram.ext.Application - ERROR - No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 268, in handle_callback_query
+    await show_main_menu(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 44, in show_main_menu
+    f"¡Hola {context.bot_data['global_mem'].lead_data.name}! 👋\n\n"
+KeyError: 'global_mem'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_application.py", line 1298, in process_update
+    await coroutine
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_handlers\basehandler.py", line 158, in handle_update
+    return await self.callback(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\utils.py", line 25, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 273, in handle_callback_query
+    await show_main_menu(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 44, in show_main_menu
+    f"¡Hola {context.bot_data['global_mem'].lead_data.name}! 👋\n\n"
+KeyError: 'global_mem'
+2025-07-03 22:08:28,739 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:08:29,358 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 22:08:29,361 - bot.handlers.menu_handlers - WARNING - Callback no manejado: cta_ver_cursos
+2025-07-03 22:08:29,362 - bot.handlers.menu_handlers - ERROR - Error manejando callback: 'global_mem'
+2025-07-03 22:08:29,642 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 22:08:29,643 - bot.handlers.utils - ERROR - Error inesperado en handle_callback_query: 'global_mem'
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 268, in handle_callback_query
+    await show_main_menu(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 44, in show_main_menu
+    f"¡Hola {context.bot_data['global_mem'].lead_data.name}! 👋\n\n"
+KeyError: 'global_mem'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\utils.py", line 25, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 273, in handle_callback_query
+    await show_main_menu(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 44, in show_main_menu
+    f"¡Hola {context.bot_data['global_mem'].lead_data.name}! 👋\n\n"
+KeyError: 'global_mem'
+2025-07-03 22:08:29,644 - telegram.ext.Application - ERROR - No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 268, in handle_callback_query
+    await show_main_menu(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 44, in show_main_menu
+    f"¡Hola {context.bot_data['global_mem'].lead_data.name}! 👋\n\n"
+KeyError: 'global_mem'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_application.py", line 1298, in process_update
+    await coroutine
+  File "C:\Users\Diego\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\telegram\ext\_handlers\basehandler.py", line 158, in handle_update
+    return await self.callback(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\utils.py", line 25, in wrapper
+    return await func(*args, **kwargs)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 273, in handle_callback_query
+    await show_main_menu(update, context)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\bot\handlers\menu_handlers.py", line 44, in show_main_menu
+    f"¡Hola {context.bot_data['global_mem'].lead_data.name}! 👋\n\n"
+KeyError: 'global_mem'
+2025-07-03 22:08:36,784 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:08:36,785 - bot.handlers.auth_flow - INFO - Comando /start recibido de usuario 8101815097
+2025-07-03 22:08:36,786 - bot.memory - INFO - Memoria cargada para usuario 8101815097
+2025-07-03 22:08:37,443 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 22:08:43,500 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:08:43,501 - bot.handlers.menu_handlers - INFO - Mensaje recibido de usuario 8101815097: 'Gael...'
+2025-07-03 22:08:44,129 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 22:08:44,429 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 22:08:47,600 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:08:47,885 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 22:08:48,433 - bot.services - INFO - Obtenidos 4 cursos publicados
+2025-07-03 22:08:48,767 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 22:08:52,017 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:08:52,308 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 22:08:52,309 - bot.handlers.menu_handlers - WARNING - Callback no manejado: course_db747b9e-2872-47a4-a75e-6d6280b1829e
+2025-07-03 22:08:52,617 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 22:08:52,958 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 22:09:02,187 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:09:09,931 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:09:10,552 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 22:09:10,554 - bot.services - INFO - Obtenidos 4 cursos publicados
+2025-07-03 22:09:10,846 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 22:09:11,772 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:09:12,112 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 22:09:12,113 - bot.handlers.menu_handlers - WARNING - Callback no manejado: course_db747b9e-2872-47a4-a75e-6d6280b1829e
+2025-07-03 22:09:12,408 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 22:09:12,718 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-03 22:09:21,943 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:09:32,114 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:09:42,282 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:09:42,445 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:09:42,446 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-07-03 22:09:42,446 - telegram.ext.Application - INFO - Application.stop() complete
+2025-07-03 22:09:42,448 - __main__ - INFO - Bot de Telegram finalizado
+2025-07-03 22:09:42,449 - __main__ - INFO - Bot finalizado normalmente
+2025-07-03 22:14:53,665 - __main__ - INFO - Iniciando aplicación principal
+2025-07-03 22:14:53,665 - __main__ - INFO - Configurando WindowsSelectorEventLoopPolicy para Windows
+2025-07-03 22:14:53,665 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-03 22:14:53,872 - __main__ - INFO - Bot de Telegram configurado. Listo para iniciar polling.
+2025-07-03 22:14:53,872 - bot.memory - ERROR - Error limpiando memorias antiguas: [WinError 3] El sistema no puede encontrar la ruta especificada: 'd:\\EcosDeLiderazgo\\ProyectosEcosDeLiderazgo\\En Desarrollo\\Bot_ventas\\bot\\memorias'
+2025-07-03 22:14:53,872 - __main__ - INFO - Limpieza de memorias antiguas completada
+2025-07-03 22:14:54,461 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-03 22:14:54,647 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-03 22:14:54,649 - telegram.ext.Application - INFO - Application started
+2025-07-03 22:14:59,892 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-03 22:15:00,507 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-07-03 22:15:00,992 - bot.services - INFO - Obtenidos 4 cursos publicados
+2025-07-03 22:15:01,283 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"

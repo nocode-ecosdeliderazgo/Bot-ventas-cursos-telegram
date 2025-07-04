@@ -239,25 +239,26 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             await query.answer("Reiniciando conversación...")
             await reiniciar_conversacion(update, context)
             return
+        elif callback_data == "menu_principal":
+            await query.answer()
+            await show_main_menu(update, context)
+            return
+
+        # Manejar callbacks de cursos
+        if callback_data.startswith("course_"):
+            curso_id = callback_data.split("_")[1]
+            await query.answer()
+            await mostrar_menu_curso_exploracion(update, context, curso_id)
+            return
+        elif any(callback_data.startswith(prefix) for prefix in ["modules_", "duration_", "price_", "buy_"]):
+            curso_id = callback_data.split("_")[1]
+            await query.answer()
+            await mostrar_menu_curso_exploracion(update, context, curso_id)
+            return
 
         # Otros callbacks
         await query.answer()
-        if callback_data == "menu_principal":
-            await show_main_menu(update, context)
-        elif callback_data.startswith("curso_"):
-            curso_id = callback_data.split("_")[1] if len(callback_data.split("_")) > 1 else None
-            if curso_id:
-                await mostrar_menu_curso_exploracion(update, context, curso_id)
-            else:
-                await mostrar_lista_cursos(update, context)
-        elif callback_data.startswith("faq_q_"):
-            try:
-                pregunta_idx = int(callback_data.split("_")[2])
-                await mostrar_respuesta_faq(update, context, pregunta_idx)
-            except (ValueError, IndexError) as e:
-                logger.error(f"Error al procesar índice FAQ: {e}")
-                await mostrar_menu_faq(update, context)
-        elif callback_data.startswith("promo_"):
+        if callback_data.startswith("promo_"):
             await mostrar_promociones(update, context)
         elif callback_data == "contactar_asesor":
             await contactar_asesor(update, context)

@@ -7,8 +7,7 @@ This module contains all the handlers for different flows in the bot.
 from .auth_flow import ensure_privacy, send_privacy_notice, start_command
 from .menu_handlers import handle_message, handle_callback_query
 from .course_flow import (
-    mostrar_lista_cursos, mostrar_menu_curso_exploracion,
-    mostrar_menu_curso_contacto
+    mostrar_lista_cursos, mostrar_menu_curso_exploracion
 )
 from .contact_flow import (
     contact_advisor_flow, contactar_asesor,

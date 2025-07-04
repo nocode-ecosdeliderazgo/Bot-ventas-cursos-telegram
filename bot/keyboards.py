@@ -205,12 +205,13 @@ def create_course_selection_keyboard(course_id: str, course_name: str):
     return InlineKeyboardMarkup(keyboard)
 
 def create_course_explore_keyboard(course_id: str, course_name: str):
-    """Teclado para explorar un curso desde el menú de cursos."""
+    """Teclado para explorar un curso específico."""
     keyboard = [
-        [InlineKeyboardButton("📋 Ver Módulos", callback_data=f"modules_{course_id}")],
-        [InlineKeyboardButton("❓ Más Información", callback_data=f"info_{course_id}")],
-        [InlineKeyboardButton("💳 Comprar este curso", callback_data=f"buy_course_{course_id}")],
-        [InlineKeyboardButton("�� Cambiar de curso", callback_data="change_course")],
-        [InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")]
+        [InlineKeyboardButton("📋 Ver Módulos y Contenido", callback_data=f"modules_{course_id}")],
+        [InlineKeyboardButton("⏱️ Duración y Horarios", callback_data=f"duration_{course_id}")],
+        [InlineKeyboardButton("💰 Ver Precio y Formas de Pago", callback_data=f"price_{course_id}")],
+        [InlineKeyboardButton("💳 ¡Quiero Inscribirme!", callback_data=f"buy_{course_id}")],
+        [InlineKeyboardButton("🔙 Ver otros cursos", callback_data="ver_cursos")],
+        [InlineKeyboardButton("🏠 Volver al inicio", callback_data="menu_principal")]
     ]
     return InlineKeyboardMarkup(keyboard)
