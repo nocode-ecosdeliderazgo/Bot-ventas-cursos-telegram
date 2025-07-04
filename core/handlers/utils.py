@@ -8,7 +8,7 @@ import asyncio
 import httpx
 import requests
 from functools import wraps
-from typing import Optional, List, Callable, Any
+from typing import Optional, List, Callable, Any, Union
 from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram import Message, ReplyKeyboardMarkup
@@ -77,16 +77,6 @@ async def send_agent_telegram(update: Update, msg: str, keyboard: Optional[Inlin
         raise
 
 @handle_telegram_errors
-async def send_processing_message(update: Update) -> None:
-    """Envía un mensaje de 'procesando' mientras se genera la respuesta."""
-    if not update.effective_chat:
-        return
-    try:
-        await update.effective_chat.send_message("🤔 Procesando tu solicitud...")
-    except Exception as e:
-        logger.warning(f"No se pudo enviar mensaje de procesamiento: {e}")
-
-@handle_telegram_errors
 async def edit_message(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, new_text: str, keyboard: Optional[InlineKeyboardMarkup] = None) -> None:
     """Edita un mensaje existente usando el contexto."""
     try:
@@ -94,17 +84,40 @@ async def edit_message(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message
     except Exception as e:
         logger.warning(f"No se pudo editar mensaje: {e}")
 
-async def send_grouped_messages(send_func: Callable, update: Update, messages: List[str], keyboard: Optional[InlineKeyboardMarkup] = None, msg_critico: bool = False) -> None:
-    """Envía una lista de mensajes en grupo, con el último mensaje usando el teclado si es necesario."""
+@handle_telegram_errors
+async def send_grouped_messages(update: Update, messages: List[str], keyboard: Optional[Union[InlineKeyboardMarkup, ReplyKeyboardMarkup]] = None, msg_critico: bool = False) -> None:
+    """
+    Envía una lista de mensajes al usuario, con el último mensaje mostrando el teclado si es necesario.
+    
+    Args:
+        update: Update de Telegram
+        messages: Lista de mensajes a enviar
+        keyboard: Teclado a mostrar en el último mensaje (opcional)
+        msg_critico: Si es True, muestra el teclado en el último mensaje
+    """
     if not messages:
         return
-    
-    # Enviar todos los mensajes excepto el último sin teclado
-    for msg in messages[:-1]:
-        await send_func(update, msg, None, False)
-    
-    # Enviar el último mensaje con el teclado si es msg_critico
-    await send_func(update, messages[-1], keyboard, msg_critico)
+        
+    if not update.effective_chat:
+        logger.error("No se pudo enviar mensajes agrupados, effective_chat es None")
+        return
+        
+    try:
+        # Enviar todos los mensajes excepto el último sin teclado
+        for msg in messages[:-1]:
+            await update.effective_chat.send_message(msg)
+            
+        # Enviar el último mensaje con el teclado si es necesario
+        if msg_critico and keyboard:
+            await update.effective_chat.send_message(messages[-1], reply_markup=keyboard)
+        else:
+            await update.effective_chat.send_message(messages[-1])
+            
+        logger.debug(f"Mensajes agrupados enviados exitosamente a usuario {update.effective_user.id if update.effective_user else 'unknown'}")
+            
+    except Exception as e:
+        logger.error(f"Error enviando mensajes agrupados: {e}")
+        raise
 
 async def send_message_with_keyboard(
     update: Update,

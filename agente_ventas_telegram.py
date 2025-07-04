@@ -4,59 +4,38 @@ Bot de ventas para Telegram que utiliza un agente inteligente para convertir lea
 
 import os
 import logging
+import asyncio
 from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters
 from telegram import Update
 from core.services.database import DatabaseService
 from core.agents.sales_agent import AgenteSalesTools
 from core.handlers.ads_flow import AdsFlowHandler
-from dotenv import load_dotenv
+from core.utils.memory import GlobalMemory
+from core.handlers.menu_handlers import mostrar_menu_principal, handle_callback_query
+from config.settings import settings
 
 # Configurar logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO,
-    filename='bot.log'
+    handlers=[
+        logging.FileHandler('bot.log', encoding='utf-8'),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger(__name__)
-
-# Cargar variables de entorno
-load_dotenv()
 
 class VentasBot:
     def __init__(self):
         # Verificar variables de entorno
-        db_url = os.getenv('DATABASE_URL')
-        if not db_url:
+        if not settings.DATABASE_URL:
             raise ValueError("DATABASE_URL no encontrado en variables de entorno")
             
         # Inicializar servicios
-        self.db = DatabaseService(db_url)
+        self.db = DatabaseService(settings.DATABASE_URL)
         self.agent = AgenteSalesTools(self.db, None)  # Se actualizará con la API de Telegram
         self.ads_handler = AdsFlowHandler(self.db, self.agent)
-
-    async def start(self):
-        """Inicia el bot y configura los handlers."""
-        # Crear aplicación
-        token = os.getenv('TELEGRAM_TOKEN')
-        if not token:
-            raise ValueError("TELEGRAM_TOKEN no encontrado en variables de entorno")
-            
-        self.app = Application.builder().token(token).build()
-        
-        # Actualizar agente con API de Telegram
-        self.agent.telegram = self.app.bot
-        
-        # Conectar a la base de datos
-        await self.db.connect()
-        
-        # Configurar handlers
-        self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
-        self.app.add_handler(CallbackQueryHandler(self.handle_callback))
-        
-        # Iniciar bot
-        await self.app.initialize()
-        await self.app.start()
-        await self.app.run_polling()
+        self.global_memory = GlobalMemory()
 
     async def handle_message(self, update: Update, context):
         """
@@ -72,6 +51,13 @@ class VentasBot:
             user = message.from_user
             if not user:
                 return
+                
+            # Actualizar memoria global
+            self.global_memory.set_current_lead(
+                str(user.id),
+                name=user.first_name or '',
+                username=user.username
+            )
             
             # Verificar si el mensaje viene de un anuncio (tiene hashtags)
             if '#' in message.text:
@@ -96,10 +82,8 @@ class VentasBot:
                     parse_mode='Markdown'
                 )
             else:
-                # Procesar mensaje normal
-                await message.reply_text(
-                    "¡Hola! Soy tu asistente de cursos de IA. ¿En qué puedo ayudarte hoy?"
-                )
+                # Mostrar menú principal
+                await mostrar_menu_principal(update, context)
 
         except Exception as e:
             logger.error(f"Error handling message: {str(e)}", exc_info=True)
@@ -108,51 +92,52 @@ class VentasBot:
                     "Lo siento, hubo un error procesando tu mensaje. Por favor, intenta nuevamente."
                 )
 
-    async def handle_callback(self, update: Update, context):
-        """
-        Maneja las interacciones con botones.
-        """
-        query = None
-        try:
-            query = update.callback_query
-            if not query or not query.data:
-                return
-                
-            data = query.data
-            user_id = str(query.from_user.id)
-            
-            # Extraer acción y course_id del callback_data
-            parts = data.split('_', 1)
-            if len(parts) < 2:
-                await query.answer("Acción no válida")
-                return
-                
-            action, course_id = parts
-            
-            # Ejecutar acción correspondiente
-            if action == 'show_syllabus':
-                await self.agent.mostrar_syllabus_interactivo(user_id, course_id)
-            elif action == 'show_preview':
-                await self.agent.enviar_preview_curso(user_id, course_id)
-            elif action == 'show_pricing':
-                await self.agent.presentar_oferta_limitada(user_id, course_id)
-            elif action == 'schedule_call':
-                await self.agent.agendar_demo_personalizada(user_id, course_id)
-            else:
-                await query.answer("Acción no reconocida")
-                return
-            
-            # Confirmar la acción al usuario
-            await query.answer()
+def main_telegram_bot():
+    """Función principal del bot de Telegram con manejo mejorado de errores."""
+    logger.info("Iniciando bot de Telegram...")
+    
+    try:
+        # Verificar token
+        if not settings.TELEGRAM_API_TOKEN:
+            raise ValueError("TELEGRAM_API_TOKEN no encontrado en variables de entorno")
 
-        except Exception as e:
-            logger.error(f"Error handling callback: {str(e)}", exc_info=True)
-            if query:
-                await query.answer("Error procesando tu solicitud. Intenta nuevamente.")
+        # Crear bot y aplicación
+        bot = VentasBot()
+        application = Application.builder().token(settings.TELEGRAM_API_TOKEN).build()
 
-if __name__ == '__main__':
-    # Iniciar el bot
-    bot = VentasBot()
-    import asyncio
-    asyncio.run(bot.start())
+        # Actualizar agente con API de Telegram
+        bot.agent.telegram = application.bot
+        
+        # Inicializar memoria global en el contexto
+        application.bot_data['global_mem'] = bot.global_memory
+        
+        # Configurar handlers
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bot.handle_message))
+        application.add_handler(CallbackQueryHandler(handle_callback_query))
+
+        logger.info("Bot de Telegram configurado. Iniciando polling...")
+        
+        # Iniciar polling
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        
+    except Exception as e:
+        logger.error(f"Error fatal en main_telegram_bot: {e}", exc_info=True)
+        raise
+    finally:
+        logger.info("Bot de Telegram finalizado")
+
+if __name__ == "__main__":
+    # Configurar asyncio para Windows
+    if os.name == 'nt':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    try:
+        main_telegram_bot()
+        logger.info("Bot finalizado normalmente")
+    except KeyboardInterrupt:
+        logger.info("Bot interrumpido por el usuario (Ctrl+C)")
+    except Exception as e:
+        logger.error(f"Error fatal en la aplicación principal: {e}", exc_info=True)
+        import sys
+        sys.exit(1)
  

@@ -1,0 +1,81 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Activar Entorno Virtual",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "if (Test-Path .\\venv\\Scripts\\Activate.ps1) { . .\\venv\\Scripts\\Activate.ps1 } else { Write-Host 'Entorno virtual no encontrado' }"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Instalar Dependencias",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "if (Test-Path .\\venv\\Scripts\\Activate.ps1) { . .\\venv\\Scripts\\Activate.ps1; pip install -r requirements.txt } else { Write-Host 'Entorno virtual no encontrado' }"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Ejecutar Bot",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "if (Test-Path .\\venv\\Scripts\\Activate.ps1) { . .\\venv\\Scripts\\Activate.ps1; python agente_ventas_telegram.py } else { Write-Host 'Entorno virtual no encontrado' }"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Ejecutar Tests",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "if (Test-Path .\\venv\\Scripts\\Activate.ps1) { . .\\venv\\Scripts\\Activate.ps1; python test_imports.py } else { Write-Host 'Entorno virtual no encontrado' }"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        }
+    ]
+}

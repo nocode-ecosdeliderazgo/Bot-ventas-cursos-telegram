@@ -21,9 +21,15 @@ async def mostrar_menu_principal(update: Update, context: ContextTypes.DEFAULT_T
         [InlineKeyboardButton("🔄 Reiniciar Conversación", callback_data="reiniciar")]
     ]
     
+    # Obtener nombre del usuario de la memoria global
+    global_mem = context.bot_data.get('global_mem')
+    greeting = "¡Hola!"
+    if global_mem and global_mem.lead_data and global_mem.lead_data.name:
+        greeting = f"¡Hola {global_mem.lead_data.name}! 👋"
+    
     await send_agent_telegram(
         update,
-        "¿En qué puedo ayudarte hoy?",
+        f"{greeting}\n\n¿En qué puedo ayudarte hoy?",
         InlineKeyboardMarkup(keyboard),
         msg_critico=True
     )
@@ -45,6 +51,16 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     logger.debug(f"Callback recibido: {callback_data}")
     
     try:
+        # Actualizar memoria global con el usuario actual
+        if update.effective_user:
+            global_mem = context.bot_data.get('global_mem')
+            if global_mem:
+                global_mem.set_current_lead(
+                    str(update.effective_user.id),
+                    name=update.effective_user.first_name or '',
+                    username=update.effective_user.username
+                )
+        
         # === Callbacks de FAQ ===
         if callback_data == "faq":
             from .faq_flow import mostrar_faq

@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Ejecutar Bot de Ventas",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/agente_ventas_telegram.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "python": "${workspaceFolder}/venv/Scripts/python.exe",
+            "justMyCode": true
+        },
+        {
+            "name": "Ejecutar Tests",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_imports.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "python": "${workspaceFolder}/venv/Scripts/python.exe",
+            "justMyCode": true
+        }
+    ]
+}

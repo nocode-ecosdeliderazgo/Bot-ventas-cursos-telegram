@@ -13,8 +13,8 @@ from .memory import LeadMemory
 logger = logging.getLogger(__name__)
 
 # === Configuración global de endpoints y emails ===
-SUPABASE_URL = getattr(settings, 'supabase_url', 'https://dzlvezeeuuarjnoheoyq.supabase.co')
-ADVISOR_EMAIL = getattr(settings, 'advisor_email', 'nocode@ecosdeliderazgo.com')
+SUPABASE_URL = settings.SUPABASE_URL
+ADVISOR_EMAIL = settings.ADVISOR_EMAIL
 UMBRAL_PROMO = 20  # Umbral de interés mínimo para mostrar promociones
 
 # === Sistema de caché simple para consultas externas ===
@@ -85,7 +85,7 @@ def supabase_query(table, filters=None, limit=None):
         return cached_result
     
     url = f"{SUPABASE_URL}/rest/v1/{table}"
-    headers = {"apikey": settings.supabase_key, "Authorization": f"Bearer {settings.supabase_key}"}
+    headers = {"apikey": settings.SUPABASE_KEY, "Authorization": f"Bearer {settings.SUPABASE_KEY}"}
     params = {"select": "*"}
     if filters:
         params.update(filters)
@@ -106,8 +106,8 @@ def get_interest_score(user_id: str) -> Optional[int]:
     try:
         url_score = f"{SUPABASE_URL}/rest/v1/interest_score?user_id=eq.{user_id}"
         headers_score = {
-            "apikey": settings.supabase_key,
-            "Authorization": f"Bearer {settings.supabase_key}"
+            "apikey": settings.SUPABASE_KEY,
+            "Authorization": f"Bearer {settings.SUPABASE_KEY}"
         }
         r_score = requests.get(url_score, headers=headers_score, timeout=10)
         if r_score.status_code == 200 and r_score.json():
@@ -125,8 +125,8 @@ def save_lead(lead_memory: LeadMemory):
     
     url = f"{SUPABASE_URL}/rest/v1/user_leads"
     headers = {
-        "apikey": settings.supabase_key,
-        "Authorization": f"Bearer {settings.supabase_key}",
+        "apikey": settings.SUPABASE_KEY,
+        "Authorization": f"Bearer {settings.SUPABASE_KEY}",
         "Content-Type": "application/json"
     }
     

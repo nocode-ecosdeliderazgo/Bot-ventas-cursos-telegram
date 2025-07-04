@@ -1,15 +1,16 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    supabase_url: str
-    supabase_key: str
-    openai_api_key: str
-    telegram_api_token: str
-    smtp_server: str
-    smtp_port: int
-    smtp_username: str
-    smtp_password: str
-    advisor_email: str
+    DATABASE_URL: str
+    SUPABASE_URL: str
+    SUPABASE_KEY: str
+    OPENAI_API_KEY: str
+    TELEGRAM_API_TOKEN: str
+    SMTP_SERVER: str
+    SMTP_PORT: int
+    SMTP_USERNAME: str
+    SMTP_PASSWORD: str
+    ADVISOR_EMAIL: str
     class Config:
         env_file = ".env"
 
