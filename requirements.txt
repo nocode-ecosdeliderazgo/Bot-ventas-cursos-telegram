@@ -1,0 +1,27 @@
+# Bot de Ventas - Dependencias principales
+
+# Telegram Bot API
+python-telegram-bot>=20.0,<22.0
+
+# Base de datos PostgreSQL
+asyncpg>=0.28.0
+
+# Variables de entorno
+python-dotenv>=1.0.0
+
+# HTTP requests (para integraciones)
+aiohttp>=3.8.0
+
+# Fechas y tiempo
+python-dateutil>=2.8.0
+
+# Configuración con Pydantic
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Logging avanzado (opcional)
+structlog>=23.0.0
+
+# Para testing (opcional)
+pytest>=7.0.0
+pytest-asyncio>=0.21.0 

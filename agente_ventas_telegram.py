@@ -24,8 +24,13 @@ load_dotenv()
 
 class VentasBot:
     def __init__(self):
+        # Verificar variables de entorno
+        db_url = os.getenv('DATABASE_URL')
+        if not db_url:
+            raise ValueError("DATABASE_URL no encontrado en variables de entorno")
+            
         # Inicializar servicios
-        self.db = DatabaseService(os.getenv('DATABASE_URL'))
+        self.db = DatabaseService(db_url)
         self.agent = AgenteSalesTools(self.db, None)  # Se actualizará con la API de Telegram
         self.ads_handler = AdsFlowHandler(self.db, self.agent)
 
@@ -58,6 +63,7 @@ class VentasBot:
         Maneja todos los mensajes entrantes.
         Detecta si el mensaje viene de un anuncio y lo procesa adecuadamente.
         """
+        message = None
         try:
             message = update.message
             if not message or not message.text:
@@ -97,21 +103,23 @@ class VentasBot:
 
         except Exception as e:
             logger.error(f"Error handling message: {str(e)}", exc_info=True)
-            await message.reply_text(
-                "Lo siento, hubo un error procesando tu mensaje. Por favor, intenta nuevamente."
-            )
+            if message:
+                await message.reply_text(
+                    "Lo siento, hubo un error procesando tu mensaje. Por favor, intenta nuevamente."
+                )
 
     async def handle_callback(self, update: Update, context):
         """
         Maneja las interacciones con botones.
         """
+        query = None
         try:
             query = update.callback_query
             if not query or not query.data:
                 return
                 
             data = query.data
-            user_id = query.from_user.id
+            user_id = str(query.from_user.id)
             
             # Extraer acción y course_id del callback_data
             parts = data.split('_', 1)
@@ -130,13 +138,17 @@ class VentasBot:
                 await self.agent.presentar_oferta_limitada(user_id, course_id)
             elif action == 'schedule_call':
                 await self.agent.agendar_demo_personalizada(user_id, course_id)
+            else:
+                await query.answer("Acción no reconocida")
+                return
             
             # Confirmar la acción al usuario
             await query.answer()
 
         except Exception as e:
             logger.error(f"Error handling callback: {str(e)}", exc_info=True)
-            await query.answer("Error procesando tu solicitud. Intenta nuevamente.")
+            if query:
+                await query.answer("Error procesando tu solicitud. Intenta nuevamente.")
 
 if __name__ == '__main__':
     # Iniciar el bot

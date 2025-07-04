@@ -6,6 +6,7 @@ Detecta hashtags y procesa la información inicial del lead.
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timezone
 import re
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from ..services.database import DatabaseService
 from ..utils.message_parser import extract_hashtags, get_course_from_hashtag
 from ..utils.lead_scorer import calculate_initial_score
@@ -16,7 +17,7 @@ class AdsFlowHandler:
         self.db = db_service
         self.agent = agent_tools
 
-    async def handle_ad_message(self, message: Dict, user_data: Dict) -> Tuple[str, Dict]:
+    async def handle_ad_message(self, message: Dict, user_data: Dict) -> Tuple[str, InlineKeyboardMarkup]:
         """
         Maneja el mensaje inicial de un usuario proveniente de un anuncio.
         Retorna la respuesta y los botones/acciones siguientes.
@@ -40,21 +41,21 @@ class AdsFlowHandler:
         lead_id = await self._create_or_update_lead(lead_data)
         
         # Registrar la interacción inicial
-        if course_id:
+        if course_id and lead_id:
             await self.agent._registrar_interaccion(
-                lead_id,
+                str(user_data['id']),
                 course_id,
                 "inquiry",
                 {"source": ad_source, "initial_message": message['text']}
             )
 
         # Preparar respuesta personalizada
-        response = await self._generate_initial_response(lead_id, course_id)
-        next_actions = await self._prepare_next_actions(course_id)
+        response = await self._generate_initial_response(course_id)
+        next_actions = self._prepare_next_actions(course_id)
 
         return response, next_actions
 
-    async def _create_or_update_lead(self, lead_data: Dict) -> str:
+    async def _create_or_update_lead(self, lead_data: Dict) -> Optional[str]:
         """
         Crea o actualiza un lead en la base de datos.
         Retorna el ID del lead.
@@ -107,7 +108,7 @@ class AdsFlowHandler:
                     return f"{platform}_{campaign}"
         return "organic"
 
-    async def _generate_initial_response(self, lead_id: str, course_id: str) -> str:
+    async def _generate_initial_response(self, course_id: Optional[str]) -> str:
         """
         Genera la respuesta inicial personalizada basada en el curso seleccionado.
         """
@@ -142,23 +143,19 @@ class AdsFlowHandler:
 
 ¡Puedes preguntarme lo que necesites! 😊"""
 
-    async def _prepare_next_actions(self, course_id: str) -> Dict:
+    def _prepare_next_actions(self, course_id: Optional[str]) -> InlineKeyboardMarkup:
         """
         Prepara los botones/acciones siguientes para el usuario.
         """
         if not course_id:
-            return {
-                "inline_keyboard": [
-                    [{"text": "📚 Ver Cursos Disponibles", "callback_data": "show_courses"}],
-                    [{"text": "💬 Hablar con Asesor", "callback_data": "contact_advisor"}]
-                ]
-            }
+            return InlineKeyboardMarkup([
+                [InlineKeyboardButton("📚 Ver Cursos Disponibles", callback_data="show_courses")],
+                [InlineKeyboardButton("💬 Hablar con Asesor", callback_data="contact_advisor")]
+            ])
 
-        return {
-            "inline_keyboard": [
-                [{"text": "📚 Ver contenido del curso", "callback_data": f"show_syllabus_{course_id}"}],
-                [{"text": "🎥 Ver video preview", "callback_data": f"show_preview_{course_id}"}],
-                [{"text": "💰 Ver precios y descuentos", "callback_data": f"show_pricing_{course_id}"}],
-                [{"text": "🗣️ Agendar llamada informativa", "callback_data": f"schedule_call_{course_id}"}]
-            ]
-        } 
+        return InlineKeyboardMarkup([
+            [InlineKeyboardButton("📚 Ver contenido del curso", callback_data=f"show_syllabus_{course_id}")],
+            [InlineKeyboardButton("🎥 Ver video preview", callback_data=f"show_preview_{course_id}")],
+            [InlineKeyboardButton("💰 Ver precios y descuentos", callback_data=f"show_pricing_{course_id}")],
+            [InlineKeyboardButton("🗣️ Agendar llamada informativa", callback_data=f"schedule_call_{course_id}")]
+        ]) 

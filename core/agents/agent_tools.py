@@ -4,9 +4,10 @@ Consolidación de todas las funciones necesarias para maximizar conversiones.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Optional, Union
 from decimal import Decimal
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 class AgentTools:
     def __init__(self, db_service, telegram_api):
@@ -861,22 +862,30 @@ Para el curso "{course['name']}"
         else:
             return f"{minutes}m"
 
-    def _get_syllabus_buttons(self, course: Dict) -> Dict:
+    def _get_syllabus_buttons(self, course: Dict) -> InlineKeyboardMarkup:
         """Genera botones para el syllabus."""
-        return {
-            "inline_keyboard": [
-                [{"text": "📥 Descargar Syllabus Completo", "url": course['syllabus_url']}],
-                [{"text": "🎥 Ver Video Preview", "callback_data": f"preview_{course['id']}"}],
-                [{"text": "💰 Ver Precios y Descuentos", "callback_data": f"pricing_{course['id']}"}]
-            ]
-        }
+        buttons = []
+        
+        if course.get('syllabus_url'):
+            buttons.append([InlineKeyboardButton("📥 Descargar Syllabus Completo", url=course['syllabus_url'])])
+        
+        buttons.extend([
+            [InlineKeyboardButton("🎥 Ver Video Preview", callback_data=f"show_preview_{course['id']}")],
+            [InlineKeyboardButton("💰 Ver Precios y Descuentos", callback_data=f"show_pricing_{course['id']}")]
+        ])
+        
+        return InlineKeyboardMarkup(buttons)
 
-    def _get_purchase_buttons(self, course: Dict) -> Dict:
+    def _get_purchase_buttons(self, course: Dict) -> InlineKeyboardMarkup:
         """Genera botones para la compra."""
-        return {
-            "inline_keyboard": [
-                [{"text": "💳 Comprar Ahora", "url": course['purchase_link']}],
-                [{"text": "🗣️ Hablar con un Asesor", "url": course['demo_request_link']}],
-                [{"text": "📚 Ver Contenido Completo", "callback_data": f"syllabus_{course['id']}"}]
-            ]
-        }
+        buttons = []
+        
+        if course.get('purchase_link'):
+            buttons.append([InlineKeyboardButton("💳 Comprar Ahora", url=course['purchase_link'])])
+        
+        if course.get('demo_request_link'):
+            buttons.append([InlineKeyboardButton("🗣️ Hablar con un Asesor", url=course['demo_request_link'])])
+        
+        buttons.append([InlineKeyboardButton("📚 Ver Contenido Completo", callback_data=f"show_syllabus_{course['id']}")])
+        
+        return InlineKeyboardMarkup(buttons)
