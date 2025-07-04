@@ -6,6 +6,7 @@ from typing import Optional, Tuple
 from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters
 import nest_asyncio
+import os
 
 from config.settings import settings
 from core.utils.memory import GlobalMemory
@@ -59,9 +60,45 @@ class BotApplication:
                     'last_name': user.last_name or '',
                     'username': user.username or ''
                 }
+                
+                # Obtener respuesta del agente
                 response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
-                if response:
-                    await update.message.reply_text(response, reply_markup=keyboard)
+                
+                # Si la respuesta es un diccionario, significa que debemos enviar una secuencia de mensajes
+                if isinstance(response, dict):
+                    # 1. Enviar mensaje de confirmación
+                    await update.message.reply_text(response['confirmation'])
+                    
+                    # 2. Enviar imagen si se solicita
+                    if response.get('send_image'):
+                        image_path = "data/imagen_prueba.jpg"
+                        if os.path.exists(image_path):
+                            try:
+                                with open(image_path, 'rb') as photo:
+                                    await update.message.reply_photo(photo=photo)
+                            except Exception as e:
+                                logger.warning(f"No se pudo enviar imagen: {e}")
+                    
+                    # 3. Enviar PDF si se solicita
+                    if response.get('send_pdf'):
+                        pdf_path = "data/pdf_prueba.pdf"
+                        if os.path.exists(pdf_path):
+                            try:
+                                with open(pdf_path, 'rb') as document:
+                                    await update.message.reply_document(document=document)
+                            except Exception as e:
+                                logger.warning(f"No se pudo enviar PDF: {e}")
+                    
+                    # 4. Enviar mensaje final con resumen si existe
+                    if final_message := response.get('final_message'):
+                        mensaje_completo = final_message['text']
+                        if resumen := final_message.get('resumen'):
+                            mensaje_completo += "\n\n" + resumen
+                        await update.message.reply_text(mensaje_completo, parse_mode='Markdown')
+                
+                # Si es una respuesta normal, enviarla como siempre
+                elif response:
+                    await update.message.reply_text(response, reply_markup=keyboard, parse_mode='Markdown')
             
         except Exception as e:
             logger.error(f"Error en handle_message: {e}", exc_info=True)
@@ -72,6 +109,63 @@ class BotApplication:
                     )
                 except Exception:
                     pass
+
+    async def _send_course_files(self, update: Update, user_memory) -> None:
+        """
+        Envía los archivos del curso (imagen y PDF) al usuario.
+        """
+        try:
+            if not update.message:
+                return
+                
+            # Obtener información del curso
+            from core.services.supabase_service import get_course_detail
+            curso_info = await get_course_detail(user_memory.selected_course)
+            if not curso_info:
+                logger.warning("No se encontró información del curso para envío de archivos")
+                return
+            
+            # Enviar imagen
+            image_path = "data/imagen_prueba.jpg"
+            if os.path.exists(image_path):
+                try:
+                    with open(image_path, 'rb') as photo:
+                        await update.message.reply_photo(
+                            photo=photo,
+                            caption="🎯 ¡Este es el curso que transformará tu carrera profesional!"
+                        )
+                    logger.info("Imagen enviada correctamente")
+                except Exception as e:
+                    logger.warning(f"No se pudo enviar imagen: {e}")
+            else:
+                logger.warning("Archivo de imagen no encontrado")
+            
+            # Enviar PDF
+            pdf_path = "data/pdf_prueba.pdf"
+            if os.path.exists(pdf_path):
+                try:
+                    with open(pdf_path, 'rb') as document:
+                        caption = (
+                            "📚 Aquí tienes toda la información detallada del curso.\n\n"
+                            f"*Modalidad:* {curso_info.get('modality', 'No especificado')}\n"
+                            f"*Duración:* {curso_info.get('total_duration', 'No especificado')} horas\n"
+                            f"*Horario:* {curso_info.get('schedule', 'No especificado')}\n"
+                            f"*Precio:* ${curso_info.get('price_usd', 'No especificado')} USD\n"
+                            "*Incluye:* Material, acceso a grabaciones, soporte"
+                        )
+                        await update.message.reply_document(
+                            document=document,
+                            caption=caption,
+                            parse_mode='Markdown'
+                        )
+                    logger.info("PDF enviado correctamente")
+                except Exception as e:
+                    logger.warning(f"No se pudo enviar PDF: {e}")
+            else:
+                logger.warning("Archivo PDF no encontrado")
+                
+        except Exception as e:
+            logger.error(f"Error enviando archivos del curso: {e}", exc_info=True)
 
     async def setup(self) -> None:
         """Configurar el bot y sus handlers."""
@@ -114,7 +208,13 @@ class BotApplication:
                 async with self.application:
                     await self.application.start()
                     logger.info("Bot iniciado correctamente")
-                    await self.application.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+                    
+                    # Verificar que updater esté disponible
+                    if self.application.updater:
+                        await self.application.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+                    else:
+                        logger.error("Updater no disponible")
+                        return
                     
                     # Mantener ejecutándose indefinidamente
                     try:
@@ -154,31 +254,30 @@ async def main():
         logger.info("Bot finalizado")
 
 def run_bot():
-    """Ejecutar el bot con manejo correcto del event loop."""
+    """Ejecutar el bot."""
     try:
-        # Configurar asyncio para Windows
-        if sys.platform == "win32":
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-        # Verificar si ya hay un event loop ejecutándose
-        try:
-            loop = asyncio.get_running_loop()
-            logger.info("Event loop ya está ejecutándose, usando nest_asyncio")
-            # Si ya hay un loop ejecutándose, usar nest_asyncio
-            import nest_asyncio
-            nest_asyncio.apply()
-            # Crear una nueva tarea en el loop existente
-            task = asyncio.create_task(main())
-            # Esperar a que termine
-            loop.run_until_complete(task)
-        except RuntimeError:
-            # No hay event loop, crear uno nuevo
-            logger.info("Creando nuevo event loop")
-            asyncio.run(main())
-            
+        logger.info("Creando nuevo event loop")
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # Ejecutar el bot
+        loop.run_until_complete(main())
+        
+    except KeyboardInterrupt:
+        logger.info("Bot detenido por el usuario")
     except Exception as e:
-        logger.error(f"Error fatal: {e}", exc_info=True)
-        sys.exit(1)
+        logger.error(f"Error ejecutando el bot: {e}", exc_info=True)
+    finally:
+        # Cerrar el event loop
+        try:
+            loop = asyncio.get_event_loop()
+            tasks = asyncio.all_tasks(loop)
+            for task in tasks:
+                task.cancel()
+            loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+            loop.close()
+        except Exception as e:
+            logger.error(f"Error cerrando el event loop: {e}", exc_info=True)
 
 if __name__ == "__main__":
     run_bot()

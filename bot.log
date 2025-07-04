@@ -8272,3 +8272,611 @@ RuntimeError: This Application is not running!
 2025-07-04 03:02:19,454 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
 2025-07-04 03:02:29,611 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
 2025-07-04 03:02:39,788 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:03:27,283 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 03:03:27,284 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 03:03:27,285 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 03:03:27,286 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 03:03:27,405 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 03:03:27,406 - __main__ - INFO - Iniciando bot...
+2025-07-04 03:03:27,884 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 03:03:27,884 - telegram.ext.Application - INFO - Application started
+2025-07-04 03:03:27,885 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 03:03:28,049 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 03:03:38,533 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:03:42,491 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:03:42,493 - core.utils.lead_scorer - INFO - Lead score updated for 8101815097: 0 -> 12
+2025-07-04 03:03:42,494 - core.agents.smart_sales_agent - INFO - Programando seguimiento value_reinforcement para usuario 8101815097
+2025-07-04 03:03:43,220 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 03:03:52,659 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:04:02,827 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:04:12,987 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:04:18,517 - __main__ - INFO - Deteniendo bot...
+2025-07-04 03:04:18,996 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:04:18,997 - __main__ - ERROR - Error en start: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 165, in run_bot
+    loop = asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\nest_asyncio.py", line 30, in run
+    return loop.run_until_complete(task)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 633, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 600, in run_forever
+    self._run_once()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 1860, in _run_once
+    event_list = self._selector.select(timeout)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\selectors.py", line 324, in select
+    r, w, _ = self._select(self._readers, self._writers, [], timeout)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\selectors.py", line 315, in _select
+    r, w, x = select.select(r, w, w, timeout)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 122, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 114, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 03:04:19,003 - __main__ - ERROR - Error en la ejecución del bot: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 165, in run_bot
+    loop = asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\nest_asyncio.py", line 30, in run
+    return loop.run_until_complete(task)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 633, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 600, in run_forever
+    self._run_once()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 1860, in _run_once
+    event_list = self._selector.select(timeout)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\selectors.py", line 324, in select
+    r, w, _ = self._select(self._readers, self._writers, [], timeout)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\selectors.py", line 315, in _select
+    r, w, x = select.select(r, w, w, timeout)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 122, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 146, in main
+    await bot_app.start()
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 114, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 03:04:19,005 - __main__ - INFO - Bot detenido correctamente
+2025-07-04 03:04:19,005 - __main__ - INFO - Bot finalizado
+2025-07-04 03:04:19,028 - asyncio - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Application:8159423249:update_fetcher' coro=<Application._update_fetcher() done, defined at D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py:1224> wait_for=<Future cancelled>>
+2025-07-04 03:09:43,836 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 03:09:43,837 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 03:09:43,839 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 03:09:43,840 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 03:09:43,947 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 03:09:43,948 - __main__ - INFO - Iniciando bot...
+2025-07-04 03:09:44,508 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 03:09:44,509 - telegram.ext.Application - INFO - Application started
+2025-07-04 03:09:44,509 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 03:09:44,661 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 03:09:55,156 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:10:05,329 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:10:15,491 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:10:25,653 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:10:30,951 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:10:30,951 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 03:10:31,493 - core.agents.smart_sales_agent - ERROR - Error en _handle_ad_flow: object dict can't be used in 'await' expression
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 243, in run_bot
+    loop = asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\smart_sales_agent.py", line 121, in _handle_ad_flow
+    curso_info = await get_course_detail(id_curso)
+TypeError: object dict can't be used in 'await' expression
+2025-07-04 03:10:32,097 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 03:10:41,656 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:11:33,166 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 03:11:33,172 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 03:11:33,173 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 03:11:33,174 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 03:11:33,282 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 03:11:33,282 - __main__ - INFO - Iniciando bot...
+2025-07-04 03:11:33,788 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 03:11:33,788 - telegram.ext.Application - INFO - Application started
+2025-07-04 03:11:33,788 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 03:11:33,952 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 03:11:40,027 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:11:40,029 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 03:11:40,400 - core.agents.smart_sales_agent - ERROR - Error en _handle_ad_flow: object dict can't be used in 'await' expression
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 243, in run_bot
+    loop = asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\smart_sales_agent.py", line 121, in _handle_ad_flow
+    curso_info = await get_course_detail(id_curso)
+TypeError: object dict can't be used in 'await' expression
+2025-07-04 03:11:41,016 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 03:11:50,573 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:12:00,733 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:12:10,941 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:12:21,127 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:12:31,280 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:12:41,447 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:12:51,605 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:13:01,764 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:13:11,925 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:13:22,088 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:13:32,243 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:13:42,406 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:13:52,556 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:14:02,737 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:14:12,907 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:14:23,055 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:14:33,217 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:14:43,371 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:14:53,542 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:15:03,711 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:15:13,870 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:15:24,033 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:15:34,190 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:15:44,351 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:15:54,509 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:16:04,676 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:16:14,837 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:16:25,001 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:16:35,178 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:16:45,343 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:16:55,523 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:17:05,687 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:17:15,836 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:17:26,014 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:17:36,179 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:17:46,356 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:17:56,531 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:18:06,687 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:18:16,865 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:18:27,027 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:18:37,193 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:18:47,352 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:18:57,506 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:19:07,681 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:19:17,832 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:19:28,554 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 03:19:28,554 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 03:19:28,571 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 03:19:28,572 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 03:19:28,682 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 03:19:28,682 - __main__ - INFO - Iniciando bot...
+2025-07-04 03:19:29,200 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 03:19:29,200 - telegram.ext.Application - INFO - Application started
+2025-07-04 03:19:29,200 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 03:19:29,354 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 03:19:39,831 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:19:49,985 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:20:00,152 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:20:10,323 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:20:20,483 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:20:30,637 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:20:40,798 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:20:50,975 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:21:01,122 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:21:11,300 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:21:21,467 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:21:22,387 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:21:22,393 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 03:21:22,953 - core.services.supabase_service - WARNING - Intento de guardar lead sin user_id o email: 8101815097
+2025-07-04 03:21:22,953 - core.agents.smart_sales_agent - ERROR - Error en _handle_ad_flow: object bool can't be used in 'await' expression
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\smart_sales_agent.py", line 135, in _handle_ad_flow
+    await save_lead(user_memory)
+TypeError: object bool can't be used in 'await' expression
+2025-07-04 03:21:23,653 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 12:35:22,680 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 12:35:22,689 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 12:35:22,692 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 12:35:22,692 - core.utils.memory - INFO - Loaded 1 lead memories
+2025-07-04 12:35:23,229 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 12:35:23,229 - __main__ - INFO - Iniciando bot...
+2025-07-04 12:35:23,809 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 12:35:23,809 - telegram.ext.Application - INFO - Application started
+2025-07-04 12:35:23,809 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 12:35:23,986 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 12:35:34,553 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:35:35,247 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:35:35,248 - core.utils.lead_scorer - INFO - Lead score updated for 8101815097: 50 -> 62
+2025-07-04 12:35:35,249 - core.agents.smart_sales_agent - INFO - Programando seguimiento value_reinforcement para usuario 8101815097
+2025-07-04 12:35:36,327 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 12:35:45,423 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:35:55,672 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:36:02,270 - __main__ - INFO - Bot detenido por el usuario
+2025-07-04 12:36:02,271 - __main__ - INFO - Deteniendo bot...
+2025-07-04 12:36:02,872 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:36:02,872 - __main__ - ERROR - Error en start: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 200, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 186, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 12:36:02,925 - __main__ - ERROR - Error en la ejecución del bot: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 200, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 224, in main
+    await bot_app.start()
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 186, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 12:36:02,925 - __main__ - INFO - Bot detenido correctamente
+2025-07-04 12:36:02,925 - __main__ - INFO - Bot finalizado
+2025-07-04 12:47:39,077 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 12:47:39,077 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 12:47:39,077 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 12:47:39,077 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 12:47:39,188 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 12:47:39,188 - __main__ - INFO - Iniciando bot...
+2025-07-04 12:47:39,703 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 12:47:39,703 - telegram.ext.Application - INFO - Application started
+2025-07-04 12:47:39,703 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 12:47:39,869 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 12:47:50,373 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:48:00,534 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:48:04,235 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:48:04,237 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 12:48:04,820 - core.services.supabase_service - WARNING - Intento de guardar lead sin user_id o email: 8101815097
+2025-07-04 12:48:04,820 - core.agents.smart_sales_agent - ERROR - Error en _handle_ad_flow: object bool can't be used in 'await' expression
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\core\agents\smart_sales_agent.py", line 135, in _handle_ad_flow
+    await save_lead(user_memory)
+TypeError: object bool can't be used in 'await' expression
+2025-07-04 12:48:05,456 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 12:48:14,453 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:48:15,106 - __main__ - INFO - Bot detenido por el usuario
+2025-07-04 12:48:15,107 - __main__ - INFO - Deteniendo bot...
+2025-07-04 12:48:18,590 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:48:18,590 - __main__ - ERROR - Error en start: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 228, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 214, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 12:48:18,606 - __main__ - ERROR - Error en la ejecución del bot: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 228, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 252, in main
+    await bot_app.start()
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 214, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 12:48:18,606 - __main__ - INFO - Bot detenido correctamente
+2025-07-04 12:48:18,606 - __main__ - INFO - Bot finalizado
+2025-07-04 12:50:49,347 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 12:50:49,348 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 12:50:49,350 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 12:50:49,351 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 12:50:49,457 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 12:50:49,457 - __main__ - INFO - Iniciando bot...
+2025-07-04 12:50:50,018 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 12:50:50,018 - telegram.ext.Application - INFO - Application started
+2025-07-04 12:50:50,018 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 12:50:50,175 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 12:51:00,677 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:51:10,870 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:51:21,062 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:51:31,238 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:51:40,299 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 12:51:40,299 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 12:51:40,299 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 12:51:40,299 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 12:51:40,413 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 12:51:40,414 - __main__ - INFO - Iniciando bot...
+2025-07-04 12:51:40,889 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 12:51:40,889 - telegram.ext.Application - INFO - Application started
+2025-07-04 12:51:40,889 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 12:51:41,053 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 12:51:49,771 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:51:49,772 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 12:51:50,634 - core.services.supabase_service - ERROR - Error HTTP guardando lead 8101815097: Status 400
+2025-07-04 12:51:50,634 - core.agents.smart_sales_agent - WARNING - No se pudo guardar el lead en la base de datos para usuario 8101815097
+2025-07-04 12:51:51,284 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 12:51:59,998 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:52:03,158 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:52:03,843 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 12:52:13,322 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:52:23,534 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:52:27,390 - __main__ - INFO - Bot detenido por el usuario
+2025-07-04 12:52:27,391 - __main__ - INFO - Deteniendo bot...
+2025-07-04 12:52:27,931 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:52:27,933 - __main__ - ERROR - Error en start: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 228, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 214, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 12:52:27,936 - __main__ - ERROR - Error en la ejecución del bot: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 228, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 252, in main
+    await bot_app.start()
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 214, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 12:52:27,940 - __main__ - INFO - Bot detenido correctamente
+2025-07-04 12:52:27,940 - __main__ - INFO - Bot finalizado
+2025-07-04 12:54:46,136 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 12:54:46,136 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 12:54:46,138 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 12:54:46,139 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 12:54:46,238 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 12:54:46,238 - __main__ - INFO - Iniciando bot...
+2025-07-04 12:54:46,723 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 12:54:46,723 - telegram.ext.Application - INFO - Application started
+2025-07-04 12:54:46,723 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 12:54:46,888 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 12:54:57,356 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:55:07,533 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:55:08,704 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:55:08,706 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 12:55:09,754 - core.services.supabase_service - ERROR - Error HTTP guardando lead 8101815097: Status 400
+2025-07-04 12:55:09,763 - core.agents.smart_sales_agent - WARNING - No se pudo guardar el lead en la base de datos para usuario 8101815097
+2025-07-04 12:55:10,396 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 12:55:14,989 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:55:15,310 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 12:55:15,752 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendPhoto "HTTP/1.1 200 OK"
+2025-07-04 12:55:16,277 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendDocument "HTTP/1.1 200 OK"
+2025-07-04 12:55:16,572 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 12:55:25,154 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:55:35,317 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:55:45,478 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:55:55,638 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:56:05,819 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:56:15,975 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:56:26,124 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:56:36,293 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:56:46,454 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:56:56,622 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:57:06,790 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:57:16,952 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:57:27,138 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:57:37,305 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:57:47,457 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:57:57,626 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 12:58:07,791 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 13:00:22,813 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 13:00:22,813 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 13:00:22,822 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 13:00:22,823 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 13:00:22,920 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 13:00:22,920 - __main__ - INFO - Iniciando bot...
+2025-07-04 13:00:23,442 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 13:00:23,442 - telegram.ext.Application - INFO - Application started
+2025-07-04 13:00:23,442 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 13:00:23,618 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 13:00:34,122 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 13:00:44,315 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 13:00:54,487 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 13:00:58,245 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 13:00:58,247 - core.agents.smart_sales_agent - INFO - Detectado flujo de anuncio: curso=CURSO_IA_CHATGPT, anuncio=ADSIM_01
+2025-07-04 13:00:59,154 - core.services.supabase_service - ERROR - Error HTTP guardando lead 8101815097: Status 400
+2025-07-04 13:00:59,154 - core.agents.smart_sales_agent - WARNING - No se pudo guardar el lead en la base de datos para usuario 8101815097
+2025-07-04 13:00:59,795 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 13:01:03,889 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 13:01:04,214 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 13:01:04,577 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendPhoto "HTTP/1.1 200 OK"
+2025-07-04 13:01:05,106 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendDocument "HTTP/1.1 200 OK"
+2025-07-04 13:01:05,397 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 13:01:14,053 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 13:01:24,088 - __main__ - INFO - Bot detenido por el usuario
+2025-07-04 13:01:24,088 - __main__ - INFO - Deteniendo bot...
+2025-07-04 13:01:24,580 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 13:01:24,580 - __main__ - ERROR - Error en start: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 222, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 208, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 13:01:24,596 - __main__ - ERROR - Error en la ejecución del bot: This Application is still running!
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 222, in start
+    await asyncio.sleep(1)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 605, in sleep
+    return await future
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 284, in __await__
+    yield self  # This tells Task to wait for completion.
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 304, in __wakeup
+    future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 196, in result
+    raise exc
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 246, in main
+    await bot_app.start()
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 208, in start
+    async with self.application:
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 385, in __aexit__
+    await self.shutdown()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 535, in shutdown
+    raise RuntimeError("This Application is still running!")
+RuntimeError: This Application is still running!
+2025-07-04 13:01:24,600 - __main__ - INFO - Bot detenido correctamente
+2025-07-04 13:01:24,601 - __main__ - INFO - Bot finalizado

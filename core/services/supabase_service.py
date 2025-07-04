@@ -8,6 +8,7 @@ import json
 import logging
 import time
 from typing import Optional, Dict, Any, List
+import aiohttp
 
 from config.settings import settings
 from core.utils.memory import LeadMemory
@@ -78,7 +79,33 @@ def openai_request_with_retry(url, headers, payload, max_retries=3):
     raise Exception("Máximo número de reintentos alcanzado")
 
 @handle_supabase_errors
-def supabase_query(table, filters=None, limit=None):
+async def supabase_query(table, filters=None, limit=None):
+    """Simple REST GET to Supabase table with caching."""
+    cache_key = f"supabase_{table}_{hash(str(filters))}_{limit}"
+    cached_result = cache.get(cache_key)
+    if cached_result:
+        logger.debug(f"Cache hit para {table}")
+        return cached_result
+    
+    url = f"{SUPABASE_URL}/rest/v1/{table}"
+    headers = {"apikey": settings.SUPABASE_KEY, "Authorization": f"Bearer {settings.SUPABASE_KEY}"}
+    params = {"select": "*"}
+    if filters:
+        params.update(filters)
+    if limit:
+        params["limit"] = limit
+    
+    logger.debug(f"Consultando Supabase: {table}")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers, params=params) as response:
+            response.raise_for_status()
+            result = await response.json()
+            
+            # Cache solo resultados exitosos
+            cache.set(cache_key, result)
+            return result
+
+async def supabase_query_async(table, filters=None, limit=None):
     """Simple REST GET to Supabase table with caching."""
     cache_key = f"supabase_{table}_{hash(str(filters))}_{limit}"
     cached_result = cache.get(cache_key)
@@ -119,10 +146,10 @@ def get_interest_score(user_id: str) -> Optional[int]:
     return None
 
 @handle_supabase_errors
-def save_lead(lead_memory: LeadMemory):
+async def save_lead(lead_memory: LeadMemory):
     """Insert or update user lead with better error handling."""
-    if not lead_memory.user_id or not lead_memory.email:
-        logger.warning(f"Intento de guardar lead sin user_id o email: {lead_memory.user_id}")
+    if not lead_memory.user_id:
+        logger.warning(f"Intento de guardar lead sin user_id: {lead_memory.user_id}")
         return False
     
     url = f"{SUPABASE_URL}/rest/v1/user_leads"
@@ -135,7 +162,6 @@ def save_lead(lead_memory: LeadMemory):
     # El id es el user_id de Telegram (string)
     data = {
         "id": str(lead_memory.user_id),
-        "email": lead_memory.email,
         "stage": lead_memory.stage
     }
     if lead_memory.phone:
@@ -151,19 +177,22 @@ def save_lead(lead_memory: LeadMemory):
     
     try:
         logger.debug(f"Intentando guardar lead: {data}")
-        r = requests.post(url, headers=headers, data=json.dumps(data), timeout=15)
-        
-        if r.status_code == 409:
-            # Already exists, so PATCH
-            patch_url = f"{url}?id=eq.{lead_memory.user_id}"
-            r = requests.patch(patch_url, headers=headers, data=json.dumps(data), timeout=15)
-        
-        if r.status_code == 200 or r.status_code == 201:
-            logger.info(f"Lead guardado exitosamente para usuario {lead_memory.user_id}")
-            return True
-        else:
-            logger.error(f"Error HTTP guardando lead {lead_memory.user_id}: Status {r.status_code} - Response: {r.text}")
-            return False
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 409:
+                    # Already exists, so PATCH
+                    patch_url = f"{url}?id=eq.{lead_memory.user_id}"
+                    async with session.patch(patch_url, headers=headers, json=data) as patch_response:
+                        success = patch_response.status in [200, 201, 204]
+                else:
+                    success = response.status in [200, 201]
+
+            if success:
+                logger.info(f"Lead guardado exitosamente para usuario {lead_memory.user_id}")
+                return True
+            else:
+                logger.error(f"Error HTTP guardando lead {lead_memory.user_id}: Status {response.status}")
+                return False
             
     except Exception as e:
         logger.error(f"Error inesperado guardando lead {lead_memory.user_id}: {e}")
@@ -187,7 +216,7 @@ def get_courses(category=None):
         logger.error(f"Error obteniendo cursos: {e}")
         return []
 
-def get_course_detail(course_id):
+async def get_course_detail(course_id):
     """Get course detail with caching."""
     if not course_id:
         return None
@@ -199,7 +228,7 @@ def get_course_detail(course_id):
     
     try:
         filters = {"id": f"eq.{course_id}"}
-        res = supabase_query("courses", filters)
+        res = await supabase_query("courses", filters)
         if res and len(res) > 0:
             cache.set(cache_key, res[0])
             return res[0]

@@ -5,9 +5,11 @@ análisis de interés del usuario y seguimiento automatizado.
 
 import logging
 import asyncio
+import re
+import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from core.services.database import DatabaseService
 from core.agents.sales_agent import AgenteSalesTools
 from core.utils.memory import GlobalMemory
@@ -17,6 +19,11 @@ from core.utils.message_templates import MessageTemplates
 from core.utils.sales_techniques import SalesTechniques
 
 logger = logging.getLogger(__name__)
+
+# Mapeo de códigos de curso a IDs de Supabase
+CURSOS_MAP = {
+    "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9"
+}
 
 class SmartSalesAgent:
     """
@@ -40,7 +47,7 @@ class SmartSalesAgent:
             'course_start': None  # Se calcula dinámicamente
         }
 
-    async def handle_conversation(self, message_data: dict, user_data: dict) -> Tuple[str, InlineKeyboardMarkup]:
+    async def handle_conversation(self, message_data: dict, user_data: dict) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Punto de entrada principal para la conversación de ventas.
         """
@@ -48,8 +55,17 @@ class SmartSalesAgent:
             user_id = str(user_data['id'])
             message_text = message_data['text']
             
+            # **NUEVO: Detectar hashtags de anuncios PRIMERO**
+            hashtag_match = re.search(r"#([A-Z0-9_]+).*#([A-Z0-9_]+)", message_text)
+            if hashtag_match:
+                return await self._handle_ad_flow(hashtag_match, message_data, user_data)
+            
             # Obtener memoria del usuario
             user_memory = self.global_memory.get_lead_memory(user_id)
+            
+            # Verificar si el usuario necesita envío de archivos multimedia
+            if user_memory.stage == "awaiting_preferred_name" and user_memory.selected_course:
+                return await self._handle_name_and_send_media(message_data, user_data, user_memory)
             
             # Analizar el interés del usuario
             interest_analysis = await self._analyze_user_interest(message_text, user_memory)
@@ -83,6 +99,156 @@ class SmartSalesAgent:
         except Exception as e:
             logger.error(f"Error en handle_conversation: {e}", exc_info=True)
             return self.templates.get_error_message(), None
+
+    async def _handle_ad_flow(self, hashtag_match, message_data: dict, user_data: dict) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
+        """
+        Maneja el flujo específico de usuarios que vienen de anuncios con hashtags.
+        """
+        try:
+            user_id = str(user_data['id'])
+            codigo_curso = hashtag_match.group(1)
+            codigo_anuncio = hashtag_match.group(2)
+            
+            logger.info(f"Detectado flujo de anuncio: curso={codigo_curso}, anuncio={codigo_anuncio}")
+            
+            # Obtener ID del curso
+            id_curso = CURSOS_MAP.get(codigo_curso)
+            if not id_curso:
+                logger.warning(f"Curso no encontrado en mapa: {codigo_curso}")
+                return "¡Gracias por tu interés! En breve un asesor te contactará con más información.", None
+            
+            # Obtener información del curso
+            curso_info = await get_course_detail(id_curso)
+            if not curso_info:
+                logger.warning(f"Información del curso no encontrada: {id_curso}")
+                return "No se encontró información del curso en la base de datos. Un asesor te contactará.", None
+            
+            # Crear/actualizar memoria del usuario
+            user_memory = self.global_memory.create_lead_memory(user_id)
+            user_memory.selected_course = id_curso
+            user_memory.stage = "info"
+            user_memory.ad_source = codigo_anuncio
+            user_memory.first_name = user_data.get('first_name', 'Usuario')
+            user_memory.name = user_data.get('first_name', 'Usuario')
+            
+            # Guardar en base de datos - ahora es async y no requiere email
+            success = await save_lead(user_memory)
+            if not success:
+                logger.warning(f"No se pudo guardar el lead en la base de datos para usuario {user_id}")
+            
+            # Guardar en memoria local
+            self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            # Respuesta inicial
+            saludo = f"Hola {user_memory.name} 😄 ¿cómo estás? Mi nombre es Brenda. Soy un sistema inteligente, parte del equipo de Aprende y Aplica IA. Recibí tu solicitud de información sobre el curso: *{curso_info['name']}*. ¡Con gusto te ayudo!"
+            
+            # Actualizar etapa para esperar el nombre preferido
+            user_memory.stage = "awaiting_preferred_name"
+            self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            return saludo + "\n\nAntes de continuar, ¿cómo te gustaría que te llame?", None
+            
+        except Exception as e:
+            logger.error(f"Error en _handle_ad_flow: {e}", exc_info=True)
+            return "Ha ocurrido un error. Un asesor te contactará pronto.", None
+
+    async def _handle_name_and_send_media(self, message_data: dict, user_data: dict, user_memory) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
+        """
+        Maneja la respuesta del nombre preferido y envía los archivos multimedia.
+        """
+        try:
+            user_id = str(user_data['id'])
+            nombre_preferido = message_data['text'].strip()
+            
+            # Procesar nombre preferido
+            if len(nombre_preferido) > 1 and not any(x in nombre_preferido.lower() for x in ["no", "igual", "como quieras", "da igual", "me da igual"]):
+                user_memory.name = nombre_preferido.title()
+            else:
+                user_memory.name = user_data.get('first_name', 'Usuario')
+            
+            # Obtener información del curso
+            curso_info = await get_course_detail(user_memory.selected_course)
+            if not curso_info:
+                return "No se encontró información del curso.", None
+
+            # Actualizar etapa
+            user_memory.stage = "info_sent"  # Cambiamos el stage ya que enviaremos todo ahora
+            self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            # Preparar todos los mensajes que se enviarán
+            messages = {
+                'confirmation': f"¡Perfecto, {user_memory.name}! A partir de ahora me dirigiré a ti así. 😊\n\nTe enviaré ahora toda la información del curso.",
+                'send_image': True,
+                'send_pdf': True,
+                'final_message': {
+                    'text': f"¡Excelente {user_memory.name}! 🌟 Aquí tienes todos los detalles del curso. Analicémoslos juntos:",
+                    'resumen': (
+                        f"📚 *Curso:* {curso_info.get('name', 'Curso de IA')}\n\n"
+                        f"🎯 *Nivel:* {curso_info.get('level', 'Principiante a Avanzado')}\n"
+                        f"🌐 *Modalidad:* {'Online en vivo' if curso_info.get('online') else 'Presencial'}\n"
+                        f"⏱ *Duración:* {curso_info.get('total_duration', 'N/A')} horas\n"
+                        f"📅 *Horario:* {curso_info.get('schedule', 'A consultar')}\n"
+                        f"💰 *Inversión:* ${curso_info.get('price_usd', 'N/A')} USD\n\n"
+                        f"✨ *El curso incluye:*\n"
+                        f"• Material didáctico digital\n"
+                        f"• Acceso a grabaciones de las clases\n"
+                        f"• Certificado al completar\n"
+                        f"• Soporte personalizado\n"
+                        f"• Proyectos prácticos\n\n"
+                        f"🎓 *Beneficios:*\n"
+                        f"• Clases en vivo con instructor experto\n"
+                        f"• Grupos reducidos para atención personalizada\n"
+                        f"• Ejercicios y casos reales\n"
+                        f"• Comunidad de estudiantes\n\n"
+                        f"¿Te gustaría conocer más detalles sobre algún aspecto en particular? ¡Estoy aquí para ayudarte! 😊"
+                    )
+                }
+            }
+            
+            return messages, None
+            
+        except Exception as e:
+            logger.error(f"Error en _handle_name_and_send_media: {e}", exc_info=True)
+            return "Ha ocurrido un error. Un asesor te contactará pronto.", None
+
+    async def _send_course_media(self, message_data: dict, course_info: Dict) -> None:
+        """
+        Envía los archivos multimedia del curso (imagen y PDF).
+        """
+        try:
+            chat_id = message_data.get('chat_id')
+            if not chat_id:
+                logger.error("Chat ID no disponible para enviar media")
+                return
+            
+            # **IMPORTANTE: Necesitamos obtener el bot de la instancia de la aplicación**
+            # Por ahora, vamos a logear que necesitamos enviar los archivos
+            # y usar una aproximación diferente
+            
+            logger.info(f"Enviando archivos multimedia al chat {chat_id}")
+            
+            # **TEMPORAL: Marcar que los archivos necesitan ser enviados**
+            # En el próximo mensaje del usuario, el bot principal debería manejar esto
+            
+            # Verificar archivos
+            image_path = "data/imagen_prueba.jpg"
+            pdf_path = "data/pdf_prueba.pdf"
+            
+            if os.path.exists(image_path):
+                logger.info(f"Archivo de imagen encontrado: {image_path}")
+            else:
+                logger.warning("Archivo de imagen no encontrado")
+            
+            if os.path.exists(pdf_path):
+                logger.info(f"Archivo PDF encontrado: {pdf_path}")
+            else:
+                logger.warning("Archivo PDF no encontrado")
+                
+            # **NOTA**: Los archivos se enviarán a través del bot principal
+            # que tiene acceso directo al Application de Telegram
+                
+        except Exception as e:
+            logger.error(f"Error enviando media del curso: {e}", exc_info=True)
 
     async def _analyze_user_interest(self, message: str, user_memory) -> Dict:
         """
@@ -177,7 +343,7 @@ class SmartSalesAgent:
         else:
             return 'discover_needs'
 
-    async def _generate_strategic_response(self, strategy: str, message: str, user_memory, analysis: Dict) -> Tuple[str, InlineKeyboardMarkup]:
+    async def _generate_strategic_response(self, strategy: str, message: str, user_memory, analysis: Dict) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Genera una respuesta estratégica basada en la estrategia determinada.
         """
@@ -204,7 +370,7 @@ class SmartSalesAgent:
         else:  # discover_needs
             return await self._discover_needs_strategy(user_name, user_memory)
 
-    async def _close_immediate_strategy(self, user_name: str, user_memory) -> Tuple[str, InlineKeyboardMarkup]:
+    async def _close_immediate_strategy(self, user_name: str, user_memory) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Estrategia para cerrar la venta inmediatamente cuando hay alta intención de compra.
         """
@@ -218,7 +384,7 @@ class SmartSalesAgent:
         
         return message, keyboard
 
-    async def _handle_objection_strategy(self, message: str, user_name: str, analysis: Dict) -> Tuple[str, InlineKeyboardMarkup]:
+    async def _handle_objection_strategy(self, message: str, user_name: str, analysis: Dict) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Maneja objeciones del usuario con técnicas de ventas probadas.
         """
@@ -233,7 +399,7 @@ class SmartSalesAgent:
         
         return response, keyboard
 
-    async def _provide_value_info_strategy(self, message: str, user_name: str, user_memory) -> Tuple[str, InlineKeyboardMarkup]:
+    async def _provide_value_info_strategy(self, message: str, user_name: str, user_memory) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Proporciona información valiosa cuando el usuario muestra alto interés informativo.
         """
@@ -249,7 +415,7 @@ class SmartSalesAgent:
         
         return response, keyboard
 
-    async def _urgency_close_strategy(self, user_name: str, user_memory) -> Tuple[str, InlineKeyboardMarkup]:
+    async def _urgency_close_strategy(self, user_name: str, user_memory) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Crea urgencia para cerrar la venta cuando el usuario está en etapa de decisión.
         """
@@ -269,7 +435,7 @@ class SmartSalesAgent:
         
         return message, keyboard
 
-    async def _build_value_strategy(self, user_name: str, user_memory) -> Tuple[str, InlineKeyboardMarkup]:
+    async def _build_value_strategy(self, user_name: str, user_memory) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Construye valor cuando el usuario está en consideración con interés medio.
         """
@@ -284,7 +450,7 @@ class SmartSalesAgent:
         
         return message, keyboard
 
-    async def _nurture_interest_strategy(self, user_name: str, user_memory) -> Tuple[str, InlineKeyboardMarkup]:
+    async def _nurture_interest_strategy(self, user_name: str, user_memory) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Nutre el interés cuando el nivel es bajo, construyendo confianza gradualmente.
         """
@@ -299,7 +465,7 @@ class SmartSalesAgent:
         
         return message, keyboard
 
-    async def _discover_needs_strategy(self, user_name: str, user_memory) -> Tuple[str, InlineKeyboardMarkup]:
+    async def _discover_needs_strategy(self, user_name: str, user_memory) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
         Descubre las necesidades del usuario para personalizar la experiencia.
         """
