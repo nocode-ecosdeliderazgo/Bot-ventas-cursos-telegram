@@ -4,7 +4,6 @@ Utilidades para procesar mensajes y extraer información relevante.
 
 import re
 from typing import List, Optional
-from ..services import DatabaseService
 
 def extract_hashtags(text: str) -> List[str]:
     """
@@ -14,7 +13,7 @@ def extract_hashtags(text: str) -> List[str]:
     hashtag_pattern = r'#(\w+)'
     return re.findall(hashtag_pattern, text)
 
-async def get_course_from_hashtag(hashtags: List[str], db: DatabaseService) -> Optional[str]:
+async def get_course_from_hashtag(hashtags: List[str], db) -> Optional[str]:
     """
     Identifica el curso basado en los hashtags del mensaje.
     Retorna el ID del curso si se encuentra.

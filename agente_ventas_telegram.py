@@ -6,9 +6,9 @@ import os
 import logging
 from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters
 from telegram import Update
-from bot.services.database import DatabaseService
-from bot.sales_agent import AgenteSalesTools
-from bot.handlers.ads_flow import AdsFlowHandler
+from core.services.database import DatabaseService
+from core.agents.sales_agent import AgenteSalesTools
+from core.handlers.ads_flow import AdsFlowHandler
 from dotenv import load_dotenv
 
 # Configurar logging
@@ -32,7 +32,11 @@ class VentasBot:
     async def start(self):
         """Inicia el bot y configura los handlers."""
         # Crear aplicación
-        self.app = Application.builder().token(os.getenv('TELEGRAM_TOKEN')).build()
+        token = os.getenv('TELEGRAM_TOKEN')
+        if not token:
+            raise ValueError("TELEGRAM_TOKEN no encontrado en variables de entorno")
+            
+        self.app = Application.builder().token(token).build()
         
         # Actualizar agente con API de Telegram
         self.agent.telegram = self.app.bot
@@ -56,7 +60,12 @@ class VentasBot:
         """
         try:
             message = update.message
+            if not message or not message.text:
+                return
+                
             user = message.from_user
+            if not user:
+                return
             
             # Verificar si el mensaje viene de un anuncio (tiene hashtags)
             if '#' in message.text:
@@ -68,9 +77,9 @@ class VentasBot:
                     },
                     {
                         'id': user.id,
-                        'first_name': user.first_name,
-                        'last_name': user.last_name,
-                        'username': user.username
+                        'first_name': user.first_name or '',
+                        'last_name': user.last_name or '',
+                        'username': user.username or ''
                     }
                 )
                 
@@ -82,8 +91,9 @@ class VentasBot:
                 )
             else:
                 # Procesar mensaje normal
-                # TODO: Implementar procesamiento de mensajes regulares
-                pass
+                await message.reply_text(
+                    "¡Hola! Soy tu asistente de cursos de IA. ¿En qué puedo ayudarte hoy?"
+                )
 
         except Exception as e:
             logger.error(f"Error handling message: {str(e)}", exc_info=True)
@@ -97,11 +107,19 @@ class VentasBot:
         """
         try:
             query = update.callback_query
+            if not query or not query.data:
+                return
+                
             data = query.data
             user_id = query.from_user.id
             
             # Extraer acción y course_id del callback_data
-            action, course_id = data.split('_', 1)
+            parts = data.split('_', 1)
+            if len(parts) < 2:
+                await query.answer("Acción no válida")
+                return
+                
+            action, course_id = parts
             
             # Ejecutar acción correspondiente
             if action == 'show_syllabus':
