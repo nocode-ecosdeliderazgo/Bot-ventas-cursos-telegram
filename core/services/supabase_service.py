@@ -8,8 +8,10 @@ import json
 import logging
 import time
 from typing import Optional, Dict, Any, List
+
 from config.settings import settings
-from .memory import LeadMemory
+from core.utils.memory import LeadMemory
+
 logger = logging.getLogger(__name__)
 
 # === Configuración global de endpoints y emails ===

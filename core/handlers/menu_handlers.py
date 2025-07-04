@@ -1,135 +1,122 @@
-"""
-Menu handlers for the Telegram bot.
-"""
-
+"""Manejadores de menús del bot."""
 import logging
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ContextTypes
 from typing import Optional
-from .utils import send_agent_telegram, handle_telegram_errors
+from telegram import Update, InlineKeyboardMarkup, CallbackQuery
+from telegram.ext import ContextTypes
+
+from core.utils.error_handlers import handle_telegram_errors
+from core.utils.memory import GlobalMemory
+from core.utils.message_templates import create_menu_message, create_menu_keyboard
+from core.utils.navigation import show_main_menu
 
 logger = logging.getLogger(__name__)
 
 @handle_telegram_errors
 async def mostrar_menu_principal(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Muestra el menú principal del bot."""
-    keyboard = [
-        [InlineKeyboardButton("📚 Ver Cursos", callback_data="ver_cursos")],
-        [InlineKeyboardButton("💰 Ver Promociones", callback_data="promociones")],
-        [InlineKeyboardButton("❓ FAQ", callback_data="faq")],
-        [InlineKeyboardButton("👨‍💼 Hablar con Asesor", callback_data="contacto")],
-        [InlineKeyboardButton("🔄 Reiniciar Conversación", callback_data="reiniciar")]
-    ]
+    """Muestra el menú principal."""
+    if not update.effective_chat:
+        logger.error("No se pudo mostrar el menú: effective_chat es None")
+        return
     
-    # Obtener nombre del usuario de la memoria global
-    global_mem = context.bot_data.get('global_mem')
-    greeting = "¡Hola!"
-    if global_mem and global_mem.lead_data and global_mem.lead_data.name:
-        greeting = f"¡Hola {global_mem.lead_data.name}! 👋"
-    
-    await send_agent_telegram(
-        update,
-        f"{greeting}\n\n¿En qué puedo ayudarte hoy?",
-        InlineKeyboardMarkup(keyboard),
-        msg_critico=True
-    )
+    try:
+        # Obtener mensaje y teclado del menú
+        menu_message = create_menu_message()
+        keyboard = create_menu_keyboard()
+        
+        # Enviar menú
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=menu_message,
+            reply_markup=keyboard
+        )
+        
+    except Exception as e:
+        logger.error(f"Error mostrando menú principal: {e}")
+        raise
 
 @handle_telegram_errors
 async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Maneja los callbacks de los botones inline."""
-    if not update.callback_query:
+    """Maneja las respuestas a los botones del menú."""
+    if not update.callback_query or not update.effective_user:
+        logger.error("Callback query o effective_user es None")
         return
-    
-    query = update.callback_query
-    await query.answer()
-    
-    callback_data = query.data
-    if not callback_data:
-        logger.warning("Callback sin datos")
-        return
-    
-    logger.debug(f"Callback recibido: {callback_data}")
+        
+    query: CallbackQuery = update.callback_query
+    callback_data: str = query.data if query.data else ""
+    user_id = update.effective_user.id
     
     try:
-        # Actualizar memoria global con el usuario actual
-        if update.effective_user:
-            global_mem = context.bot_data.get('global_mem')
-            if global_mem:
-                global_mem.set_current_lead(
-                    str(update.effective_user.id),
-                    name=update.effective_user.first_name or '',
-                    username=update.effective_user.username
-                )
+        # Confirmar recepción del callback
+        await query.answer()
         
-        # === Callbacks de FAQ ===
-        if callback_data == "faq":
-            from .faq_flow import mostrar_faq
-            await mostrar_faq(update, context)
-            return
-        
-        if callback_data.startswith("faq_q_"):
-            from .faq_flow import responder_faq
-            template_idx = int(callback_data.split("_")[2])
-            await responder_faq(update, context, template_idx)
-            return
-        
-        if callback_data.startswith("faq_select_course_"):
-            from .faq_flow import mostrar_cursos_para_faq
-            template_idx = int(callback_data.split("_")[3])
-            await mostrar_cursos_para_faq(update, context, template_idx)
-            return
-        
-        if callback_data.startswith("faq_course_"):
-            from .faq_flow import responder_faq
-            parts = callback_data.split("_")
-            template_idx = int(parts[2])
-            course_id = parts[3]
-            await responder_faq(update, context, template_idx, course_id)
-            return
-        
-        # === Callbacks de Cursos ===
-        if callback_data == "ver_cursos":
-            from .course_flow import mostrar_lista_cursos
-            await mostrar_lista_cursos(update, context)
-            return
-        
-        if callback_data.startswith("course_"):
-            from .course_flow import mostrar_menu_curso_exploracion
-            course_id = callback_data.split("_")[1]
-            await mostrar_menu_curso_exploracion(update, context, course_id)
-            return
-        
-        if any(callback_data.startswith(prefix) for prefix in ["modules_", "duration_", "price_", "buy_"]):
-            from .course_flow import mostrar_menu_curso_exploracion
-            course_id = callback_data.split("_")[1]
-            await mostrar_menu_curso_exploracion(update, context, course_id)
-            return
-        
-        # === Callbacks de Promociones ===
-        if callback_data == "promociones":
-            from .promo_flow import mostrar_promociones
-            await mostrar_promociones(update, context)
-            return
-        
-        # === Callbacks de Contacto ===
-        if callback_data == "contacto":
-            from .contact_flow import contact_advisor_flow
-            await contact_advisor_flow(update, context)
-            return
-        
-        # === Callbacks de Menú Principal ===
-        if callback_data == "cta_inicio" or callback_data == "menu_principal":
-            await mostrar_menu_principal(update, context)
-            return
-        
-        # === Callback no manejado ===
-        logger.warning(f"Callback no manejado: {callback_data}")
-        await mostrar_menu_principal(update, context)
-        
+        # Manejar diferentes tipos de callbacks
+        if callback_data.startswith("menu_"):
+            if callback_data == "menu_main":
+                await show_main_menu(update, context)
+            else:
+                await handle_menu_callback(update, context, callback_data)
+        elif callback_data.startswith("privacy_"):
+            await handle_privacy_callback(update, context, callback_data)
+        elif callback_data.startswith("course_"):
+            await handle_course_callback(update, context, callback_data)
+        elif callback_data.startswith("contact_"):
+            await handle_contact_callback(update, context, callback_data)
+        else:
+            logger.warning(f"Callback no manejado: {callback_data}")
+            await show_main_menu(update, context)
+            
     except Exception as e:
-        logger.error(f"Error manejando callback {callback_data}: {e}")
-        await send_agent_telegram(
-            update,
-            "Lo siento, hubo un error procesando tu selección. Por favor, intenta nuevamente.",
-            None
-        ) 
+        logger.error(f"Error manejando callback query: {e}")
+        raise
+
+@handle_telegram_errors
+async def handle_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE, callback_data: str) -> None:
+    """Maneja los callbacks del menú principal."""
+    if not update.effective_chat:
+        await show_main_menu(update, context)
+        return
+        
+    if callback_data == "menu_courses":
+        from core.handlers.course_flow import show_courses
+        await show_courses(update, context)
+    elif callback_data == "menu_contact":
+        from core.handlers.contact_flow import show_contact_options
+        await show_contact_options(update, context)
+    elif callback_data == "menu_faq":
+        from core.handlers.faq_flow import show_faq
+        await show_faq(update, context)
+    elif callback_data == "menu_privacy":
+        from core.handlers.privacy_flow import show_privacy_policy
+        await show_privacy_policy(update, context)
+    else:
+        await show_main_menu(update, context)
+
+@handle_telegram_errors
+async def handle_privacy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE, callback_data: str) -> None:
+    """Maneja los callbacks de la política de privacidad."""
+    if not update.effective_chat:
+        await show_main_menu(update, context)
+        return
+        
+    from core.handlers.privacy_flow import handle_privacy_response
+    await handle_privacy_response(update, context, callback_data)
+
+@handle_telegram_errors
+async def handle_course_callback(update: Update, context: ContextTypes.DEFAULT_TYPE, callback_data: str) -> None:
+    """Maneja los callbacks relacionados con cursos."""
+    if not update.effective_chat:
+        await show_main_menu(update, context)
+        return
+        
+    from core.handlers.course_flow import handle_course_selection
+    await handle_course_selection(update, context, callback_data)
+
+@handle_telegram_errors
+async def handle_contact_callback(update: Update, context: ContextTypes.DEFAULT_TYPE, callback_data: str) -> None:
+    """Maneja los callbacks de contacto."""
+    if not update.effective_chat:
+        await show_main_menu(update, context)
+        return
+        
+    from core.handlers.contact_flow import handle_contact_selection
+    await handle_contact_selection(update, context, callback_data) 

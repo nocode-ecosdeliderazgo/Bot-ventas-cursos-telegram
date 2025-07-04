@@ -50,23 +50,30 @@ def test_imports():
     
     # Test 6: Agentes
     try:
+        from core.agents.smart_sales_agent import SmartSalesAgent
         from core.agents.sales_agent import AgenteSalesTools
-        from core.agents.agent_tools import AgentTools
         results.append("✅ Sales Agents")
     except Exception as e:
         results.append(f"❌ Error en Sales Agents: {e}")
     
     # Test 7: Handlers
     try:
-        from core.handlers.ads_flow import AdsFlowHandler
-        results.append("✅ Ads Flow Handler")
+        from core.handlers.menu_handlers import handle_callback_query
+        from core.handlers.course_flow import show_courses
+        from core.handlers.contact_flow import show_contact_options
+        from core.handlers.faq_flow import show_faq
+        from core.handlers.privacy_flow import show_privacy_policy
+        results.append("✅ Handlers")
     except Exception as e:
-        results.append(f"❌ Error en Ads Flow Handler: {e}")
+        results.append(f"❌ Error en Handlers: {e}")
     
     # Test 8: Utilidades
     try:
-        from core.utils.message_parser import extract_hashtags, get_course_from_hashtag
-        from core.utils.lead_scorer import calculate_initial_score
+        from core.utils.memory import GlobalMemory
+        from core.utils.message_templates import MessageTemplates
+        from core.utils.sales_techniques import SalesTechniques
+        from core.utils.error_handlers import handle_telegram_errors
+        from core.utils.navigation import show_main_menu
         results.append("✅ Utilidades del core")
     except Exception as e:
         results.append(f"❌ Error en utilidades: {e}")
@@ -86,28 +93,34 @@ def test_basic_functionality():
     results = []
     
     try:
-        from core.utils.message_parser import extract_hashtags
+        from core.utils.message_templates import MessageTemplates
         
-        # Test extracción de hashtags
-        test_message = "Hola, vengo de Facebook #CURSO_IA_CHATGPT #ADSIM_01"
-        hashtags = extract_hashtags(test_message)
+        # Test de plantillas de mensajes
+        templates = MessageTemplates()
+        test_message = templates.get_privacy_notice_message("Usuario")
         
-        if hashtags == ['CURSO_IA_CHATGPT', 'ADSIM_01']:
-            results.append("✅ Extracción de hashtags funcionando")
+        if isinstance(test_message, str) and len(test_message) > 0:
+            results.append("✅ Plantillas de mensajes funcionando")
         else:
-            results.append(f"❌ Error en extracción de hashtags: {hashtags}")
+            results.append("❌ Error en plantillas de mensajes")
             
     except Exception as e:
-        results.append(f"❌ Error en test de hashtags: {e}")
+        results.append(f"❌ Error en test de plantillas: {e}")
     
     try:
-        from core.utils.lead_scorer import calculate_initial_score
+        from core.utils.sales_techniques import SalesTechniques
         
-        # Test básico de scoring (sin await ya que no tenemos loop aquí)
-        results.append("✅ Lead scorer importado correctamente")
+        # Test de técnicas de venta
+        sales = SalesTechniques()
+        test_objection = sales.identify_objection_type("Es muy caro el curso")
+        
+        if test_objection == "price":
+            results.append("✅ Técnicas de venta funcionando")
+        else:
+            results.append("❌ Error en técnicas de venta")
         
     except Exception as e:
-        results.append(f"❌ Error en lead scorer: {e}")
+        results.append(f"❌ Error en técnicas de venta: {e}")
     
     return results
 

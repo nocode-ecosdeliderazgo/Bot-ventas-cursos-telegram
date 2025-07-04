@@ -7902,3 +7902,373 @@ RuntimeError: This Application is not running!
 2025-07-04 01:46:57,567 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/answerCallbackQuery "HTTP/1.1 200 OK"
 2025-07-04 01:46:57,568 - core.handlers.menu_handlers - WARNING - Callback no manejado: reiniciar
 2025-07-04 01:46:57,851 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/sendMessage "HTTP/1.1 200 OK"
+2025-07-04 02:49:14,236 - core.utils.memory - ERROR - Error loading lead memory for : LeadMemory.__init__() got an unexpected keyword argument 'lead_data'
+2025-07-04 02:49:14,237 - core.utils.memory - ERROR - Error loading lead memory for 8101815097: LeadMemory.__init__() got an unexpected keyword argument 'lead_data'
+2025-07-04 02:49:14,237 - core.utils.memory - INFO - Loaded 0 lead memories
+2025-07-04 02:49:14,238 - core.utils.memory - ERROR - Error loading lead memory for : LeadMemory.__init__() got an unexpected keyword argument 'lead_data'
+2025-07-04 02:49:14,238 - core.utils.memory - ERROR - Error loading lead memory for 8101815097: LeadMemory.__init__() got an unexpected keyword argument 'lead_data'
+2025-07-04 02:49:14,238 - core.utils.memory - INFO - Loaded 0 lead memories
+2025-07-04 02:49:14,347 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 02:49:14,347 - __main__ - INFO - Iniciando bot...
+2025-07-04 02:49:14,852 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 02:49:14,853 - telegram.ext.Application - INFO - Application started
+2025-07-04 02:49:14,853 - __main__ - ERROR - Error en start: Cannot close a running event loop
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1047, in __run
+    loop.run_until_complete(self._bootstrap_initialize(max_retries=bootstrap_retries))
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1068, in __run
+    loop.run_until_complete(self.stop())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 110, in start
+    await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 837, in run_polling
+    return self.__run(
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1077, in __run
+    loop.close()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\selector_events.py", line 84, in close
+    raise RuntimeError("Cannot close a running event loop")
+RuntimeError: Cannot close a running event loop
+2025-07-04 02:49:14,856 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-07-04 02:49:14,857 - telegram.ext.Application - INFO - Application.stop() complete
+2025-07-04 02:49:14,858 - __main__ - INFO - Bot finalizado
+2025-07-04 02:49:14,859 - __main__ - ERROR - Error fatal: Cannot close a running event loop
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1047, in __run
+    loop.run_until_complete(self._bootstrap_initialize(max_retries=bootstrap_retries))
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1068, in __run
+    loop.run_until_complete(self.stop())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 129, in main
+    asyncio.run(bot_app.start())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 646, in run_until_complete
+    return future.result()
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 110, in start
+    await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 837, in run_polling
+    return self.__run(
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1077, in __run
+    loop.close()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\selector_events.py", line 84, in close
+    raise RuntimeError("Cannot close a running event loop")
+RuntimeError: Cannot close a running event loop
+2025-07-04 02:53:36,034 - core.utils.memory - ERROR - Error loading lead memory for : LeadMemory.__init__() got an unexpected keyword argument 'lead_data'
+2025-07-04 02:53:36,035 - core.utils.memory - ERROR - Error loading lead memory for 8101815097: LeadMemory.__init__() got an unexpected keyword argument 'lead_data'
+2025-07-04 02:53:36,035 - core.utils.memory - INFO - Loaded 0 lead memories
+2025-07-04 02:53:36,036 - core.utils.memory - ERROR - Error loading lead memory for : LeadMemory.__init__() got an unexpected keyword argument 'lead_data'
+2025-07-04 02:53:36,037 - core.utils.memory - ERROR - Error loading lead memory for 8101815097: LeadMemory.__init__() got an unexpected keyword argument 'lead_data'
+2025-07-04 02:53:36,037 - core.utils.memory - INFO - Loaded 0 lead memories
+2025-07-04 02:53:36,143 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 02:53:36,143 - __main__ - INFO - Iniciando bot...
+2025-07-04 02:53:36,712 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 02:53:36,714 - telegram.ext.Application - INFO - Application started
+2025-07-04 02:53:36,715 - __main__ - ERROR - Error en start: Cannot close a running event loop
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1047, in __run
+    loop.run_until_complete(self._bootstrap_initialize(max_retries=bootstrap_retries))
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1068, in __run
+    loop.run_until_complete(self.stop())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 116, in start
+    await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 837, in run_polling
+    return self.__run(
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1077, in __run
+    loop.close()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\selector_events.py", line 84, in close
+    raise RuntimeError("Cannot close a running event loop")
+RuntimeError: Cannot close a running event loop
+2025-07-04 02:53:36,728 - telegram.ext.Application - INFO - Application is stopping. This might take a moment.
+2025-07-04 02:53:36,729 - telegram.ext.Application - INFO - Application.stop() complete
+2025-07-04 02:53:36,729 - __main__ - INFO - Bot finalizado
+2025-07-04 02:53:36,729 - __main__ - ERROR - Error en la ejecución del bot: Cannot close a running event loop
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1047, in __run
+    loop.run_until_complete(self._bootstrap_initialize(max_retries=bootstrap_retries))
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1068, in __run
+    loop.run_until_complete(self.stop())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 144, in main
+    loop.run_until_complete(bot_app.start())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 646, in run_until_complete
+    return future.result()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\futures.py", line 201, in result
+    raise self._exception
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\tasks.py", line 232, in __step
+    result = coro.send(None)
+  File "d:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 116, in start
+    await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 837, in run_polling
+    return self.__run(
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1077, in __run
+    loop.close()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\selector_events.py", line 84, in close
+    raise RuntimeError("Cannot close a running event loop")
+RuntimeError: Cannot close a running event loop
+2025-07-04 02:58:15,966 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 02:58:15,967 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 02:58:15,968 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 02:58:16,088 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 02:58:16,088 - __main__ - INFO - Iniciando bot...
+2025-07-04 02:58:16,088 - __main__ - ERROR - Error en start: Cannot close a running event loop
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1047, in __run
+    loop.run_until_complete(self._bootstrap_initialize(max_retries=bootstrap_retries))
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1072, in __run
+    loop.run_until_complete(self.shutdown())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 112, in start
+    await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 837, in run_polling
+    return self.__run(
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1077, in __run
+    loop.close()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\selector_events.py", line 84, in close
+    raise RuntimeError("Cannot close a running event loop")
+RuntimeError: Cannot close a running event loop
+2025-07-04 02:58:16,092 - __main__ - ERROR - Error en la ejecución del bot: Cannot close a running event loop
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1047, in __run
+    loop.run_until_complete(self._bootstrap_initialize(max_retries=bootstrap_retries))
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1072, in __run
+    loop.run_until_complete(self.shutdown())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 133, in main
+    await bot_app.start()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 112, in start
+    await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 837, in run_polling
+    return self.__run(
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1077, in __run
+    loop.close()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\selector_events.py", line 84, in close
+    raise RuntimeError("Cannot close a running event loop")
+RuntimeError: Cannot close a running event loop
+2025-07-04 02:58:16,094 - __main__ - ERROR - Error deteniendo bot: This Application is not running!
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 121, in stop
+    await self.application.stop()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 661, in stop
+    raise RuntimeError("This Application is not running!")
+RuntimeError: This Application is not running!
+2025-07-04 02:58:16,095 - __main__ - INFO - Bot finalizado
+2025-07-04 03:00:35,615 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 03:00:35,616 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 03:00:35,617 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 03:00:35,618 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 03:00:35,746 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 03:00:35,746 - __main__ - INFO - Iniciando bot...
+2025-07-04 03:00:35,746 - __main__ - ERROR - Error en start: Cannot close a running event loop
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 154, in run_bot
+    loop = asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1047, in __run
+    loop.run_until_complete(self._bootstrap_initialize(max_retries=bootstrap_retries))
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1072, in __run
+    loop.run_until_complete(self.shutdown())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 112, in start
+    await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 837, in run_polling
+    return self.__run(
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1077, in __run
+    loop.close()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\selector_events.py", line 84, in close
+    raise RuntimeError("Cannot close a running event loop")
+RuntimeError: Cannot close a running event loop
+2025-07-04 03:00:35,750 - __main__ - ERROR - Error en la ejecución del bot: Cannot close a running event loop
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 154, in run_bot
+    loop = asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1047, in __run
+    loop.run_until_complete(self._bootstrap_initialize(max_retries=bootstrap_retries))
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1072, in __run
+    loop.run_until_complete(self.shutdown())
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 622, in run_until_complete
+    self._check_running()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 582, in _check_running
+    raise RuntimeError('This event loop is already running')
+RuntimeError: This event loop is already running
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 135, in main
+    await bot_app.start()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 112, in start
+    await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 837, in run_polling
+    return self.__run(
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 1077, in __run
+    loop.close()
+  File "C:\Users\Diego\AppData\Local\Programs\Python\Python310\lib\asyncio\selector_events.py", line 84, in close
+    raise RuntimeError("Cannot close a running event loop")
+RuntimeError: Cannot close a running event loop
+2025-07-04 03:00:35,753 - __main__ - ERROR - Error deteniendo bot: This Application is not running!
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 154, in run_bot
+    loop = asyncio.get_running_loop()
+RuntimeError: no running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\agente_ventas_telegram.py", line 122, in stop
+    await self.application.stop()
+  File "D:\EcosDeLiderazgo\ProyectosEcosDeLiderazgo\En Desarrollo\Bot_ventas\venv\lib\site-packages\telegram\ext\_application.py", line 661, in stop
+    raise RuntimeError("This Application is not running!")
+RuntimeError: This Application is not running!
+2025-07-04 03:00:35,755 - __main__ - INFO - Bot finalizado
+2025-07-04 03:01:58,045 - __main__ - INFO - Creando nuevo event loop
+2025-07-04 03:01:58,046 - __main__ - INFO - Iniciando aplicación...
+2025-07-04 03:01:58,048 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 03:01:58,049 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-04 03:01:58,167 - __main__ - INFO - Bot configurado exitosamente
+2025-07-04 03:01:58,168 - __main__ - INFO - Iniciando bot...
+2025-07-04 03:01:58,647 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-04 03:01:58,648 - telegram.ext.Application - INFO - Application started
+2025-07-04 03:01:58,648 - __main__ - INFO - Bot iniciado correctamente
+2025-07-04 03:01:58,808 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-04 03:02:09,295 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:02:19,454 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:02:29,611 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-04 03:02:39,788 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"

@@ -1,161 +1,311 @@
 """
-Manejador de flujo para usuarios provenientes de anuncios.
-Detecta hashtags y procesa la información inicial del lead.
+Manejo del flujo de anuncios con enfoque en conversión y experiencia del usuario.
+Incluye aviso de privacidad, captura de datos y presentación del curso.
 """
 
-from typing import Dict, List, Optional, Tuple
-from datetime import datetime, timezone
-import re
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton
-from ..services.database import DatabaseService
-from ..utils.message_parser import extract_hashtags, get_course_from_hashtag
-from ..utils.lead_scorer import calculate_initial_score
-from ..agents.sales_agent import AgenteSalesTools
+import logging
+import os
+from typing import Dict, Optional, Tuple
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import ContextTypes
+
+from core.services.database import DatabaseService
+from core.agents.sales_agent import AgenteSalesTools
+from core.agents.smart_sales_agent import SmartSalesAgent
+from core.utils.memory import GlobalMemory
+from core.utils.lead_scorer import LeadScorer
+from core.services.supabase_service import save_lead, get_course_by_name
+from core.utils.message_templates import MessageTemplates
+
+logger = logging.getLogger(__name__)
 
 class AdsFlowHandler:
-    def __init__(self, db_service: DatabaseService, agent_tools: AgenteSalesTools):
-        self.db = db_service
-        self.agent = agent_tools
-
-    async def handle_ad_message(self, message: Dict, user_data: Dict) -> Tuple[str, InlineKeyboardMarkup]:
+    """
+    Maneja el flujo completo de usuarios que llegan desde anuncios.
+    """
+    
+    def __init__(self, db: DatabaseService, agent: AgenteSalesTools) -> None:
         """
-        Maneja el mensaje inicial de un usuario proveniente de un anuncio.
-        Retorna la respuesta y los botones/acciones siguientes.
-        """
-        # Extraer hashtags del mensaje
-        hashtags = extract_hashtags(message['text'])
-        course_id = await get_course_from_hashtag(hashtags, self.db)
-        ad_source = self._get_ad_source(hashtags)
+        Inicializa el manejador de flujo de anuncios.
 
-        # Crear o actualizar lead
-        lead_data = {
-            'telegram_id': str(user_data['id']),
-            'name': user_data.get('first_name', '') + ' ' + user_data.get('last_name', ''),
-            'source': ad_source,
-            'selected_course': course_id,
-            'stage': 'nuevo',
-            'last_interaction': datetime.now(timezone.utc),
-            'interest_score': await calculate_initial_score(message, hashtags)
+        Args:
+            db: Servicio de base de datos
+            agent: Herramientas del agente de ventas
+        """
+        self.db = db
+        self.agent = agent
+        self.smart_agent = SmartSalesAgent(db, agent)
+        self.global_memory = GlobalMemory()
+        self.lead_scorer = LeadScorer()
+        self.templates = MessageTemplates()
+        
+    async def handle_ad_message(
+        self, 
+        message_data: Dict, 
+        user_data: Dict
+    ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
+        """
+        Punto de entrada principal para mensajes desde anuncios.
+
+        Args:
+            message_data: Datos del mensaje recibido
+            user_data: Datos del usuario
+
+        Returns:
+            Tupla con el mensaje de respuesta y el teclado inline opcional
+        """
+        try:
+            user_id = str(user_data['id'])
+            message_text = message_data['text']
+            
+            user_memory = self.global_memory.get_lead_memory(user_id)
+            
+            if not user_memory.has_accepted_privacy:
+                return await self._handle_first_interaction(user_data, message_text)
+            
+            if not user_memory.name:
+                return await self._handle_name_request(user_data, message_text)
+            
+            if not user_memory.course_presented:
+                return await self._present_course_content(user_data, message_text)
+            
+            return await self.smart_agent.handle_conversation(message_data, user_data)
+            
+        except Exception as e:
+            logger.error(f"Error en handle_ad_message: {e}", exc_info=True)
+            return self.templates.get_error_message(), None
+
+    async def _handle_first_interaction(
+        self, 
+        user_data: Dict, 
+        message_text: str
+    ) -> Tuple[str, InlineKeyboardMarkup]:
+        """
+        Maneja la primera interacción mostrando el aviso de privacidad.
+
+        Args:
+            user_data: Datos del usuario
+            message_text: Texto del mensaje recibido
+
+        Returns:
+            Tupla con mensaje de bienvenida y teclado de privacidad
+        """
+        user_id = str(user_data['id'])
+        
+        user_memory = self.global_memory.create_lead_memory(user_id)
+        user_memory.first_name = user_data.get('first_name', '')
+        user_memory.username = user_data.get('username', '')
+        user_memory.ad_source = self._extract_ad_source(message_text)
+        
+        welcome_message = self.templates.get_privacy_notice_message(
+            user_data.get('first_name', 'amigo')
+        )
+        
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("✅ Acepto", callback_data=f"privacy_accept_{user_id}")],
+            [InlineKeyboardButton("❌ No acepto", callback_data=f"privacy_decline_{user_id}")]
+        ])
+        
+        return welcome_message, keyboard
+
+    async def _handle_name_request(
+        self, 
+        user_data: Dict, 
+        message_text: str
+    ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
+        """
+        Solicita y procesa el nombre del usuario.
+
+        Args:
+            user_data: Datos del usuario
+            message_text: Texto del mensaje recibido
+
+        Returns:
+            Tupla con mensaje de respuesta y teclado opcional
+        """
+        user_id = str(user_data['id'])
+        user_memory = self.global_memory.get_lead_memory(user_id)
+        
+        if len(message_text.strip()) > 2 and not any(char in message_text for char in '#@[]{}'):
+            user_memory.name = message_text.strip().title()
+            user_memory.stage = "name_collected"
+            self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            return await self._present_course_content(user_data, message_text)
+        
+        name_message = self.templates.get_name_request_message(
+            user_data.get('first_name', '')
+        )
+        return name_message, None
+
+    async def _present_course_content(
+        self, 
+        user_data: Dict, 
+        message_text: str
+    ) -> Tuple[str, InlineKeyboardMarkup]:
+        """
+        Presenta el contenido del curso con detalles e interacciones.
+
+        Args:
+            user_data: Datos del usuario
+            message_text: Texto del mensaje recibido
+
+        Returns:
+            Tupla con mensaje de presentación y teclado de opciones
+        """
+        user_id = str(user_data['id'])
+        user_memory = self.global_memory.get_lead_memory(user_id)
+        
+        course_info = await self._extract_course_info(message_text) or {
+            'name': 'Curso de Inteligencia Artificial con ChatGPT',
+            'description': 'Aprende a dominar la IA para potenciar tu carrera profesional',
+            'price': 120,
+            'duration': '12 horas',
+            'modality': 'Online',
+            'schedule': 'Viernes 17:00-19:00 (CDMX)'
         }
         
-        lead_id = await self._create_or_update_lead(lead_data)
+        user_memory.course_presented = True
+        user_memory.selected_course = course_info['name']
+        user_memory.stage = "course_presented"
+        self.global_memory.save_lead_memory(user_id, user_memory)
         
-        # Registrar la interacción inicial
-        if course_id and lead_id:
-            await self.agent._registrar_interaccion(
-                str(user_data['id']),
-                course_id,
-                "inquiry",
-                {"source": ad_source, "initial_message": message['text']}
-            )
-
-        # Preparar respuesta personalizada
-        response = await self._generate_initial_response(course_id)
-        next_actions = self._prepare_next_actions(course_id)
-
-        return response, next_actions
-
-    async def _create_or_update_lead(self, lead_data: Dict) -> Optional[str]:
-        """
-        Crea o actualiza un lead en la base de datos.
-        Retorna el ID del lead.
-        """
-        query = """
-        INSERT INTO public.user_leads (
-            telegram_id, name, source, selected_course, 
-            stage, last_interaction, interest_score
-        ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7
-        )
-        ON CONFLICT (telegram_id) 
-        DO UPDATE SET
-            source = EXCLUDED.source,
-            selected_course = EXCLUDED.selected_course,
-            last_interaction = EXCLUDED.last_interaction,
-            interest_score = EXCLUDED.interest_score
-        RETURNING id;
-        """
-        
-        result = await self.db.fetch_one(
-            query,
-            lead_data['telegram_id'],
-            lead_data['name'],
-            lead_data['source'],
-            lead_data['selected_course'],
-            lead_data['stage'],
-            lead_data['last_interaction'],
-            lead_data['interest_score']
+        presentation_message = self.templates.get_course_presentation_message(
+            user_memory.name or user_data.get('first_name', 'amigo'),
+            course_info
         )
         
-        return result['id'] if result else None
-
-    def _get_ad_source(self, hashtags: List[str]) -> str:
-        """
-        Extrae la fuente del anuncio de los hashtags.
-        Ejemplo: #ADSIM_01 -> "instagram_marketing_01"
-        """
-        for tag in hashtags:
-            if tag.startswith('ADS'):
-                parts = tag.split('_')
-                if len(parts) >= 2:
-                    platform = {
-                        'IM': 'instagram_marketing',
-                        'FB': 'facebook_ads',
-                        'GO': 'google_ads',
-                        'TW': 'twitter_ads'
-                    }.get(parts[0][3:], 'other')
-                    campaign = parts[1]
-                    return f"{platform}_{campaign}"
-        return "organic"
-
-    async def _generate_initial_response(self, course_id: Optional[str]) -> str:
-        """
-        Genera la respuesta inicial personalizada basada en el curso seleccionado.
-        """
-        if not course_id:
-            return """¡Hola! 👋 Me alegra que te interesen nuestros cursos de IA.
-
-¿Te gustaría conocer más sobre nuestros cursos disponibles? Tengo información sobre:
-- 📚 Contenido detallado de cada curso
-- ⏰ Duración y horarios
-- 💰 Inversión y métodos de pago
-- 🎁 Bonos especiales disponibles
-
-¡Puedes preguntarme lo que necesites! 😊"""
-
-        course = await self.db.fetch_one(
-            "SELECT name, short_description FROM courses WHERE id = $1",
-            course_id
-        )
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(
+                "📋 Ver temario completo", 
+                callback_data=f"show_curriculum_{user_id}"
+            )],
+            [InlineKeyboardButton(
+                "💬 Hablar con asesor", 
+                callback_data=f"contact_advisor_{user_id}"
+            )],
+            [InlineKeyboardButton(
+                "🎯 ¿Por qué este curso?", 
+                callback_data=f"why_course_{user_id}"
+            )],
+            [InlineKeyboardButton(
+                "💰 Opciones de pago", 
+                callback_data=f"payment_options_{user_id}"
+            )]
+        ])
         
-        if not course:
-            return "¡Hola! 👋 ¿En qué puedo ayudarte con nuestros cursos de IA?"
+        return presentation_message, keyboard
+
+    async def send_course_media(self, update: Update, course_info: Dict) -> None:
+        """
+        Envía la imagen y PDF del curso.
+
+        Args:
+            update: Objeto Update de Telegram
+            course_info: Información del curso
+        """
+        try:
+            if not update.effective_chat:
+                logger.error("Chat no disponible para enviar media")
+                return
+
+            image_path = "data/imagen_prueba.jpg"
+            if os.path.exists(image_path):
+                with open(image_path, 'rb') as photo:
+                    await update.effective_chat.send_photo(
+                        photo=photo,
+                        caption="🎯 ¡Este es el curso que transformará tu carrera profesional!"
+                    )
+            
+            pdf_path = "data/pdf_prueba.pdf"
+            if os.path.exists(pdf_path):
+                with open(pdf_path, 'rb') as document:
+                    await update.effective_chat.send_document(
+                        document=document,
+                        caption=(
+                            "📚 Aquí tienes toda la información detallada del curso.\n\n"
+                            f"*Modalidad:* {course_info.get('modality', 'No especificado')}\n"
+                            f"*Duración:* {course_info.get('duration', 'No especificado')}\n"
+                            f"*Horario:* {course_info.get('schedule', 'No especificado')}\n"
+                            f"*Precio:* ${course_info.get('price', 'No especificado')} USD\n"
+                            "*Incluye:* Material, acceso a grabaciones, soporte"
+                        ),
+                        parse_mode='Markdown'
+                    )
+            
+        except Exception as e:
+            logger.error(f"Error enviando media del curso: {e}", exc_info=True)
+
+    def _extract_ad_source(self, message_text: str) -> str:
+        """
+        Extrae la fuente del anuncio desde hashtags.
+
+        Args:
+            message_text: Texto del mensaje a analizar
+
+        Returns:
+            Hashtag encontrado o #unknown
+        """
+        hashtags = [word for word in message_text.split() if word.startswith('#')]
+        return hashtags[0] if hashtags else "#unknown"
+
+    async def _extract_course_info(self, message_text: str) -> Optional[Dict]:
+        """
+        Extrae información del curso desde el mensaje del anuncio.
+
+        Args:
+            message_text: Texto del mensaje a analizar
+
+        Returns:
+            Diccionario con información del curso o None
+        """
+        try:
+            course_keywords = ['ia', 'chatgpt', 'inteligencia', 'artificial']
+            
+            for keyword in course_keywords:
+                if keyword.lower() in message_text.lower():
+                    course = await get_course_by_name("Curso de Inteligencia Artificial")
+                    if course:
+                        return {
+                            'name': course.get('name', ''),
+                            'description': course.get('description', ''),
+                            'price': course.get('price', 120),
+                            'duration': course.get('duration', '12 horas'),
+                            'modality': course.get('modality', 'Online'),
+                            'schedule': course.get('schedule', 'Flexible')
+                        }
+            
+            return {}
+            
+        except Exception as e:
+            logger.error(f"Error extrayendo info del curso: {e}")
+            return {}
+
+    async def handle_privacy_response(
+        self, 
+        user_id: str, 
+        accepted: bool
+    ) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
+        """
+        Maneja la respuesta al aviso de privacidad.
+
+        Args:
+            user_id: ID del usuario
+            accepted: Si aceptó o no la política de privacidad
+
+        Returns:
+            Tupla con mensaje de respuesta y teclado opcional
+        """
+        user_memory = self.global_memory.get_lead_memory(user_id)
         
-        return f"""¡Hola! 👋 Me alegro que te interese nuestro curso "{course['name']}"
-
-{course['short_description']}
-
-¿Te gustaría conocer más detalles sobre:
-- 📚 Contenido del curso
-- ⏰ Duración y horarios
-- 💰 Inversión y métodos de pago
-- 🎁 Bonos especiales disponibles
-
-¡Puedes preguntarme lo que necesites! 😊"""
-
-    def _prepare_next_actions(self, course_id: Optional[str]) -> InlineKeyboardMarkup:
-        """
-        Prepara los botones/acciones siguientes para el usuario.
-        """
-        if not course_id:
-            return InlineKeyboardMarkup([
-                [InlineKeyboardButton("📚 Ver Cursos Disponibles", callback_data="show_courses")],
-                [InlineKeyboardButton("💬 Hablar con Asesor", callback_data="contact_advisor")]
-            ])
-
-        return InlineKeyboardMarkup([
-            [InlineKeyboardButton("📚 Ver contenido del curso", callback_data=f"show_syllabus_{course_id}")],
-            [InlineKeyboardButton("🎥 Ver video preview", callback_data=f"show_preview_{course_id}")],
-            [InlineKeyboardButton("💰 Ver precios y descuentos", callback_data=f"show_pricing_{course_id}")],
-            [InlineKeyboardButton("🗣️ Agendar llamada informativa", callback_data=f"schedule_call_{course_id}")]
-        ]) 
+        if accepted:
+            user_memory.has_accepted_privacy = True
+            user_memory.stage = "privacy_accepted"
+            self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            message = self.templates.get_name_request_message()
+            return message, None
+        else:
+            message = self.templates.get_privacy_declined_message()
+            return message, None 
