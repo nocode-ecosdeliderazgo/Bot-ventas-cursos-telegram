@@ -1,11 +1,11 @@
 {
     "lead_data": {
         "user_id": "8101815097",
-        "email": "",
-        "phone": "",
+        "email": "dgfglez@gmail.com",
+        "phone": "5614686075",
         "stage": "info",
         "courses_seen": [],
-        "selected_course": null,
+        "selected_course": "db747b9e-2872-47a4-a75e-6d6280b1829e",
         "escalation_pending": false,
         "name": "Gael",
         "role": null,
@@ -15,7 +15,17 @@
         "last_ack_time": null,
         "privacy_accepted": true
     },
-    "history": [],
+    "history": [
+        {
+            "user_input": "\ud83d\udcda Ver Cursos",
+            "bot_reply": {
+                "intent": "LIST_COURSES",
+                "response": "\u00a1Claro! Tenemos una variedad de cursos fascinantes para ti. Algunos de ellos son 'Introducci\u00f3n a la Inteligencia Artificial', 'Machine Learning para principiantes', 'Curso avanzado de Deep Learning', 'Inteligencia Artificial para marketing', y muchos m\u00e1s. \u00bfHay alg\u00fan curso en particular que te interese conocer m\u00e1s?",
+                "course_name": null
+            },
+            "timestamp": 1751587926.8561277
+        }
+    ],
     "last_presented_courses": [],
-    "last_activity": 1751586523.1145837
+    "last_activity": 1751587926.8561277
 }

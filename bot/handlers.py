@@ -636,7 +636,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             buttons = [[InlineKeyboardButton(p['pregunta'], callback_data=f"faq_q_{i}")] for i, p in enumerate(plantillas)]
             buttons.append([InlineKeyboardButton("🏠 Volver al inicio", callback_data="cta_inicio")])
             keyboard = InlineKeyboardMarkup(buttons)
-            await query.edit_message_text("❓ Preguntas Frecuentes: Elige una pregunta:", reply_markup=keyboard)
+            await query.edit_message_text("❓ Preguntas Frecuentes: Elige una pregunta:", keyboard)
             return
         elif query.data.startswith("faq_q_"):
             faq_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "plantillas.json"))
@@ -814,7 +814,10 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 modules_text = "📋 <b>Módulos del curso:</b>\n\n"
                 for i, module in enumerate(modules, 1):
                     modules_text += f"{i}. <b>{module['name']}</b>\n   Duración: {module.get('duration', 'N/A')} horas\n   {module.get('description', '')}\n\n"
-                keyboard = create_course_selection_keyboard(course_id, "")
+                if context.bot_data['global_mem'].lead_data.stage == "exploring_course":
+                    keyboard = create_course_explore_keyboard(course_id, "")
+                else:
+                    keyboard = create_course_selection_keyboard(course_id, "")
                 await query.edit_message_text(modules_text, reply_markup=keyboard, parse_mode='HTML')
             else:
                 await query.edit_message_text("No se encontraron módulos para este curso.", reply_markup=None)
@@ -827,7 +830,10 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                     f"<b>Información del curso:</b>\n\n"
                     f"{course.get('long_description', course.get('short_description', ''))}\n\n"
                 )
-                keyboard = create_course_selection_keyboard(course_id, course.get('name', 'Curso'))
+                if context.bot_data['global_mem'].lead_data.stage == "exploring_course":
+                    keyboard = create_course_explore_keyboard(course_id, course.get('name', 'Curso'))
+                else:
+                    keyboard = create_course_selection_keyboard(course_id, course.get('name', 'Curso'))
                 await query.edit_message_text(info_text, reply_markup=keyboard, parse_mode='HTML')
             else:
                 await query.edit_message_text("No se encontró información adicional para este curso.", reply_markup=None)
@@ -845,11 +851,19 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             else:
                 await query.edit_message_text("No se encontró información del curso. ¿Te gustaría ver otros cursos disponibles?", reply_markup=create_courses_list_keyboard(get_courses()))
             return
-        elif query.data == "change_course" and context.bot_data['global_mem'].lead_data.stage == "awaiting_course_contact":
+        elif query.data == "change_course":
             cursos = get_courses()
             if cursos:
                 keyboard = create_courses_list_keyboard(cursos)
-                await query.edit_message_text("Selecciona el curso de tu interés:", reply_markup=keyboard)
+                # Mantener el stage según el contexto actual
+                if context.bot_data['global_mem'].lead_data.stage == "exploring_course":
+                    # Exploración: tras seleccionar, volverá al menú de exploración
+                    await query.edit_message_text("Selecciona el curso de tu interés:", reply_markup=keyboard)
+                else:
+                    # Contacto/promociones: tras seleccionar, volverá al menú de contacto
+                    context.bot_data['global_mem'].lead_data.stage = "awaiting_course_contact"
+                    context.bot_data['global_mem'].save()
+                    await query.edit_message_text("Selecciona el curso de tu interés:", reply_markup=keyboard)
             else:
                 await query.edit_message_text("No hay cursos disponibles en este momento.")
             return
