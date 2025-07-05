@@ -14,8 +14,7 @@ class AgentTools:
         self.db = db_service
         self.telegram = telegram_api
         
-    # ========== Funciones de Presentación de Cursos ==========
-    
+        
     async def mostrar_curso_destacado(self, user_id: str, course_id: str) -> None:
         """
         Muestra una presentación completa y atractiva de un curso específico.
@@ -82,7 +81,7 @@ Grupos reducidos: máximo {course['max_students']} estudiantes
         mensaje = f"""🎥 *Preview del curso: {course['name']}*
 
 Te comparto este video donde podrás ver:
-- 👨‍🏫 Metodología de enseñanza
+- 👨🏫 Metodología de enseñanza
 - 📚 Ejemplos de contenido
 - 💡 Proyectos prácticos
 - 🎯 Resultados esperados
@@ -213,7 +212,7 @@ Por tiempo limitado, obtén el curso "{course['name']}" con un *{course['discoun
             mensaje += f"""✨ *{bonus['name']}*
 📝 {bonus['description']}
 💰 Valor: ${bonus['original_value']} USD
-🏃‍♂️ Solo quedan {remaining} de {bonus['max_claims']} cupos
+🏃 Solo quedan {remaining} de {bonus['max_claims']} cupos
 ⏰ Expira: {self._time_until(bonus['expires_at'])}
 
 """

@@ -1,167 +1,189 @@
 """
-Sistema de puntuación de leads para analizar el interés del usuario
-y determinar las mejores estrategias de conversión.
+Evaluador de leads para el bot de ventas.
+Califica a los usuarios según su nivel de interés y probabilidad de compra.
 """
 
-import logging
-from datetime import datetime, timedelta
 from typing import Dict, List, Optional
-import re
-
-logger = logging.getLogger(__name__)
+from datetime import datetime
 
 class LeadScorer:
     """
-    Califica y puntúa leads basado en su comportamiento,
-    interacciones y señales de interés.
+    Sistema de puntuación de leads basado en comportamiento, interacciones y señales de compra.
+    Asigna una puntuación de 0-100 a cada lead para priorizar seguimientos.
     """
     
     def __init__(self):
-        self.scoring_weights = {
-            'message_frequency': 5,
-            'buying_signals': 15,
-            'objection_handling': 10,
-            'engagement_time': 8,
-            'content_interaction': 12,
-            'personal_info_sharing': 20,
-            'direct_questions': 10,
-            'response_speed': 7,
-            'session_length': 8,
-            'return_visitor': 15
+        """
+        Inicializa el evaluador de leads.
+        """
+        # Factores de puntuación y sus pesos
+        self.scoring_factors = {
+            'buying_signals': 0.25,      # Señales de intención de compra
+            'engagement': 0.20,          # Nivel de compromiso en la conversación
+            'objections': 0.15,          # Objeciones expresadas (inverso)
+            'personal_sharing': 0.15,    # Información personal compartida
+            'interaction_frequency': 0.10,  # Frecuencia de interacción
+            'response_quality': 0.10,    # Calidad de respuestas
+            'session_progression': 0.05  # Progresión en el embudo
         }
         
-        self.buying_signal_keywords = [
-            'comprar', 'adquirir', 'inscribir', 'registrar', 'pagar',
-            'precio', 'costo', 'tarjeta', 'transferencia', 'cuando',
-            'empezar', 'comenzar', 'ya', 'ahora', 'listo'
-        ]
-        
-        self.engagement_keywords = [
-            'interesante', 'me gusta', 'genial', 'perfecto', 'excelente',
-            'increíble', 'necesito', 'quiero', 'busco', 'ayuda'
-        ]
-        
-        self.objection_keywords = [
-            'caro', 'costoso', 'tiempo', 'ocupado', 'pensar',
-            'después', 'más tarde', 'difícil', 'problema'
-        ]
-
+        # Inicializar histórico de puntuaciones
+        self.score_history = {}
+    
     def update_score(self, user_id: str, message: str, user_memory) -> int:
         """
-        Actualiza la puntuación del lead basada en el nuevo mensaje.
+        Actualiza y devuelve la puntuación del lead basada en el mensaje actual y el historial.
+        
+        Args:
+            user_id: ID del usuario
+            message: Mensaje del usuario
+            user_memory: Objeto de memoria del usuario
+            
+        Returns:
+            Puntuación actualizada (0-100)
         """
-        try:
-            current_score = getattr(user_memory, 'lead_score', 50)
+        # Calcular puntuaciones por factor
+        factor_scores = {
+            'buying_signals': self._score_buying_signals(message),
+            'engagement': self._score_engagement(message),
+            'objections': self._score_objections(message),
+            'personal_sharing': self._score_personal_sharing(message, user_memory),
+            'interaction_frequency': self._score_interaction_frequency(user_memory),
+            'response_quality': self._score_response_quality(message),
+            'session_progression': self._score_session_progression(user_memory)
+        }
+        
+        # Calcular puntuación ponderada
+        weighted_score = sum(
+            factor_scores[factor] * weight 
+            for factor, weight in self.scoring_factors.items()
+        )
+        
+        # Normalizar a escala 0-100
+        normalized_score = min(int(weighted_score * 5), 100)
+        
+        # Guardar puntuación en historial
+        if user_id not in self.score_history:
+            self.score_history[user_id] = []
             
-            # Calcular puntuaciones individuales
-            scores = {
-                'buying_signals': self._score_buying_signals(message),
-                'engagement': self._score_engagement(message),
-                'objections': self._score_objections(message),
-                'personal_sharing': self._score_personal_sharing(message, user_memory),
-                'interaction_frequency': self._score_interaction_frequency(user_memory),
-                'response_quality': self._score_response_quality(message),
-                'session_progression': self._score_session_progression(user_memory)
-            }
+        self.score_history[user_id].append({
+            'timestamp': datetime.now(),
+            'score': normalized_score,
+            'factors': factor_scores
+        })
+        
+        # Guardar en memoria del usuario
+        user_memory.lead_score = normalized_score
+        
+        # Guardar historial de puntuaciones en memoria
+        if not hasattr(user_memory, 'score_history'):
+            user_memory.score_history = []
             
-            # Calcular puntuación total
-            total_adjustment = sum(scores.values())
-            new_score = min(max(current_score + total_adjustment, 0), 100)
-            
-            # Actualizar memoria
-            user_memory.lead_score = new_score
-            user_memory.score_history = getattr(user_memory, 'score_history', [])
-            user_memory.score_history.append({
-                'timestamp': datetime.now().isoformat(),
-                'score': new_score,
-                'adjustments': scores,
-                'message': message[:100]  # Primeros 100 chars
-            })
-            
-            # Mantener solo los últimos 10 registros
-            user_memory.score_history = user_memory.score_history[-10:]
-            
-            logger.info(f"Lead score updated for {user_id}: {current_score} -> {new_score}")
-            return new_score
-            
-        except Exception as e:
-            logger.error(f"Error updating lead score: {e}")
-            return getattr(user_memory, 'lead_score', 50)
+        user_memory.score_history.append({
+            'timestamp': datetime.now().isoformat(),
+            'score': normalized_score
+        })
+        
+        return normalized_score
 
     def _score_buying_signals(self, message: str) -> int:
         """
-        Puntúa señales de compra en el mensaje.
+        Puntúa las señales de compra en el mensaje.
         """
         message_lower = message.lower()
-        signals_found = [kw for kw in self.buying_signal_keywords if kw in message_lower]
+        score = 0
         
-        if len(signals_found) >= 3:
-            return 20  # Múltiples señales fuertes
-        elif len(signals_found) == 2:
-            return 15  # Señales moderadas
-        elif len(signals_found) == 1:
-            return 10  # Una señal
-        else:
-            return 0   # Sin señales
+        # Palabras clave de intención de compra
+        buying_keywords = [
+            'precio', 'costo', 'comprar', 'adquirir', 'pagar',
+            'inscribir', 'inscripción', 'invertir', 'inversión', 
+            'tarjeta', 'transferencia', 'descuento', 'oferta'
+        ]
+        
+        # Contar palabras clave
+        for keyword in buying_keywords:
+            if keyword in message_lower:
+                score += 5
+        
+        # Preguntas directas sobre compra
+        buying_questions = [
+            '¿cuánto cuesta', '¿cuál es el precio', 'cómo puedo pagar',
+            'formas de pago', 'métodos de pago', 'cómo me inscribo'
+        ]
+        
+        for question in buying_questions:
+            if question in message_lower:
+                score += 10
+                
+        return min(score, 20)  # Máximo 20 puntos
 
     def _score_engagement(self, message: str) -> int:
         """
-        Puntúa el nivel de engagement del mensaje.
+        Puntúa el nivel de compromiso en la conversación.
         """
-        message_lower = message.lower()
+        score = 0
         
-        # Longitud del mensaje (más largo = más engagement)
-        length_score = min(len(message) // 20, 5)
+        # Longitud del mensaje
+        if len(message) > 100:
+            score += 5
+        elif len(message) > 50:
+            score += 3
+        elif len(message) > 20:
+            score += 1
         
-        # Palabras de engagement
-        engagement_words = [kw for kw in self.engagement_keywords if kw in message_lower]
-        engagement_score = len(engagement_words) * 3
+        # Preguntas (indican interés)
+        if '?' in message:
+            score += 5
+            # Múltiples preguntas
+            if message.count('?') > 1:
+                score += 3
         
-        # Preguntas (indica interés)
-        question_score = message.count('?') * 2
+        # Expresiones de entusiasmo
+        enthusiasm_markers = ['!', 'genial', 'excelente', 'perfecto', 'increíble', 'interesante']
+        for marker in enthusiasm_markers:
+            if marker in message.lower():
+                score += 2
         
-        # Emojis (indica engagement emocional)
-        emoji_pattern = re.compile(r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]')
-        emoji_score = len(emoji_pattern.findall(message)) * 1
-        
-        return min(length_score + engagement_score + question_score + emoji_score, 15)
+        return min(score, 15)  # Máximo 15 puntos
 
     def _score_objections(self, message: str) -> int:
         """
-        Puntúa objeciones (negativo para el score).
+        Puntúa las objeciones (inverso - más objeciones, menor puntuación).
         """
         message_lower = message.lower()
-        objections_found = [kw for kw in self.objection_keywords if kw in message_lower]
+        score = 10  # Comenzamos con 10 y restamos
         
-        if len(objections_found) >= 2:
-            return -10  # Múltiples objeciones
-        elif len(objections_found) == 1:
-            return -5   # Una objeción
-        else:
-            return 0    # Sin objeciones
+        # Palabras clave de objeción
+        objection_keywords = [
+            'caro', 'costoso', 'no puedo', 'imposible', 'difícil',
+            'complicado', 'no tengo tiempo', 'no tengo dinero',
+            'no me convence', 'tengo que pensarlo', 'no estoy seguro'
+        ]
+        
+        for keyword in objection_keywords:
+            if keyword in message_lower:
+                score -= 2
+        
+        return max(score, 0)  # Mínimo 0 puntos
 
     def _score_personal_sharing(self, message: str, user_memory) -> int:
         """
-        Puntúa cuando el usuario comparte información personal.
+        Puntúa la información personal compartida.
         """
-        score = 0
         message_lower = message.lower()
+        score = 0
         
-        # Información profesional
-        professional_indicators = [
-            'trabajo', 'empleo', 'empresa', 'jefe', 'carrera',
-            'profesional', 'negocio', 'cliente', 'proyecto'
-        ]
-        if any(indicator in message_lower for indicator in professional_indicators):
-            score += 8
-        
-        # Información personal
-        personal_indicators = [
-            'familia', 'casa', 'tiempo libre', 'hobby', 'estudios',
-            'universidad', 'experiencia', 'edad', 'vivo en'
-        ]
-        if any(indicator in message_lower for indicator in personal_indicators):
+        # Datos personales ya recopilados
+        if getattr(user_memory, 'name', None):
+            score += 3
+        if getattr(user_memory, 'email', None):
             score += 5
+        if getattr(user_memory, 'phone', None):
+            score += 5
+        if getattr(user_memory, 'profession', None):
+            score += 3
+        if getattr(user_memory, 'interests', None):
+            score += 3
         
         # Metas y objetivos
         goal_indicators = [
@@ -364,31 +386,31 @@ class LeadScorer:
             ]
         elif strategy == 'build_value':
             actions = [
-                'Mostrar casos de éxito específicos',
-                'Calcular ROI personalizado',
-                'Presentar testimonios relevantes',
-                'Demostrar diferenciadores únicos'
+                'Enfatizar beneficios principales',
+                'Compartir casos de éxito relevantes',
+                'Ofrecer demostración personalizada',
+                'Responder objeciones pendientes'
             ]
         elif strategy == 'provide_value_info':
             actions = [
-                'Compartir contenido educativo',
-                'Responder preguntas específicas',
-                'Mostrar temario detallado',
-                'Explicar metodología'
+                'Enviar contenido educativo gratuito',
+                'Compartir testimonios específicos',
+                'Ofrecer consulta gratuita',
+                'Presentar comparativa de beneficios'
             ]
         elif strategy == 'nurture_interest':
             actions = [
-                'Enviar contenido gratuito valioso',
-                'Invitar a webinar informativo',
-                'Compartir casos de éxito inspiradores',
-                'Hacer seguimiento suave'
+                'Hacer preguntas para descubrir necesidades',
+                'Compartir contenido introductorio',
+                'Establecer relación de confianza',
+                'Programar seguimiento en 3-5 días'
             ]
         else:  # discover_needs
             actions = [
-                'Hacer preguntas abiertas',
-                'Descubrir puntos de dolor',
-                'Entender objetivos profesionales',
-                'Personalizar la propuesta'
+                'Hacer preguntas abiertas sobre objetivos',
+                'Identificar puntos de dolor',
+                'Establecer rapport inicial',
+                'Ofrecer pequeño recurso gratuito de valor'
             ]
         
         return actions 

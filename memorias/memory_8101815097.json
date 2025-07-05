@@ -15,55 +15,35 @@
   "interests": [],
   "lead_score": 50,
   "score_history": [],
-  "message_history": [],
-  "interaction_count": 3,
-  "conversation_history": [
+  "message_history": [
     {
       "role": "user",
       "content": "este curso me sirve si soy contador?",
-      "timestamp": "2025-07-04T16:51:37.200256"
+      "timestamp": "2025-07-04T19:34:07.828671"
     },
     {
       "role": "assistant",
-      "content": "Definitivamente, la IA puede ser un gran apoyo para contadores. ¿En qué área te gustaría que te ayudara más? Por ejemplo, ¿automatización de reportes, análisis predictivo o reducir errores en tus procesos?",
-      "timestamp": "2025-07-04T16:51:37.200256"
-    },
-    {
-      "role": "user",
-      "content": "en analisis predictivo",
-      "timestamp": "2025-07-04T16:52:03.306470"
+      "content": "El curso \"Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)\" ofrece un programa práctico para que profesionales sin conocimientos previos integren IA en su trabajo diario.",
+      "timestamp": "2025-07-04T19:34:07.828671"
     },
     {
       "role": "assistant",
-      "content": "El análisis predictivo puede transformar mucho el trabajo de un contador, ayudándote a anticipar tendencias financieras o identificar riesgos antes de que se vuelvan problemas.",
-      "timestamp": "2025-07-04T16:52:03.306470"
+      "content": "Incluye módulos para automatizar tareas, crear documentos, generar imágenes y desarrollar proyectos reales con IA, usando herramientas como ChatGPT, DALL·E y Canva.",
+      "timestamp": "2025-07-04T19:34:07.828671"
     },
     {
       "role": "assistant",
-      "content": "¿Tienes algún tipo de dato o reporte específico con el que te gustaría trabajar para hacer estas predicciones? Así puedo entender mejor cómo la IA puede ajustarse a tu caso.",
-      "timestamp": "2025-07-04T16:52:03.306470"
-    },
-    {
-      "role": "user",
-      "content": "como me ayudaria el curso para esto?",
-      "timestamp": "2025-07-04T16:52:37.792308"
-    },
-    {
-      "role": "assistant",
-      "content": "El curso está diseñado para que aprendas a usar herramientas de IA específicamente en análisis predictivo, desde cómo preparar tus datos hasta interpretar resultados que te ayuden a tomar decisiones más acertadas.",
-      "timestamp": "2025-07-04T16:52:37.792308"
-    },
-    {
-      "role": "assistant",
-      "content": "¿En qué tipo de reportes o áreas financieras te gustaría aplicar estas predicciones? Así puedo explicarte mejor cómo el curso se ajusta a lo que necesitas.",
-      "timestamp": "2025-07-04T16:52:37.792308"
+      "content": "No tengo información específica en mis datos sobre aplicaciones concretas para contadores en este curso. ¿Quieres que te comparta más detalles sobre los módulos para que evalúes si se ajustan a tus necesidades?",
+      "timestamp": "2025-07-04T19:34:07.828671"
     }
   ],
+  "interaction_count": 0,
+  "conversation_history": [],
   "pain_points": [],
   "buying_signals": [],
   "interest_level": "low",
   "last_interaction": null,
   "ad_source": "ADSIM_01",
-  "created_at": "2025-07-04T16:51:17.946096",
-  "updated_at": "2025-07-04T16:52:37.792308"
+  "created_at": "2025-07-04T19:33:22.695904",
+  "updated_at": "2025-07-04T19:34:07.828671"
 }

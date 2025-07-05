@@ -70,7 +70,9 @@ class ConversationProcessor:
             # 2. Obtener información del curso si es necesario
             course_info = None
             if user_memory.selected_course:
-                course_info = await get_course_detail(user_memory.selected_course)
+                # Por ahora, no usamos get_course_detail aquí ya que no tenemos acceso a db_service
+                # course_info = await get_course_detail(user_memory.selected_course)
+                pass
             
             # 3. Extraer información profesional del usuario si es posible
             user_profession = self._extract_profession_info(message, user_memory)

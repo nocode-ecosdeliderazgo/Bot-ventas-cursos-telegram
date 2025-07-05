@@ -5,15 +5,20 @@ completamente personalizadas basadas en el perfil del usuario.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union, cast
 from datetime import datetime
+import json
 
 try:
     from openai import AsyncOpenAI
+    from openai.types.chat import ChatCompletionMessageParam
 except ImportError:
     AsyncOpenAI = None
+    ChatCompletionMessageParam = Dict[str, str]  # Tipo para compatibilidad
 
 from core.utils.memory import LeadMemory
+from core.services.courseService import CourseService
+from core.services.promptService import PromptService
 
 logger = logging.getLogger(__name__)
 
@@ -21,25 +26,80 @@ SYSTEM_PROMPT = """
 Eres Brenda, una asesora experta en ventas de IA de Ecos de Liderazgo. Tu objetivo es convertir leads en ventas del curso de Inteligencia Artificial 
 de manera natural y estratégica.
 
-REGLAS IMPORTANTES:
+# Instrucciones Críticas de Veracidad
+
+**NUNCA INVENTES INFORMACIÓN. SOLO USA DATOS DE LA BASE DE DATOS.**
+
+## Reglas Estrictas:
+1. **OBLIGATORIO**: Antes de responder cualquier pregunta sobre cursos, SIEMPRE consulta la base de datos
+2. **PROHIBIDO**: Agregar información que no esté explícitamente en la base de datos
+3. **VERIFICACIÓN**: Si no encuentras información específica en la BD, di "No tengo esa información específica en mis datos"
+4. **EXACTITUD**: Cita únicamente lo que está textualmente en los campos de la base de datos
+
+## Estructura de la Base de Datos
+
+### Tablas Principales:
+- `courses`: Información completa de cursos
+- `course_modules`: Módulos específicos de cada curso
+- `course_prompts`: Ejemplos de uso para cada curso
+- `user_leads`: Información de prospectos
+- `course_sales`: Ventas realizadas
+- `course_interactions`: Interacciones con cursos
+
+### Campos Críticos de `courses`:
+- `name`: Nombre exacto del curso
+- `short_description`: Descripción breve
+- `long_description`: Descripción completa (USAR ESTA COMO FUENTE PRINCIPAL)
+- `total_duration`: Duración total
+- `price_usd`: Precio en USD
+- `level`: Nivel del curso
+- `category`: Categoría
+- `tools_used`: Herramientas utilizadas
+- `prerequisites`: Prerrequisitos
+- `requirements`: Requerimientos
+
+## Protocolo de Respuesta
+
+### Al describir un curso:
+1. **PASO 1**: Verificar que tienes la información del curso en los datos proporcionados
+2. **PASO 2**: Usar SOLO la información disponible
+3. **PASO 3**: Si necesitas información de módulos, verificar que esté disponible
+4. **PASO 4**: Estructurar respuesta basada únicamente en datos de BD
+
+### Ejemplo de Respuesta Correcta:
+```
+[MENSAJE_1] El curso está diseñado para distintos perfiles profesionales y, para contadores, se enfoca en automatización de reportes, análisis predictivo y reducción de errores usando IA.
+[MENSAJE_2] Esto significa que te ayudaría a optimizar tareas contables repetitivas, mejorar la precisión y anticipar tendencias financieras, lo que puede ser un gran plus en tu trabajo diario.
+¿Quieres que te comparta más detalles específicos sobre los módulos que podrían interesarte como contador?
+```
+
+### Ejemplo de Respuesta Incorrecta:
+❌ "El curso te enseña análisis predictivo avanzado" (si no está en long_description)
+❌ "Incluye certificación" (si no está especificado en BD)
+❌ "Tiene soporte 24/7" (si no está en los datos)
+
+## Manejo de Preguntas sin Información
+
+### Si no tienes la información específica:
+- "No tengo esa información específica en mis datos del curso"
+- "Según mi base de datos, el curso incluye [listar solo lo que está]"
+- "Para obtener más detalles sobre ese aspecto, te recomiendo contactar directamente"
+
+## Validación de Respuestas
+
+### Antes de enviar cada respuesta, verificar:
+1. ✅ ¿Toda la información proviene de los datos disponibles?
+2. ✅ ¿Estoy citando textualmente los campos relevantes?
+3. ✅ ¿Evité agregar interpretaciones o suposiciones?
+4. ✅ ¿Verifiqué los datos antes de responder?
+
+## REGLAS ADICIONALES:
 1. NO saludes en cada mensaje - solo al primer contacto
 2. NO seas insistente con demos/cursos - menciona máximo 1 vez cada 3-4 intercambios
 3. Divide mensajes largos automáticamente (máximo 2-3 oraciones por mensaje)
 4. Sé conversacional y enfócate en entender sus necesidades ANTES de vender
-5. Usa herramientas solo cuando sea estratégicamente apropiado
 
-ESTRATEGIA DE MENSAJES:
-- Mensaje 1: Pregunta/conversación principal (máximo 2-3 oraciones)
-- Mensaje 2: Información adicional si es necesario (máximo 2-3 oraciones)  
-- Mensaje 3: Call-to-action o demo SOLO si es el momento apropiado
-
-CUÁNDO USAR HERRAMIENTAS:
-- send_demo_link: Solo después de 2-3 intercambios de valor, cuando muestren interés real
-- send_course_info: Solo cuando pregunten específicamente por detalles del curso
-- send_pricing_info: Solo cuando mencionen presupuesto o pregunten por precios
-- schedule_call: Solo cuando estén listos para comprar o necesiten asesoría personalizada
-
-PERSONALIZACIÓN POR PROFESIÓN:
+## PERSONALIZACIÓN POR PROFESIÓN:
 - Marketing: Automatización de copy, segmentación inteligente, A/B testing con IA
 - Ventas: Calificación automática de leads, personalización de propuestas
 - Estudiante: Investigación 10x más rápida, ventaja competitiva en el mercado
@@ -47,7 +107,7 @@ PERSONALIZACIÓN POR PROFESIÓN:
 - Gerente: Decisiones basadas en datos, optimización de equipos, KPIs inteligentes
 - Emprendedor: Validación de ideas, automatización de procesos, análisis de mercado
 
-RESPUESTA FORMATO:
+## RESPUESTA FORMATO:
 Si tu respuesta tiene más de 3 oraciones, divídela en múltiples mensajes usando el formato:
 [MENSAJE_1] contenido del primer mensaje
 [MENSAJE_2] contenido del segundo mensaje
@@ -62,7 +122,7 @@ class IntelligentSalesAgent:
     completamente personalizadas y estratégicas.
     """
     
-    def __init__(self, openai_api_key: str):
+    def __init__(self, openai_api_key: str, db):
         # Cliente de OpenAI
         if AsyncOpenAI is None:
             logger.error("OpenAI no está instalado. Instala con: pip install openai")
@@ -72,74 +132,204 @@ class IntelligentSalesAgent:
         
         # Prompt de sistema que define al agente
         self.system_prompt = SYSTEM_PROMPT
+        
+        # Servicios
+        self.course_service = CourseService(db)
+        self.prompt_service = PromptService(openai_api_key)
 
-    async def generate_response(self, user_message: str, user_memory: LeadMemory, course_info: Optional[Dict]) -> str:
+    async def generate_response(self, user_message: str, user_memory: LeadMemory, course_info: Optional[Dict]) -> Union[str, List[Dict[str, str]]]:
         """Genera una respuesta personalizada usando OpenAI"""
         if self.client is None:
             return "Lo siento, hay un problema con el sistema. Por favor intenta más tarde."
-            
+        
         try:
-            # Actualizar memoria con nueva información extraída
-            await self._extract_and_update_user_info(user_message, user_memory)
+            # Extraer información del mensaje del usuario
+            await self._extract_user_info(user_message, user_memory)
             
-            # Incrementar contador de interacciones
-            user_memory.interaction_count += 1
+            # Buscar referencias a cursos en el mensaje del usuario
+            course_references = await self.prompt_service.extract_course_references(user_message)
             
-            # Construir prompt personalizado
-            user_prompt = self._build_user_prompt(user_message, user_memory.to_dict())
+            # Si hay referencias a cursos pero no tenemos información del curso,
+            # intentar obtener la información del curso
+            if course_references and not course_info:
+                for reference in course_references:
+                    # Buscar cursos que coincidan con la referencia
+                    courses = await self.course_service.searchCourses(reference)
+                    if courses:
+                        # Usar el primer curso encontrado
+                        course_info = await self.course_service.getCourseDetails(courses[0]['id'])
+                        break
             
-            # Generar respuesta con OpenAI
+            # Si tenemos un ID de curso seleccionado pero no la información completa,
+            # obtener los detalles
+            if user_memory.selected_course and not course_info:
+                course_info = await self.course_service.getCourseDetails(user_memory.selected_course)
+            
+            # Preparar el historial de conversación
+            conversation_history: List[Dict[str, str]] = []
+            
+            # Agregar mensajes previos si existen
+            if user_memory.message_history:
+                # Limitar a los últimos 5 intercambios (10 mensajes)
+                recent_messages = user_memory.message_history[-10:]
+                for msg in recent_messages:
+                    role = "user" if msg.get('role') == 'user' else "assistant"
+                    conversation_history.append({
+                        "role": role,
+                        "content": msg.get('content', '')
+                    })
+            
+            # Construir contexto para el prompt
+            system_message = self.system_prompt
+            
+            # Agregar información del curso si está disponible
+            if course_info:
+                course_context = f"""
+## Información del Curso Actual:
+- Nombre: {course_info.get('name', 'No disponible')}
+- Descripción corta: {course_info.get('short_description', 'No disponible')}
+- Descripción completa: {course_info.get('long_description', 'No disponible')}
+- Duración total: {course_info.get('total_duration', 'No disponible')}
+- Precio (USD): {course_info.get('price_usd', 'No disponible')}
+- Nivel: {course_info.get('level', 'No disponible')}
+- Categoría: {course_info.get('category', 'No disponible')}
+- Herramientas usadas: {', '.join(str(t) for t in course_info.get('tools_used', ['No disponible']))}
+- Prerrequisitos: {', '.join(str(p) for p in course_info.get('prerequisites', ['No disponible']))}
+- Requerimientos: {', '.join(str(r) for r in course_info.get('requirements', ['No disponible']))}
+"""
+                system_message += "\n" + course_context
+                
+                # Agregar información de módulos si está disponible
+                if course_info.get('id'):
+                    # Obtener módulos del curso
+                    modules = await self.course_service.getCourseModules(course_info['id'])
+                    if modules:
+                        modules_info = "\n## Módulos del Curso:\n"
+                        for module in modules:
+                            if module:  # Verificar que el módulo no sea None
+                                modules_info += f"- Módulo {module.get('module_index', '?')}: {module.get('name', 'Sin nombre')}\n"
+                                if module.get('description'):
+                                    modules_info += f"  Descripción: {module.get('description')}\n"
+                                if module.get('duration'):
+                                    modules_info += f"  Duración: {module.get('duration')}\n"
+                        system_message += "\n" + modules_info
+            
+            # Agregar información del usuario
+            user_context = f"""
+## Información del Usuario:
+- Nombre: {user_memory.name if user_memory.name else 'No disponible'}
+- Profesión: {user_memory.role if user_memory.role else 'No disponible'}
+- Intereses: {', '.join(user_memory.interests) if user_memory.interests else 'No disponible'}
+- Puntos de dolor: {', '.join(user_memory.pain_points) if user_memory.pain_points else 'No disponible'}
+- Nivel de interés: {user_memory.interest_level if user_memory.interest_level else 'No disponible'}
+"""
+            system_message += "\n" + user_context
+            
+            # Crear mensajes para la API
+            messages: List[ChatCompletionMessageParam] = [
+                {"role": "system", "content": system_message}
+            ]
+            
+            # Agregar historial de conversación
+            for msg in conversation_history:
+                messages.append(cast(ChatCompletionMessageParam, msg))
+            
+            # Agregar mensaje actual del usuario
+            messages.append({"role": "user", "content": user_message})
+            
+            # Llamar a la API de OpenAI
             response = await self.client.chat.completions.create(
                 model="gpt-4.1-mini",
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                max_tokens=1000,
+                messages=messages,
+                max_tokens=500,
                 temperature=0.7
             )
             
+            # Obtener respuesta
             response_text = response.choices[0].message.content or ""
             
-            # Procesar respuesta y manejar múltiples mensajes
-            messages = await self._process_response(response_text, str(user_memory.user_id), user_memory.to_dict())
+            # Validar la respuesta si tenemos información del curso
+            if course_info:
+                validation = await self.prompt_service.validate_response(response_text, course_info)
+                
+                # Si la respuesta no es válida, registrar advertencia
+                if not validation.get('is_valid', True):
+                    errors = validation.get('errors', [])
+                    logger.warning(f"Respuesta inválida para usuario {user_memory.user_id}: {', '.join(errors)}")
+                    
+                    # Si la confianza es muy baja, regenerar la respuesta con instrucciones más estrictas
+                    if validation.get('confidence', 1.0) < 0.3:
+                        logger.info(f"Regenerando respuesta para usuario {user_memory.user_id}")
+                        
+                        # Agregar advertencia al prompt
+                        warning_message = f"""
+ADVERTENCIA: Tu respuesta anterior contenía información incorrecta o inventada:
+{', '.join(errors)}
+
+RECUERDA:
+1. SOLO usa información que esté explícitamente en los datos del curso
+2. NO agregues detalles que no estén en la base de datos
+3. Si no tienes la información, di "No tengo esa información específica"
+4. Verifica cada afirmación antes de incluirla
+
+Por favor, genera una nueva respuesta que sea 100% precisa según los datos proporcionados.
+"""
+                        
+                        # Agregar mensaje de advertencia
+                        messages.append({"role": "assistant", "content": response_text})
+                        messages.append({"role": "user", "content": warning_message})
+                        
+                        # Regenerar respuesta
+                        new_response = await self.client.chat.completions.create(
+                            model="gpt-4.1-mini",
+                            messages=messages,
+                            max_tokens=500,
+                            temperature=0.5
+                        )
+                        
+                        # Actualizar respuesta
+                        response_text = new_response.choices[0].message.content or ""
+            
+            # Procesar la respuesta para manejar múltiples mensajes
+            processed_messages = await self._process_response(response_text, user_memory)
             
             # Actualizar historial de conversación
-            if not user_memory.conversation_history:
-                user_memory.conversation_history = []
+            if not user_memory.message_history:
+                user_memory.message_history = []
             
-            user_memory.conversation_history.append({
+            # Agregar mensaje del usuario al historial
+            user_memory.message_history.append({
                 'role': 'user',
                 'content': user_message,
                 'timestamp': datetime.now().isoformat()
             })
             
             # Agregar respuesta del agente al historial
-            for msg in messages:
+            for msg in processed_messages:
                 if msg['type'] == 'text':
-                    user_memory.conversation_history.append({
+                    user_memory.message_history.append({
                         'role': 'assistant',
                         'content': msg['content'],
                         'timestamp': datetime.now().isoformat()
                     })
             
-            # Retornar el primer mensaje de texto, los demás se enviarán por separado
-            text_messages = [msg for msg in messages if msg['type'] == 'text']
-            if text_messages:
-                return text_messages[0]['content']
+            # Si hay múltiples mensajes, formatearlos correctamente
+            if len(processed_messages) > 1:
+                return processed_messages
             else:
-                return response_text
+                return processed_messages[0]['content'] if processed_messages else "Lo siento, no pude generar una respuesta."
                 
         except Exception as e:
             logger.error(f"Error generando respuesta: {e}", exc_info=True)
-            return "Disculpa, hubo un error procesando tu mensaje. ¿Podrías intentar de nuevo?"
-
-    async def _extract_and_update_user_info(self, user_message: str, user_memory: LeadMemory) -> None:
-        """Extrae información del usuario usando OpenAI y actualiza la memoria"""
-        if self.client is None:
-            return
-            
+            return "Lo siento, ocurrió un error al procesar tu mensaje. Por favor intenta nuevamente."
+    
+    async def _extract_user_info(self, user_message: str, user_memory: LeadMemory):
+        """Extrae información relevante del mensaje del usuario"""
         try:
+            if self.client is None:
+                logger.error("No se puede extraer información del usuario: cliente OpenAI no disponible")
+                return
+                
             extraction_prompt = f"""
 Analiza el siguiente mensaje del usuario y extrae información relevante:
 
@@ -166,7 +356,6 @@ Solo extrae información que esté claramente presente en el mensaje.
             )
             
             # Parsear respuesta JSON
-            import json
             raw_content = response.choices[0].message.content or ""
             extracted_info = json.loads(raw_content)
             
@@ -192,57 +381,9 @@ Solo extrae información que esté claramente presente en el mensaje.
         except Exception as e:
             logger.error(f"Error extrayendo información del usuario: {e}", exc_info=True)
 
-    def _build_user_prompt(self, user_message: str, user_memory: dict) -> str:
-        """Construye el prompt del usuario con información contextual"""
-        
-        # Información del usuario
-        user_info = []
-        if user_memory.get('name'):
-            user_info.append(f"Nombre: {user_memory['name']}")
-        if user_memory.get('role'):
-            user_info.append(f"Profesión: {user_memory['role']}")
-        if user_memory.get('interests'):
-            user_info.append(f"Intereses: {', '.join(user_memory['interests'])}")
-        if user_memory.get('pain_points'):
-            user_info.append(f"Puntos de dolor: {', '.join(user_memory['pain_points'])}")
-        if user_memory.get('interaction_count', 0) > 0:
-            user_info.append(f"Interacciones previas: {user_memory['interaction_count']}")
-        if user_memory.get('interest_level'):
-            user_info.append(f"Nivel de interés: {user_memory['interest_level']}")
-            
-        # Historial de conversación (últimos 3 mensajes)
-        conversation_history = ""
-        if user_memory.get('conversation_history'):
-            recent_messages = user_memory['conversation_history'][-6:]  # Últimos 3 intercambios
-            for msg in recent_messages:
-                role = "Usuario" if msg['role'] == 'user' else "Brenda"
-                conversation_history += f"{role}: {msg['content']}\n"
-        
-        prompt = f"""
-INFORMACIÓN DEL USUARIO:
-{chr(10).join(user_info) if user_info else "Usuario nuevo"}
-
-HISTORIAL RECIENTE:
-{conversation_history if conversation_history else "Primera interacción"}
-
-MENSAJE ACTUAL DEL USUARIO:
-{user_message}
-
-INSTRUCCIONES:
-1. Responde de manera natural y conversacional
-2. NO repitas saludos si ya se ha saludado antes
-3. Si tu respuesta es larga, divídela en múltiples mensajes usando [MENSAJE_1], [MENSAJE_2], etc.
-4. Enfócate en entender sus necesidades antes de vender
-5. Solo menciona demo/curso si es estratégicamente apropiado
-6. Usa herramientas solo cuando sea el momento adecuado
-
-Responde ahora:
-"""
-        return prompt
-
-    async def _process_response(self, response_text: str, user_id: str, user_memory: dict) -> List[Dict]:
+    async def _process_response(self, response_text: str, user_memory: LeadMemory) -> List[Dict[str, str]]:
         """Procesa la respuesta del LLM y maneja múltiples mensajes"""
-        messages = []
+        messages: List[Dict[str, str]] = []
         
         # Verificar si la respuesta contiene múltiples mensajes
         if "[MENSAJE_" in response_text:
@@ -264,28 +405,4 @@ Responde ahora:
                 'content': response_text
             })
         
-        return messages
-
-    async def _should_use_tools(self, response_text: str, user_memory: dict) -> bool:
-        """Determina si debe usar herramientas basado en el contexto"""
-        interaction_count = user_memory.get('interaction_count', 0)
-        interest_level = user_memory.get('interest_level', 'low')
-        
-        # No usar herramientas si es muy temprano en la conversación
-        if interaction_count < 2:
-            return False
-            
-        # Usar herramientas si hay señales claras de interés
-        keywords = ['demo', 'curso', 'precio', 'información', 'detalles']
-        has_keywords = any(keyword in response_text.lower() for keyword in keywords)
-        
-        return has_keywords and interest_level in ['medium', 'high']
-
-    async def _execute_tools(self, response_text: str, user_memory: dict) -> List[Dict]:
-        """Ejecuta las herramientas apropiadas"""
-        tool_messages = []
-        
-        # Por ahora solo retornamos mensajes vacíos
-        # En el futuro se pueden agregar herramientas específicas
-        
-        return tool_messages 
+        return messages 

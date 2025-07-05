@@ -18,7 +18,8 @@ class DatabaseService:
         self.pool = await asyncpg.create_pool(
             self.conn_string,
             min_size=2,
-            max_size=10
+            max_size=10,
+            statement_cache_size=0  # Compatibilidad con pgbouncer
         )
 
     async def fetch_one(self, query: str, *args) -> Optional[Dict[str, Any]]:

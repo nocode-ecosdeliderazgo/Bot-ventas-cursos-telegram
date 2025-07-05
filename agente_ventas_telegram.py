@@ -1,302 +1,241 @@
-"""Bot de ventas inteligente con Telegram."""
+"""Bot de ventas para Telegram que utiliza un agente inteligente para convertir leads."""
+
+import os
 import logging
 import asyncio
-import sys
-from typing import Optional, Tuple
-from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters
-import nest_asyncio
-import os
-
-from config.settings import settings
-from core.utils.memory import GlobalMemory
-from core.utils.navigation import show_main_menu
-from core.handlers.menu_handlers import handle_callback_query
+from telegram import Update
 from core.services.database import DatabaseService
-from core.agents.sales_agent import AgenteSalesTools
+from core.agents.agent_tools import AgentTools
 from core.agents.smart_sales_agent import SmartSalesAgent
+from core.utils.memory import GlobalMemory
+from config.settings import settings
 
-# Aplicar nest_asyncio para manejar event loops anidados
-nest_asyncio.apply()
-
-# Configuración de logging
+# Configurar logging
 logging.basicConfig(
-    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO,
     handlers=[
-        logging.FileHandler('bot.log'),
+        logging.FileHandler('bot.log', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
 
-class BotApplication:
+class VentasBot:
     def __init__(self):
-        self.bot = None
-        self.application: Optional[Application] = None
+        # Verificar variables de entorno
+        if not settings.DATABASE_URL:
+            raise ValueError("DATABASE_URL no encontrado en variables de entorno")
+        # Inicializar servicios
         self.db = DatabaseService(settings.DATABASE_URL)
-        self.agent_tools = AgenteSalesTools(self.db, None)
-        self.ventas_bot = SmartSalesAgent(self.db, self.agent_tools)
+        self.agent_tools = None
+        self.ventas_bot = None
         self.global_memory = GlobalMemory()
 
-    async def handle_message(self, update: Update, context) -> None:
-        """Manejador principal de mensajes."""
-        try:
-            # Asegurarse de que global_mem esté disponible
-            if 'global_mem' not in context.bot_data:
-                context.bot_data['global_mem'] = self.global_memory
+    async def setup(self):
+        # Inicializar el pool de conexiones
+        await self.db.connect()
+        # Ahora sí, inicializar los servicios que usan la base de datos
+        self.agent_tools = AgentTools(self.db, None)  # Se actualizará con la API de Telegram
+        self.ventas_bot = SmartSalesAgent(self.db, self.agent_tools)
 
-            # Procesar el mensaje
-            if update.message and update.message.text and update.message.from_user:
-                message_data = {
-                    'text': update.message.text,
-                    'chat_id': update.message.chat_id,
-                    'message_id': update.message.message_id
-                }
-                user = update.message.from_user
-                user_data = {
+    async def handle_message(self, update: Update, context):
+        """
+        Maneja todos los mensajes entrantes.
+        Detecta si el mensaje viene de un anuncio y lo procesa adecuadamente.
+        """
+        if self.ventas_bot is None:
+            await self.setup()
+        # Ahora sí, seguro que self.ventas_bot está inicializado
+        message = None
+        try:
+            message = update.message
+            if not message or not message.text:
+                return
+                
+            user = message.from_user
+            if not user:
+                return
+                
+            # Actualizar memoria global
+            self.global_memory.set_current_lead(
+                str(user.id),
+                name=user.first_name or '',
+                username=user.username or ''
+            )
+            
+            # Preparar datos del mensaje y usuario
+            message_data = {
+                'text': message.text,
+                'chat_id': message.chat_id,
+                'message_id': message.message_id,
+                'from': {
                     'id': user.id,
                     'first_name': user.first_name or '',
                     'last_name': user.last_name or '',
                     'username': user.username or ''
                 }
-                
-                # Obtener respuesta del agente
-                response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
-                
-                # NUEVO: Si la respuesta es una lista, enviar todos los mensajes/archivos en orden
-                if isinstance(response, list):
-                    for msg in response:
-                        if isinstance(msg, dict):
-                            if msg.get("type") == "text":
-                                await update.message.reply_text(msg.get("content", ""), parse_mode="Markdown")
-                            elif msg.get("type") == "image":
-                                if os.path.exists(msg.get("path", "")):
-                                    try:
-                                        with open(msg.get("path", ""), 'rb') as photo:
-                                            await update.message.reply_photo(photo=photo)
-                                    except Exception as e:
-                                        logger.warning(f"No se pudo enviar imagen: {e}")
-                            elif msg.get("type") == "document":
-                                if os.path.exists(msg.get("path", "")):
-                                    try:
-                                        with open(msg.get("path", ""), 'rb') as document:
-                                            await update.message.reply_document(document=document)
-                                    except Exception as e:
-                                        logger.warning(f"No se pudo enviar PDF: {e}")
-                    return
-                # Si la respuesta es un diccionario (flujo legacy), mantener compatibilidad
-                if isinstance(response, dict):
-                    # 1. Enviar mensaje de confirmación
-                    await update.message.reply_text(response.get('confirmation', ''))
-                    # 2. Enviar imagen si se solicita
-                    if response.get('send_image'):
-                        image_path = "data/imagen_prueba.jpg"
-                        if os.path.exists(image_path):
-                            try:
-                                with open(image_path, 'rb') as photo:
-                                    await update.message.reply_photo(photo=photo)
-                            except Exception as e:
-                                logger.warning(f"No se pudo enviar imagen: {e}")
-                    # 3. Enviar PDF si se solicita
-                    if response.get('send_pdf'):
-                        pdf_path = "data/pdf_prueba.pdf"
-                        if os.path.exists(pdf_path):
-                            try:
-                                with open(pdf_path, 'rb') as document:
-                                    await update.message.reply_document(document=document)
-                            except Exception as e:
-                                logger.warning(f"No se pudo enviar PDF: {e}")
-                    # 4. Enviar mensaje final con resumen si existe
-                    if final_message := response.get('final_message'):
-                        mensaje_completo = final_message.get('text', '')
-                        if resumen := final_message.get('resumen'):
-                            mensaje_completo += "\n\n" + resumen
-                        await update.message.reply_text(mensaje_completo, parse_mode='Markdown')
-                    return
-                # Si es una respuesta normal, enviarla como siempre
-                elif response:
-                    await update.message.reply_text(response, reply_markup=keyboard, parse_mode='Markdown')
+            }
             
-        except Exception as e:
-            logger.error(f"Error en handle_message: {e}", exc_info=True)
-            if update.message:
-                try:
-                    await update.message.reply_text(
-                        "Lo siento, ha ocurrido un error. Por favor, intenta de nuevo."
+            user_data = {
+                'id': user.id,
+                'first_name': user.first_name or '',
+                'last_name': user.last_name or '',
+                'username': user.username or ''
+            }
+            
+            # Procesar mensaje con el agente inteligente
+            response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
+            
+            # Manejar respuesta que puede ser string o lista de diccionarios
+            if isinstance(response, str):
+                # Enviar respuesta de texto
+                if keyboard:
+                    await message.reply_text(
+                        response,
+                        reply_markup=keyboard,
+                        parse_mode='Markdown'
                     )
-                except Exception:
-                    pass
-
-    async def _send_course_files(self, update: Update, user_memory) -> None:
-        """
-        Envía los archivos del curso (imagen y PDF) al usuario.
-        """
-        try:
-            if not update.message:
-                return
-                
-            # Obtener información del curso
-            from core.services.supabase_service import get_course_detail
-            curso_info = await get_course_detail(user_memory.selected_course)
-            if not curso_info:
-                logger.warning("No se encontró información del curso para envío de archivos")
-                return
-            
-            # Enviar imagen
-            image_path = "data/imagen_prueba.jpg"
-            if os.path.exists(image_path):
-                try:
-                    with open(image_path, 'rb') as photo:
-                        await update.message.reply_photo(
-                            photo=photo,
-                            caption="🎯 ¡Este es el curso que transformará tu carrera profesional!"
-                        )
-                    logger.info("Imagen enviada correctamente")
-                except Exception as e:
-                    logger.warning(f"No se pudo enviar imagen: {e}")
-            else:
-                logger.warning("Archivo de imagen no encontrado")
-            
-            # Enviar PDF
-            pdf_path = "data/pdf_prueba.pdf"
-            if os.path.exists(pdf_path):
-                try:
-                    with open(pdf_path, 'rb') as document:
-                        caption = (
-                            "📚 Aquí tienes toda la información detallada del curso.\n\n"
-                            f"*Modalidad:* {curso_info.get('modality', 'No especificado')}\n"
-                            f"*Duración:* {curso_info.get('total_duration', 'No especificado')} horas\n"
-                            f"*Horario:* {curso_info.get('schedule', 'No especificado')}\n"
-                            f"*Precio:* ${curso_info.get('price_usd', 'No especificado')} USD\n"
-                            "*Incluye:* Material, acceso a grabaciones, soporte"
-                        )
-                        await update.message.reply_document(
-                            document=document,
-                            caption=caption,
+                else:
+                    await message.reply_text(
+                        response,
+                        parse_mode='Markdown'
+                    )
+            elif isinstance(response, list):
+                # Enviar múltiples mensajes (para archivos multimedia)
+                for item in response:
+                    if item.get('type') == 'text':
+                        await message.reply_text(
+                            item['content'],
                             parse_mode='Markdown'
                         )
-                    logger.info("PDF enviado correctamente")
-                except Exception as e:
-                    logger.warning(f"No se pudo enviar PDF: {e}")
-            else:
-                logger.warning("Archivo PDF no encontrado")
-                
+                    elif item.get('type') == 'image':
+                        with open(item['path'], 'rb') as img_file:
+                            await message.reply_photo(img_file)
+                    elif item.get('type') == 'document':
+                        with open(item['path'], 'rb') as doc_file:
+                            await message.reply_document(doc_file)
+
         except Exception as e:
-            logger.error(f"Error enviando archivos del curso: {e}", exc_info=True)
+            logger.error(f"Error handling message: {str(e)}", exc_info=True)
+            if message:
+                await message.reply_text(
+                    "Lo siento, hubo un error procesando tu mensaje. Por favor, intenta nuevamente."
+                )
 
-    async def setup(self) -> None:
-        """Configurar el bot y sus handlers."""
-        try:
-            if not settings.TELEGRAM_API_TOKEN:
-                raise ValueError("TELEGRAM_API_TOKEN no encontrado en variables de entorno")
-
-            # Crear aplicación
-            self.application = Application.builder().token(settings.TELEGRAM_API_TOKEN).build()
-            
-            # Actualizar referencias
-            self.bot = self.application.bot
-            self.agent_tools.telegram = self.bot
-            
-            # Inicializar memoria global
-            self.application.bot_data['global_mem'] = self.global_memory
-            
-            # Configurar handlers
-            self.application.add_handler(
-                MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message)
-            )
-            self.application.add_handler(
-                CallbackQueryHandler(handle_callback_query)
-            )
-
-            logger.info("Bot configurado exitosamente")
-            
-        except Exception as e:
-            logger.error(f"Error en setup: {e}", exc_info=True)
-            raise
-
-    async def start(self) -> None:
-        """Iniciar el bot."""
-        try:
+    async def handle_callback_query(self, update: Update, context):
+        """Maneja las consultas de callback de botones inline."""
+        if self.ventas_bot is None:
             await self.setup()
-            logger.info("Iniciando bot...")
-            
-            if self.application:
-                # Usar async with para manejo automático del ciclo de vida
-                async with self.application:
-                    await self.application.start()
-                    logger.info("Bot iniciado correctamente")
-                    
-                    # Verificar que updater esté disponible
-                    if self.application.updater:
-                        await self.application.updater.start_polling(allowed_updates=Update.ALL_TYPES)
-                    else:
-                        logger.error("Updater no disponible")
-                        return
-                    
-                    # Mantener ejecutándose indefinidamente
-                    try:
-                        while True:
-                            await asyncio.sleep(1)
-                    except KeyboardInterrupt:
-                        logger.info("Bot interrumpido por el usuario")
-                        return
-                    finally:
-                        logger.info("Deteniendo bot...")
-                        if self.application.updater:
-                            await self.application.updater.stop()
-                        
-        except Exception as e:
-            logger.error(f"Error en start: {e}", exc_info=True)
-            raise
-
-    async def stop(self) -> None:
-        """Detener el bot de manera limpia."""
-        # El async with maneja automáticamente la limpieza
-        logger.info("Bot detenido correctamente")
-
-async def main():
-    """Función principal asíncrona."""
-    bot_app = None
-    try:
-        logger.info("Iniciando aplicación...")
-        bot_app = BotApplication()
-        await bot_app.start()
-    except KeyboardInterrupt:
-        logger.info("Bot interrumpido por el usuario")
-    except Exception as e:
-        logger.error(f"Error en la ejecución del bot: {e}", exc_info=True)
-    finally:
-        if bot_app:
-            await bot_app.stop()
-        logger.info("Bot finalizado")
-
-def run_bot():
-    """Ejecutar el bot."""
-    try:
-        logger.info("Creando nuevo event loop")
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        # Ejecutar el bot
-        loop.run_until_complete(main())
-        
-    except KeyboardInterrupt: 
-        logger.info("Bot detenido por el usuario")
-    except Exception as e:
-        logger.error(f"Error ejecutando el bot: {e}", exc_info=True)
-    finally:
-        # Cerrar el event loop
+        # Ahora sí, seguro que self.ventas_bot está inicializado
         try:
-            loop = asyncio.get_event_loop()
-            tasks = asyncio.all_tasks(loop)
-            for task in tasks:
-                task.cancel()
-            loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
-            loop.close()
+            query = update.callback_query
+            if query:
+                await query.answer()
+                
+                # Preparar datos del usuario
+                user_data = {
+                    'id': query.from_user.id,
+                    'first_name': query.from_user.first_name or '',
+                    'last_name': query.from_user.last_name or '',
+                    'username': query.from_user.username or ''
+                }
+                
+                # Preparar datos del mensaje
+                message_data = {
+                    'text': query.data,
+                    'chat_id': query.message.chat.id if query.message else 0,
+                    'message_id': query.message.message_id if query.message else 0,
+                    'from': user_data
+                }
+                
+                # Procesar la consulta con el agente
+                response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
+                
+                # Manejar respuesta
+                if isinstance(response, str):
+                    if keyboard:
+                        await query.edit_message_text(
+                            text=response,
+                            reply_markup=keyboard,
+                            parse_mode='Markdown'
+                        )
+                    else:
+                        await query.edit_message_text(
+                            text=response,
+                            parse_mode='Markdown'
+                        )
+                elif isinstance(response, list):
+                    for item in response:
+                        if item.get('type') == 'text':
+                            await context.bot.send_message(
+                                chat_id=query.message.chat.id if query.message else user_data['id'],
+                                text=item['content'],
+                                parse_mode='Markdown'
+                            )
+                        elif item.get('type') == 'image':
+                            with open(item['path'], 'rb') as img_file:
+                                await context.bot.send_photo(
+                                    chat_id=query.message.chat.id if query.message else user_data['id'],
+                                    photo=img_file
+                                )
+                        elif item.get('type') == 'document':
+                            with open(item['path'], 'rb') as doc_file:
+                                await context.bot.send_document(
+                                    chat_id=query.message.chat.id if query.message else user_data['id'],
+                                    document=doc_file
+                                )
+            
         except Exception as e:
-            logger.error(f"Error cerrando el event loop: {e}", exc_info=True)
+            logger.error(f"Error handling callback query: {str(e)}", exc_info=True)
+            if update.callback_query:
+                await update.callback_query.answer("Error procesando la selección")
+
+def main_telegram_bot():
+    """Función principal del bot de Telegram con manejo mejorado de errores."""
+    logger.info("Iniciando bot de Telegram...")
+    
+    try:
+        # Verificar token
+        if not settings.TELEGRAM_API_TOKEN:
+            raise ValueError("TELEGRAM_API_TOKEN no encontrado en variables de entorno")
+
+        # Crear bot y aplicación
+        bot = VentasBot()
+        application = Application.builder().token(settings.TELEGRAM_API_TOKEN).build()
+
+        # Actualizar agente con API de Telegram (ignorar tipo para compatibilidad)
+        # El bot se inicializa en el primer mensaje recibido
+        application.bot_data['global_mem'] = bot.global_memory
+        
+        # Configurar handlers
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bot.handle_message))
+        application.add_handler(CallbackQueryHandler(bot.handle_callback_query))
+
+        logger.info("Bot de Telegram configurado. Iniciando polling...")
+        
+        # Iniciar polling
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        
+    except Exception as e:
+        logger.error(f"Error fatal en main_telegram_bot: {e}", exc_info=True)
+        raise
+    finally:
+        logger.info("Bot de Telegram finalizado")
 
 if __name__ == "__main__":
-    run_bot()
+    # Configurar asyncio para Windows
+    if os.name == 'nt':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    try:
+        main_telegram_bot()
+        logger.info("Bot finalizado normalmente")
+    except KeyboardInterrupt:
+        logger.info("Bot interrumpido por el usuario (Ctrl+C)")
+    except Exception as e:
+        logger.error(f"Error fatal en la aplicación principal: {e}", exc_info=True)
+        import sys
+        sys.exit(1)
  

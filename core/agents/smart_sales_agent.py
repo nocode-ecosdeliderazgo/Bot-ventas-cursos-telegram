@@ -1,6 +1,6 @@
 """
-Agente de ventas inteligente que utiliza técnicas avanzadas de conversión,
-análisis de interés del usuario y seguimiento automatizado.
+Agente de ventas inteligente que combina IA, técnicas de venta
+y análisis de comportamiento para maximizar conversiones.
 """
 
 import logging
@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Union, Any
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from core.services.database import DatabaseService
-from core.agents.sales_agent import AgenteSalesTools
+from core.agents.agent_tools import AgentTools
 from core.agents.conversation_processor import ConversationProcessor
 from core.agents.intelligent_sales_agent import IntelligentSalesAgent
 from core.utils.memory import GlobalMemory
@@ -20,6 +20,14 @@ from core.services.supabase_service import save_lead, get_course_detail, get_pro
 from core.utils.message_templates import MessageTemplates
 from core.utils.sales_techniques import SalesTechniques
 from config.settings import settings
+from core.services.courseService import CourseService
+from core.services.promptService import PromptService
+from core.utils.lead_scorer import LeadScorer
+from core.utils.memory import GlobalMemory, LeadMemory
+from core.utils.message_templates import MessageTemplates
+from core.utils.sales_techniques import SalesTechniques
+from core.agents.conversation_processor import ConversationProcessor
+from core.agents.intelligent_sales_agent import IntelligentSalesAgent
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +45,7 @@ class SmartSalesAgent:
     y análisis de comportamiento para maximizar conversiones.
     """
     
-    def __init__(self, db: DatabaseService, agent: AgenteSalesTools):
+    def __init__(self, db: DatabaseService, agent: AgentTools):
         self.db = db
         self.agent = agent
         self.global_memory = GlobalMemory()
@@ -46,9 +54,13 @@ class SmartSalesAgent:
         self.sales_techniques = SalesTechniques()
         self.conversation_processor = ConversationProcessor()  # Nuevo procesador
         
+        # Servicios adicionales
+        self.course_service = CourseService(db)
+        self.prompt_service = PromptService(settings.OPENAI_API_KEY)
+        
         # Inicializar el agente inteligente con la API key
         try:
-            self.intelligent_agent = IntelligentSalesAgent(settings.OPENAI_API_KEY)
+            self.intelligent_agent = IntelligentSalesAgent(settings.OPENAI_API_KEY, db)
         except Exception as e:
             logger.error(f"Error inicializando agente inteligente: {e}")
             self.intelligent_agent = None
@@ -63,29 +75,40 @@ class SmartSalesAgent:
 
     async def handle_conversation(self, message_data: dict, user_data: dict) -> Tuple[Union[str, List[Dict[str, Any]]], Optional[InlineKeyboardMarkup]]:
         """
-        Punto de entrada principal para la conversación de ventas.
+        Maneja la conversación con el usuario y determina la mejor respuesta.
+        
+        Args:
+            message_data: Datos del mensaje recibido
+            user_data: Datos del usuario
+            
+        Returns:
+            Respuesta generada y teclado opcional
         """
-        if not message_data.get('text'):
-            return "Por favor, envía un mensaje de texto.", None
-
         try:
-            user_id = str(user_data['id'])
-            message_text = message_data['text']
+            # Extraer información básica
+            user_id = str(user_data.get('id', message_data.get('from', {}).get('id', 'unknown')))
+            message_text = message_data.get('text', '')
+            
+            # Obtener o crear memoria del usuario
+            user_memory = self.global_memory.get_lead_memory(user_id)
+            if not user_memory:
+                user_memory = LeadMemory(user_id=user_id)
+                self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            # Actualizar datos básicos si están disponibles
+            if 'username' in message_data.get('from', {}):
+                user_memory.username = message_data['from']['username']
+            if 'first_name' in message_data.get('from', {}):
+                user_memory.first_name = message_data['from']['first_name']
             
             # **NUEVO: Detectar hashtags de anuncios PRIMERO**
             hashtag_match = re.search(r"#([A-Z0-9_]+).*#([A-Z0-9_]+)", message_text)
             if hashtag_match:
                 return await self._handle_ad_flow(hashtag_match, message_data, user_data)
             
-            # Obtener memoria del usuario
-            user_memory = self.global_memory.get_lead_memory(user_id)
-            
-            # Verificar si el usuario necesita envío de archivos multimedia
-            # Flujo de nombre preferido: enviar secuencia completa de mensajes y archivos
-            if user_memory.stage == "awaiting_preferred_name" and user_memory.selected_course:
-                # Devolver la lista de mensajes tal cual para que el handler los envíe en orden
-                mensajes, keyboard = await self._handle_name_and_send_media(message_data, user_data, user_memory)
-                return mensajes, keyboard
+            # FLUJO: Si el usuario está en la etapa de 'awaiting_preferred_name', mostrar archivos y mensaje
+            if user_memory.stage == "awaiting_preferred_name":
+                return await self._handle_name_and_send_media(message_data, user_data, user_memory)
             
             # **NUEVO: Si ya se envió la información del curso, usar el agente inteligente**
             if user_memory.stage == "info_sent":
@@ -97,7 +120,18 @@ class SmartSalesAgent:
                 # Obtener información del curso
                 course_info = None
                 if user_memory.selected_course:
-                    course_info = await get_course_detail(user_memory.selected_course)
+                    course_info = await self.course_service.getCourseDetails(user_memory.selected_course)
+                
+                # Buscar referencias a cursos en el mensaje
+                if not course_info:
+                    course_references = await self.prompt_service.extract_course_references(message_text)
+                    if course_references:
+                        for reference in course_references:
+                            courses = await self.course_service.searchCourses(reference)
+                            if courses:
+                                course_info = await self.course_service.getCourseDetails(courses[0]['id'])
+                                user_memory.selected_course = courses[0]['id']
+                                break
                 
                 # Usar el agente inteligente para generar respuesta personalizada
                 response = await self.intelligent_agent.generate_response(message_text, user_memory, course_info)
@@ -123,23 +157,14 @@ class SmartSalesAgent:
             # Programar seguimiento si es necesario
             await self._schedule_follow_up(user_id, strategy, user_memory)
             
-            # Actualizar memoria
-            user_memory.last_interaction = datetime.now()
-            if user_memory.message_history is None:
-                user_memory.message_history = []
-            user_memory.message_history.append({
-                'timestamp': datetime.now().isoformat(),
-                'message': message_text,
-                'strategy_used': strategy,
-                'interest_level': interest_analysis['level']
-            })
+            # Guardar la memoria actualizada
             self.global_memory.save_lead_memory(user_id, user_memory)
             
             return response, keyboard
             
         except Exception as e:
             logger.error(f"Error en handle_conversation: {e}", exc_info=True)
-            return self.templates.get_error_message(), None
+            return "Lo siento, ocurrió un error. Por favor intenta nuevamente.", None
 
     async def _handle_ad_flow(self, hashtag_match, message_data: dict, user_data: dict) -> Tuple[str, Optional[InlineKeyboardMarkup]]:
         """
@@ -159,7 +184,7 @@ class SmartSalesAgent:
                 return "¡Gracias por tu interés! En breve un asesor te contactará con más información.", None
             
             # Obtener información del curso
-            curso_info = await get_course_detail(id_curso)
+            curso_info = await self.course_service.getCourseDetails(id_curso)
             if not curso_info:
                 logger.warning(f"Información del curso no encontrada: {id_curso}")
                 return "No se encontró información del curso en la base de datos. Un asesor te contactará.", None
@@ -200,57 +225,28 @@ class SmartSalesAgent:
         try:
             user_id = str(user_data['id'])
             nombre_preferido = message_data['text'].strip()
-            
             # Procesar nombre preferido
             if len(nombre_preferido) > 1 and not any(x in nombre_preferido.lower() for x in ["no", "igual", "como quieras", "da igual", "me da igual"]):
                 user_memory.name = nombre_preferido.title()
             else:
                 user_memory.name = user_data.get('first_name', 'Usuario')
-            
             # Obtener información del curso
-            curso_info = await get_course_detail(user_memory.selected_course)
+            curso_info = await self.course_service.getCourseDetails(user_memory.selected_course)
             if not curso_info:
                 return [
                     {"type": "text", "content": "No se encontró información del curso."}
                 ], None
-
             # Actualizar etapa
             user_memory.stage = "info_sent"
             user_memory.media_sent = True  # Ya se enviarán los archivos
             self.global_memory.save_lead_memory(user_id, user_memory)
-            
             # Mensaje de confirmación
             confirmation_message = f"¡Perfecto, {user_memory.name}! A partir de ahora me dirigiré a ti así. 😊"
-            
             # Mensaje de aviso de envío de archivos
             aviso = "Te enviaré ahora toda la información del curso."
-            
-            # Mensaje detallado del curso (idéntico al ejemplo del usuario)
+            # Mensaje detallado del curso
             detalles = f"""¡Excelente {user_memory.name}! 🌟 Aquí tienes todos los detalles del curso. Analicémoslos juntos:
-
-📚 *Curso:* {curso_info.get('name', 'Curso de IA')}
-
-🎯 *Nivel:* {curso_info.get('level', 'Beginner')}
-🌐 *Modalidad:* {'Online en vivo' if curso_info.get('online') else 'Presencial'}
-⏱ *Duración:* {curso_info.get('total_duration', '12:00:00 horas')}
-📅 *Horario:* {curso_info.get('schedule', 'Viernes, 17:00 - 19:00 (CDMX)')}
-💰 *Inversión:* ${curso_info.get('price_usd', '120')} USD
-
-✨ *El curso incluye:*
-• Material didáctico digital
-• Acceso a grabaciones de las clases
-• Certificado al completar
-• Soporte personalizado
-• Proyectos prácticos
-
-🦾 *Beneficios:*
-• Clases en vivo con instructor experto
-• Grupos reducidos para atención personalizada
-• Ejercicios y casos reales
-• Comunidad de estudiantes
-
-¿Te gustaría conocer más detalles sobre algún aspecto en particular? ¡Estoy aquí para ayudarte! 😊"""
-            
+\n📚 *Curso:* {curso_info.get('name', 'Curso de IA')}\n\n🎯 *Nivel:* {curso_info.get('level', 'Beginner')}\n🌐 *Modalidad:* {'Online en vivo' if curso_info.get('online') else 'Presencial'}\n⏱ *Duración:* {curso_info.get('total_duration', '12:00:00 horas')}\n📅 *Horario:* {curso_info.get('schedule', 'Viernes, 17:00 - 19:00 (CDMX)')}\n💰 *Inversión:* ${curso_info.get('price_usd', '120')} USD\n\n✨ *El curso incluye:*\n• Material didáctico digital\n• Acceso a grabaciones de las clases\n• Certificado al completar\n• Soporte personalizado\n• Proyectos prácticos\n\n🦾 *Beneficios:*\n• Clases en vivo con instructor experto\n• Grupos reducidos para atención personalizada\n• Ejercicios y casos reales\n• Comunidad de estudiantes\n\n¿Te gustaría conocer más detalles sobre algún aspecto en particular? ¡Estoy aquí para ayudarte! 😊"""
             # Secuencia de mensajes y archivos
             messages = [
                 {"type": "text", "content": confirmation_message},
@@ -259,7 +255,6 @@ class SmartSalesAgent:
                 {"type": "document", "path": "data/pdf_prueba.pdf"},
                 {"type": "text", "content": detalles}
             ]
-            
             return messages, None
         except Exception as e:
             logger.error(f"Error en _handle_name_and_send_media: {e}", exc_info=True)

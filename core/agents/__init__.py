@@ -2,7 +2,8 @@
 Módulo de agentes inteligentes para el bot de ventas.
 """
 
-from .sales_agent import AgenteSalesTools
 from .agent_tools import AgentTools
+from .intelligent_sales_agent import IntelligentSalesAgent
+from .smart_sales_agent import SmartSalesAgent
 
-__all__ = ['AgenteSalesTools', 'AgentTools'] 
+__all__ = ["AgentTools", "IntelligentSalesAgent", "SmartSalesAgent"]
