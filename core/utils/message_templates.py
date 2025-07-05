@@ -422,4 +422,51 @@ Si en algún momento cambias de opinión y quieres conocer más sobre nuestros c
 • Acceso de por vida
 • Certificación oficial
 
-{user_name}, ¿hay algo específico que te gustaría profundizar? Estoy aquí para resolver todas tus dudas 😊""" 
+{user_name}, ¿hay algo específico que te gustaría profundizar? Estoy aquí para resolver todas tus dudas 😊"""
+
+    def get_full_privacy_policy(self) -> str:
+        """
+        Política de privacidad completa.
+        """
+        return """📋 **POLÍTICA DE PRIVACIDAD COMPLETA**
+
+**Aprenda y Aplique IA** - Protección de Datos Personales
+
+🔒 **1. INFORMACIÓN QUE RECOPILAMOS:**
+• Nombre y datos de contacto que nos proporciones
+• Información sobre tus intereses en nuestros cursos
+• Historial de conversación para brindarte mejor servicio
+• Datos técnicos básicos (horario de conexión, etc.)
+
+🎯 **2. CÓMO USAMOS TU INFORMACIÓN:**
+• Personalizar recomendaciones de cursos
+• Enviarte información relevante sobre nuestros programas
+• Mejorar nuestros servicios y contenidos
+• Procesar tu inscripción si decides tomar un curso
+
+🛡️ **3. PROTECCIÓN DE TUS DATOS:**
+• Encriptación de extremo a extremo
+• Servidores seguros con certificación ISO
+• Acceso restringido solo a personal autorizado
+• Copias de seguridad protegidas
+
+📞 **4. COMUNICACIONES:**
+• Solo te contactaremos con información relevante
+• Puedes cancelar comunicaciones en cualquier momento
+• Respetamos tus preferencias de frecuencia
+• No compartimos tu información con terceros
+
+⚖️ **5. TUS DERECHOS:**
+• Acceder a tu información personal
+• Rectificar datos incorrectos
+• Solicitar eliminación de tus datos
+• Portabilidad de tu información
+
+📧 **6. CONTACTO:**
+• Email: privacy@aprendayaplique.com
+• Teléfono: +1-800-123-4567
+• Respuesta garantizada en 48 horas
+
+Última actualización: Enero 2025
+
+Al aceptar, confirmas que has leído y entiendes esta política.""" 

@@ -9,6 +9,8 @@ from core.services.database import DatabaseService
 from core.agents.agent_tools import AgentTools
 from core.agents.smart_sales_agent import SmartSalesAgent
 from core.utils.memory import GlobalMemory
+from core.utils.message_parser import extract_hashtags, get_course_from_hashtag
+from core.handlers.ads_flow import AdsFlowHandler
 from config.settings import settings
 
 # Configurar logging
@@ -31,6 +33,7 @@ class VentasBot:
         self.db = DatabaseService(settings.DATABASE_URL)
         self.agent_tools = None
         self.ventas_bot = None
+        self.ads_flow_handler = None
         self.global_memory = GlobalMemory()
 
     async def setup(self):
@@ -39,6 +42,7 @@ class VentasBot:
         # Ahora sí, inicializar los servicios que usan la base de datos
         self.agent_tools = AgentTools(self.db, None)  # Se actualizará con la API de Telegram
         self.ventas_bot = SmartSalesAgent(self.db, self.agent_tools)
+        self.ads_flow_handler = AdsFlowHandler(self.db, self.agent_tools)
 
     async def handle_message(self, update: Update, context):
         """
@@ -65,6 +69,14 @@ class VentasBot:
                 username=user.username or ''
             )
             
+            # NUEVO: Detección de hashtags para flujo de anuncios
+            hashtags = extract_hashtags(message.text)
+            logger.info(f"Hashtags detectados: {hashtags}")
+            
+            # Verificar si es un mensaje de anuncio (#curso: y #anuncio:)
+            has_course_hashtag = any(tag.startswith('curso:') or tag.startswith('CURSO_') for tag in hashtags)
+            has_ad_hashtag = any(tag.startswith('anuncio:') or tag.startswith('ADSIM_') for tag in hashtags)
+            
             # Preparar datos del mensaje y usuario
             message_data = {
                 'text': message.text,
@@ -85,8 +97,15 @@ class VentasBot:
                 'username': user.username or ''
             }
             
-            # Procesar mensaje con el agente inteligente
-            response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
+            # Rutear según tipo de mensaje
+            if has_course_hashtag and has_ad_hashtag:
+                # Flujo de anuncios - usuario viene desde publicidad
+                logger.info(f"Usuario {user.id} viene de anuncio, procesando con ads_flow")
+                response, keyboard = await self.handle_ad_flow(message_data, user_data, hashtags)
+            else:
+                # Flujo conversacional normal
+                logger.info(f"Usuario {user.id} en conversación normal")
+                response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
             
             # Manejar respuesta que puede ser string o lista de diccionarios
             if isinstance(response, str):
@@ -124,6 +143,38 @@ class VentasBot:
                     "Lo siento, hubo un error procesando tu mensaje. Por favor, intenta nuevamente."
                 )
 
+    async def handle_ad_flow(self, message_data: dict, user_data: dict, hashtags: list):
+        """
+        Maneja el flujo específico de usuarios que vienen de anuncios.
+        Extrae información de curso y campaña de los hashtags.
+        """
+        try:
+            # Extraer curso y campaña de hashtags
+            course_info = None
+            campaign_info = None
+            
+            for tag in hashtags:
+                if tag.startswith('curso:') or tag.startswith('CURSO_'):
+                    course_info = tag
+                elif tag.startswith('anuncio:') or tag.startswith('ADSIM_'):
+                    campaign_info = tag
+            
+            logger.info(f"Procesando anuncio - Curso: {course_info}, Campaña: {campaign_info}")
+            
+            # Usar el ads_flow_handler para procesar
+            if self.ads_flow_handler:
+                return await self.ads_flow_handler.process_ad_message(
+                    message_data, user_data, course_info, campaign_info
+                )
+            else:
+                # Fallback si no hay ads_flow_handler
+                return await self.ventas_bot.handle_conversation(message_data, user_data)
+                
+        except Exception as e:
+            logger.error(f"Error en handle_ad_flow: {e}")
+            # Fallback a conversación normal
+            return await self.ventas_bot.handle_conversation(message_data, user_data)
+
     async def handle_callback_query(self, update: Update, context):
         """Maneja las consultas de callback de botones inline."""
         if self.ventas_bot is None:
@@ -142,16 +193,20 @@ class VentasBot:
                     'username': query.from_user.username or ''
                 }
                 
-                # Preparar datos del mensaje
-                message_data = {
-                    'text': query.data,
-                    'chat_id': query.message.chat.id if query.message else 0,
-                    'message_id': query.message.message_id if query.message else 0,
-                    'from': user_data
-                }
-                
-                # Procesar la consulta con el agente
-                response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
+                # NUEVO: Manejar callbacks específicos de privacidad
+                if query.data in ['privacy_accept', 'privacy_decline', 'privacy_full']:
+                    response, keyboard = await self._handle_privacy_callback(query.data, user_data)
+                else:
+                    # Preparar datos del mensaje para otros callbacks
+                    message_data = {
+                        'text': query.data,
+                        'chat_id': query.message.chat.id if query.message else 0,
+                        'message_id': query.message.message_id if query.message else 0,
+                        'from': user_data
+                    }
+                    
+                    # Procesar la consulta con el agente
+                    response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
                 
                 # Manejar respuesta
                 if isinstance(response, str):
@@ -191,6 +246,35 @@ class VentasBot:
             logger.error(f"Error handling callback query: {str(e)}", exc_info=True)
             if update.callback_query:
                 await update.callback_query.answer("Error procesando la selección")
+
+    async def _handle_privacy_callback(self, callback_data: str, user_data: dict):
+        """Maneja los callbacks relacionados con privacidad."""
+        user_id = str(user_data['id'])
+        user_memory = self.global_memory.get_lead_memory(user_id)
+        
+        if callback_data == "privacy_accept":
+            # Marcar privacidad como aceptada
+            if user_memory:
+                user_memory.privacy_accepted = True
+                self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            message = "¡Gracias por aceptar! 🎉\n\nAhora podemos continuar con el proceso."
+            return message, None
+            
+        elif callback_data == "privacy_decline":
+            message = """Respeto tu decisión. 
+
+Si cambias de opinión y quieres conocer más sobre nuestros cursos de IA, estaremos aquí para ayudarte.
+
+¡Que tengas un excelente día! 😊"""
+            return message, None
+            
+        elif callback_data == "privacy_full":
+            # Mostrar aviso completo de privacidad
+            message = self.templates.get_full_privacy_policy()
+            return message, None
+        
+        return "Opción no reconocida.", None
 
 def main_telegram_bot():
     """Función principal del bot de Telegram con manejo mejorado de errores."""

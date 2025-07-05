@@ -26,6 +26,8 @@ class LeadMemory:
     
     # Estado del flujo
     has_accepted_privacy: bool = False
+    privacy_accepted: bool = False  # Alias para compatibilidad
+    brenda_introduced: bool = False
     stage: str = "initial"  # initial, privacy_accepted, name_collected, course_presented, etc.
     
     # Información del curso

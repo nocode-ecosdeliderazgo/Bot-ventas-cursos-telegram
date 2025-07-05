@@ -104,16 +104,25 @@ class SmartSalesAgent:
                 user_memory.first_name = message_data['from']['first_name']
             
             # **NUEVO: Detectar hashtags de anuncios PRIMERO**
-            hashtag_match = re.search(r"#([A-Z0-9_]+).*#([A-Z0-9_]+)", message_text)
-            if hashtag_match:
-                return await self._handle_ad_flow(hashtag_match, message_data, user_data)
+            from core.utils.message_parser import extract_hashtags
+            hashtags = extract_hashtags(message_text)
+            has_course_hashtag = any(tag.startswith('curso:') or tag.startswith('CURSO_') for tag in hashtags)
+            has_ad_hashtag = any(tag.startswith('anuncio:') or tag.startswith('ADSIM_') for tag in hashtags)
+            
+            if has_course_hashtag and has_ad_hashtag:
+                # Usar el nuevo AdsFlowHandler si está disponible
+                from core.handlers.ads_flow import AdsFlowHandler
+                ads_handler = AdsFlowHandler(self.db, self.agent)
+                course_hashtag = next((tag for tag in hashtags if tag.startswith('CURSO_') or tag.startswith('curso:')), None)
+                campaign_hashtag = next((tag for tag in hashtags if tag.startswith('ADSIM_') or tag.startswith('anuncio:')), None)
+                return await ads_handler.process_ad_message(message_data, user_data, course_hashtag, campaign_hashtag)
             
             # FLUJO: Si el usuario está en la etapa de 'awaiting_preferred_name', mostrar archivos y mensaje
             if user_memory.stage == "awaiting_preferred_name":
                 return await self._handle_name_and_send_media(message_data, user_data, user_memory)
             
-            # **NUEVO: Si ya se envió la información del curso, usar el agente inteligente**
-            if user_memory.stage == "info_sent":
+            # **MEJORADO: Usar el agente inteligente para conversaciones después de presentación inicial**
+            if user_memory.stage in ["info_sent", "brenda_introduced", "course_presented"] or user_memory.interaction_count > 1:
                 # Verificar si el agente inteligente está disponible
                 if self.intelligent_agent is None:
                     logger.warning("Agente inteligente no disponible, usando respuesta por defecto")
@@ -124,16 +133,22 @@ class SmartSalesAgent:
                 if user_memory.selected_course:
                     course_info = await self.course_service.getCourseDetails(user_memory.selected_course)
                 
-                # Buscar referencias a cursos en el mensaje
+                # Buscar referencias a cursos en el mensaje si no hay curso seleccionado
                 if not course_info:
-                    course_references = await self.prompt_service.extract_course_references(message_text)
-                    if course_references:
-                        for reference in course_references:
-                            courses = await self.course_service.searchCourses(reference)
-                            if courses:
-                                course_info = await self.course_service.getCourseDetails(courses[0]['id'])
-                                user_memory.selected_course = courses[0]['id']
-                                break
+                    try:
+                        course_references = await self.prompt_service.extract_course_references(message_text)
+                        if course_references:
+                            for reference in course_references:
+                                courses = await self.course_service.searchCourses(reference)
+                                if courses:
+                                    course_info = await self.course_service.getCourseDetails(courses[0]['id'])
+                                    user_memory.selected_course = courses[0]['id']
+                                    break
+                    except Exception as e:
+                        logger.warning(f"Error buscando referencias de curso: {e}")
+                
+                # Incrementar contador de interacciones
+                user_memory.interaction_count += 1
                 
                 # Usar el agente inteligente para generar respuesta personalizada
                 response = await self.intelligent_agent.generate_response(message_text, user_memory, course_info)
