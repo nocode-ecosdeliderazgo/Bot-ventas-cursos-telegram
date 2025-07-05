@@ -13112,3 +13112,9 @@ RuntimeError: Event loop is closed
 2025-07-04 22:00:22,902 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
 2025-07-04 22:00:33,065 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
 2025-07-04 22:00:43,234 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getUpdates "HTTP/1.1 200 OK"
+2025-07-05 15:46:49,646 - __main__ - INFO - Iniciando bot de Telegram...
+2025-07-05 15:46:49,656 - core.utils.memory - INFO - Loaded 2 lead memories
+2025-07-05 15:46:50,370 - __main__ - INFO - Bot de Telegram configurado. Iniciando polling...
+2025-07-05 15:46:51,204 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/getMe "HTTP/1.1 200 OK"
+2025-07-05 15:46:51,377 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8159423249:AAE_ezICc_EjrgOIxABQJq0gdGx7U0TizFk/deleteWebhook "HTTP/1.1 200 OK"
+2025-07-05 15:46:51,379 - telegram.ext.Application - INFO - Application started
