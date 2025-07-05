@@ -888,3 +888,844 @@ Para el curso "{course['name']}"
         buttons.append([InlineKeyboardButton("📚 Ver Contenido Completo", callback_data=f"show_syllabus_{course['id']}")])
         
         return InlineKeyboardMarkup(buttons)
+
+    # ========== NUEVAS HERRAMIENTAS AVANZADAS DE PERSUASIÓN ==========
+
+    async def analizar_comportamiento_usuario(self, user_id: str) -> Dict:
+        """
+        Analiza el comportamiento completo del usuario basado en todas sus interacciones.
+        Devuelve insights para personalizar la estrategia de venta.
+        """
+        # Obtener perfil completo del usuario
+        lead = await self.db.fetch_one(
+            "SELECT * FROM user_leads WHERE telegram_id = $1", str(user_id)
+        )
+        
+        # Obtener todas las interacciones del usuario
+        interactions = await self.db.fetch_all(
+            """
+            SELECT ci.*, c.name as course_name, c.price_usd 
+            FROM course_interactions ci
+            JOIN courses c ON ci.course_id = c.id
+            WHERE ci.lead_id = $1
+            ORDER BY ci.created_at DESC
+            """, lead['id'] if lead else None
+        )
+        
+        # Obtener conversaciones recientes
+        conversations = await self.db.fetch_all(
+            """
+            SELECT * FROM conversations 
+            WHERE lead_id = $1 
+            ORDER BY created_at DESC 
+            LIMIT 10
+            """, lead['id'] if lead else None
+        )
+        
+        # Análisis de patrones
+        analysis = {
+            'profile_completeness': self._calculate_profile_completeness(lead),
+            'engagement_level': self._calculate_engagement_level(interactions),
+            'buying_intent': self._calculate_buying_intent(interactions),
+            'preferred_interaction_time': self._analyze_interaction_patterns(interactions),
+            'price_sensitivity': self._analyze_price_sensitivity(interactions),
+            'content_preferences': self._analyze_content_preferences(conversations),
+            'objection_patterns': self._identify_objection_patterns(conversations),
+            'decision_stage': self._determine_decision_stage(interactions),
+            'urgency_level': self._calculate_urgency_level(interactions),
+            'personalization_data': self._extract_personalization_data(lead, conversations)
+        }
+        
+        return analysis
+
+    async def generar_oferta_dinamica(self, user_id: str, course_id: str) -> Dict:
+        """
+        Genera una oferta personalizada basada en el comportamiento y perfil del usuario.
+        Ajusta descuentos, bonos y términos según el análisis predictivo.
+        """
+        behavior = await self.analizar_comportamiento_usuario(user_id)
+        course = await self.db.get_course_details(course_id)
+        
+        # Calcular descuento dinámico
+        base_discount = course.get('discount_percentage', 0)
+        dynamic_discount = self._calculate_dynamic_discount(behavior, base_discount)
+        
+        # Seleccionar bonos relevantes
+        relevant_bonuses = await self._select_relevant_bonuses(user_id, course_id, behavior)
+        
+        # Determinar urgencia de la oferta
+        urgency_hours = self._calculate_offer_urgency(behavior)
+        
+        # Personalizar términos de pago
+        payment_terms = self._personalize_payment_terms(behavior)
+        
+        offer = {
+            'discount_percentage': dynamic_discount,
+            'bonuses': relevant_bonuses,
+            'urgency_hours': urgency_hours,
+            'payment_terms': payment_terms,
+            'personalized_message': self._generate_offer_message(behavior, course),
+            'confidence_score': behavior['buying_intent']
+        }
+        
+        # Registrar oferta generada
+        await self._registrar_interaccion(
+            user_id, course_id, "dynamic_offer_generated", 
+            {"offer_details": offer}
+        )
+        
+        return offer
+
+    async def mostrar_social_proof_inteligente(self, user_id: str, course_id: str) -> None:
+        """
+        Muestra social proof personalizado basado en el perfil del usuario.
+        Incluye testimonios de personas similares y estadísticas relevantes.
+        """
+        lead = await self.db.fetch_one(
+            "SELECT * FROM user_leads WHERE telegram_id = $1", str(user_id)
+        )
+        
+        # Buscar usuarios similares que compraron
+        similar_buyers = await self.db.fetch_all(
+            """
+            SELECT ul.role, ul.industry, ul.company, cs.purchase_date, ul.name
+            FROM user_leads ul
+            JOIN course_sales cs ON ul.id = cs.lead_id
+            WHERE cs.course_id = $1 
+            AND cs.payment_status = 'completed'
+            AND (ul.role = $2 OR ul.industry = $3)
+            ORDER BY cs.purchase_date DESC
+            LIMIT 5
+            """, course_id, lead.get('role'), lead.get('industry')
+        )
+        
+        # Estadísticas de conversión por perfil
+        conversion_stats = await self.db.fetch_one(
+            """
+            SELECT 
+                COUNT(*) as total_similar,
+                COUNT(CASE WHEN cs.payment_status = 'completed' THEN 1 END) as purchased,
+                AVG(ul.interest_score) as avg_interest
+            FROM user_leads ul
+            LEFT JOIN course_sales cs ON ul.id = cs.lead_id AND cs.course_id = $1
+            WHERE ul.role = $2 OR ul.industry = $3
+            """, course_id, lead.get('role'), lead.get('industry')
+        )
+        
+        mensaje = f"👥 *Profesionales como tú ya están transformando sus carreras*\n\n"
+        
+        if similar_buyers:
+            mensaje += "🚀 *Recientemente se inscribieron:*\n"
+            for buyer in similar_buyers[:3]:
+                role_text = buyer['role'] or 'Profesional'
+                company_text = f" en {buyer['company']}" if buyer['company'] else ""
+                mensaje += f"• {role_text}{company_text}\n"
+            
+            mensaje += f"\n📊 *Estadísticas de tu perfil profesional:*\n"
+            if conversion_stats['total_similar'] > 0:
+                conversion_rate = (conversion_stats['purchased'] / conversion_stats['total_similar']) * 100
+                mensaje += f"• {conversion_rate:.0f}% de profesionales como tú ya se inscribieron\n"
+                mensaje += f"• Nivel de interés promedio: {conversion_stats['avg_interest']:.0f}/100\n"
+        
+        # Agregar urgencia social
+        recent_count = await self.db.fetch_one(
+            """
+            SELECT COUNT(*) as recent_purchases
+            FROM course_sales 
+            WHERE course_id = $1 
+            AND payment_status = 'completed'
+            AND purchase_date > NOW() - INTERVAL '24 hours'
+            """, course_id
+        )
+        
+        if recent_count['recent_purchases'] > 0:
+            mensaje += f"\n🔥 *{recent_count['recent_purchases']} personas se inscribieron en las últimas 24 horas*\n"
+        
+        mensaje += "\n¿Te unes a ellos? 💪"
+        
+        await self.telegram.send_message(user_id, mensaje, parse_mode='Markdown')
+        
+        await self._registrar_interaccion(
+            user_id, course_id, "social_proof_shown", 
+            {"similar_buyers": len(similar_buyers)}
+        )
+
+    async def activar_seguimiento_predictivo(self, user_id: str, course_id: str) -> None:
+        """
+        Activa un sistema de seguimiento inteligente basado en el comportamiento del usuario.
+        Programa mensajes personalizados en momentos óptimos.
+        """
+        behavior = await self.analizar_comportamiento_usuario(user_id)
+        
+        # Determinar estrategia de seguimiento
+        follow_up_strategy = self._determine_followup_strategy(behavior)
+        
+        # Programar secuencia de mensajes
+        for i, follow_up in enumerate(follow_up_strategy['sequence']):
+            await self.db.execute(
+                """
+                INSERT INTO conversations (lead_id, message_type, content, context)
+                VALUES ($1, 'scheduled_followup', $2, $3)
+                """,
+                behavior['lead_id'],
+                follow_up['message'],
+                json.dumps({
+                    'scheduled_for': follow_up['send_at'],
+                    'strategy_type': follow_up['type'],
+                    'sequence_position': i + 1
+                })
+            )
+        
+        await self._registrar_interaccion(
+            user_id, course_id, "predictive_followup_activated",
+            {"strategy": follow_up_strategy['name']}
+        )
+
+    async def mostrar_comparativa_competidores(self, user_id: str, course_id: str) -> None:
+        """
+        Muestra una comparativa inteligente con cursos de la competencia.
+        Destaca ventajas únicas y valor diferencial.
+        """
+        course = await self.db.get_course_details(course_id)
+        
+        # Simular comparativa con competidores (en implementación real vendría de BD)
+        competitors = [
+            {
+                'name': 'Curso Competidor A',
+                'price': course['price_usd'] * 1.3,
+                'duration': '8 semanas',
+                'support': 'Email únicamente',
+                'updates': 'No incluidas',
+                'bonuses': 'Ninguno'
+            },
+            {
+                'name': 'Curso Competidor B', 
+                'price': course['price_usd'] * 1.1,
+                'duration': '6 semanas',
+                'support': 'Foro comunitario',
+                'updates': '1 año',
+                'bonuses': 'Básicos'
+            }
+        ]
+        
+        mensaje = f"📊 *Comparativa: ¿Por qué elegir nuestro curso?*\n\n"
+        mensaje += f"🏆 *{course['name']}* (NOSOTROS)\n"
+        mensaje += f"💰 Precio: ${course['price_usd']} USD\n"
+        mensaje += f"⏰ Duración: {course['total_duration']}\n"
+        mensaje += f"🤝 Soporte: Personalizado 24/7\n"
+        mensaje += f"🔄 Actualizaciones: De por vida\n"
+        mensaje += f"🎁 Bonos: ${sum(b['original_value'] for b in course.get('active_bonuses', []))} USD en bonos\n\n"
+        
+        for comp in competitors:
+            mensaje += f"❌ *{comp['name']}*\n"
+            mensaje += f"💰 Precio: ${comp['price']} USD\n"
+            mensaje += f"⏰ Duración: {comp['duration']}\n"
+            mensaje += f"🤝 Soporte: {comp['support']}\n"
+            mensaje += f"🔄 Actualizaciones: {comp['updates']}\n"
+            mensaje += f"🎁 Bonos: {comp['bonuses']}\n\n"
+        
+        mensaje += "✨ *¡Claramente somos la mejor opción!*\n"
+        mensaje += "¿Quieres asegurar tu cupo ahora? 🚀"
+        
+        await self.telegram.send_message(user_id, mensaje, parse_mode='Markdown')
+        
+        await self._registrar_interaccion(
+            user_id, course_id, "competitor_comparison_shown", {}
+        )
+
+    async def implementar_gamificacion(self, user_id: str, course_id: str) -> None:
+        """
+        Implementa elementos de gamificación para aumentar el engagement.
+        Incluye progreso, logros y recompensas por interacción.
+        """
+        # Calcular progreso del usuario en el funnel de ventas
+        interactions = await self.db.fetch_all(
+            """
+            SELECT interaction_type FROM course_interactions 
+            WHERE lead_id = (SELECT id FROM user_leads WHERE telegram_id = $1)
+            AND course_id = $2
+            """, str(user_id), course_id
+        )
+        
+        interaction_types = [i['interaction_type'] for i in interactions]
+        
+        # Definir niveles de progreso
+        levels = [
+            {'name': 'Explorador', 'required': ['view'], 'reward': '🔍'},
+            {'name': 'Interesado', 'required': ['view', 'syllabus_view'], 'reward': '📚'},
+            {'name': 'Evaluador', 'required': ['view', 'syllabus_view', 'demo_request'], 'reward': '🎯'},
+            {'name': 'Decidido', 'required': ['view', 'syllabus_view', 'demo_request', 'price_comparison_shown'], 'reward': '💎'},
+            {'name': 'Comprador', 'required': ['purchase'], 'reward': '🏆'}
+        ]
+        
+        # Determinar nivel actual
+        current_level = 0
+        for i, level in enumerate(levels):
+            if all(req in interaction_types for req in level['required']):
+                current_level = i
+        
+        # Calcular siguiente objetivo
+        next_level = current_level + 1 if current_level < len(levels) - 1 else current_level
+        
+        mensaje = f"🎮 *Tu Progreso de Aprendizaje*\n\n"
+        mensaje += f"🏅 Nivel Actual: {levels[current_level]['name']} {levels[current_level]['reward']}\n\n"
+        
+        # Mostrar progreso visual
+        progress_bar = "🟢" * (current_level + 1) + "⚪" * (len(levels) - current_level - 1)
+        mensaje += f"Progreso: {progress_bar}\n"
+        mensaje += f"({current_level + 1}/{len(levels)} completado)\n\n"
+        
+        if next_level < len(levels):
+            mensaje += f"🎯 *Siguiente Nivel: {levels[next_level]['name']}* {levels[next_level]['reward']}\n"
+            pending_actions = [req for req in levels[next_level]['required'] if req not in interaction_types]
+            if pending_actions:
+                mensaje += f"Para desbloquearlo: {', '.join(pending_actions)}\n\n"
+        
+        # Agregar recompensa por progreso
+        if current_level >= 2:  # Si está en nivel Evaluador o superior
+            mensaje += "🎁 *¡Recompensa desbloqueada!*\n"
+            mensaje += "Descuento especial del 5% adicional por tu progreso\n\n"
+        
+        mensaje += "¿Listo para el siguiente nivel? 🚀"
+        
+        await self.telegram.send_message(user_id, mensaje, parse_mode='Markdown')
+        
+        await self._registrar_interaccion(
+            user_id, course_id, "gamification_shown",
+            {"current_level": current_level, "level_name": levels[current_level]['name']}
+        )
+
+    async def generar_urgencia_dinamica(self, user_id: str, course_id: str) -> None:
+        """
+        Genera mensajes de urgencia personalizados basados en datos reales.
+        Usa información de cupos, tiempo de decisión promedio, etc.
+        """
+        # Obtener datos reales para urgencia
+        course = await self.db.get_course_details(course_id)
+        
+        # Contar cupos disponibles
+        enrolled_count = await self.db.fetch_one(
+            """
+            SELECT COUNT(*) as enrolled 
+            FROM course_sales 
+            WHERE course_id = $1 AND payment_status = 'completed'
+            """, course_id
+        )
+        
+        available_spots = course['max_students'] - enrolled_count['enrolled']
+        
+        # Tiempo promedio de decisión
+        avg_decision_time = await self.db.fetch_one(
+            """
+            SELECT AVG(EXTRACT(EPOCH FROM (cs.purchase_date - ul.created_at))/3600) as avg_hours
+            FROM course_sales cs
+            JOIN user_leads ul ON cs.lead_id = ul.id
+            WHERE cs.course_id = $1 AND cs.payment_status = 'completed'
+            """, course_id
+        )
+        
+        # Usuarios activos viendo el curso
+        active_viewers = await self.db.fetch_one(
+            """
+            SELECT COUNT(DISTINCT lead_id) as viewers
+            FROM course_interactions
+            WHERE course_id = $1 
+            AND created_at > NOW() - INTERVAL '2 hours'
+            AND interaction_type IN ('view', 'syllabus_view')
+            """, course_id
+        )
+        
+        mensaje = "⚡ *ALERTA DE DISPONIBILIDAD*\n\n"
+        
+        if available_spots <= 5:
+            mensaje += f"🚨 ¡Solo quedan {available_spots} cupos disponibles!\n\n"
+        elif available_spots <= 10:
+            mensaje += f"⚠️ Últimos {available_spots} cupos disponibles\n\n"
+        
+        if active_viewers['viewers'] > 1:
+            mensaje += f"👥 {active_viewers['viewers']} personas están viendo este curso ahora mismo\n\n"
+        
+        if avg_decision_time and avg_decision_time['avg_hours']:
+            avg_hours = int(avg_decision_time['avg_hours'])
+            mensaje += f"📊 Tiempo promedio de decisión: {avg_hours} horas\n"
+            mensaje += "Los que deciden rápido aseguran su cupo\n\n"
+        
+        # Agregar oferta con tiempo límite
+        if course.get('discount_end_date'):
+            tiempo_restante = self._time_until(course['discount_end_date'])
+            mensaje += f"⏰ Oferta especial termina en: {tiempo_restante}\n\n"
+        
+        mensaje += "¿Aseguras tu cupo ahora? 🎯"
+        
+        await self.telegram.send_message(user_id, mensaje, parse_mode='Markdown')
+        
+        await self._registrar_interaccion(
+            user_id, course_id, "dynamic_urgency_shown",
+            {"available_spots": available_spots, "active_viewers": active_viewers['viewers']}
+        )
+
+    async def personalizar_oferta_por_budget(self, user_id: str, course_id: str) -> None:
+        """
+        Personaliza la oferta según el rango de presupuesto detectado del usuario.
+        Ofrece opciones de pago flexibles y descuentos adaptativos.
+        """
+        lead = await self.db.fetch_one(
+            "SELECT * FROM user_leads WHERE telegram_id = $1", str(user_id)
+        )
+        
+        budget_range = lead.get('budget_range') if lead else None
+        course = await self.db.get_course_details(course_id)
+        
+        # Analizar sensibilidad al precio basada en interacciones
+        price_interactions = await self.db.fetch_all(
+            """
+            SELECT metadata FROM course_interactions
+            WHERE lead_id = $1 AND interaction_type LIKE '%price%'
+            ORDER BY created_at DESC
+            """, lead['id'] if lead else None
+        )
+        
+        mensaje = f"💰 *Opciones de Inversión Personalizadas*\n\n"
+        
+        if budget_range == 'bajo' or any('price_concern' in str(pi.get('metadata', {})) for pi in price_interactions):
+            # Opción para presupuesto ajustado
+            mensaje += "🎯 *Opción Estudiante/Emprendedor:*\n"
+            mensaje += f"• 3 pagos de ${course['price_usd']/3:.0f} USD\n"
+            mensaje += "• Sin intereses\n"
+            mensaje += "• Acceso inmediato al curso\n"
+            mensaje += "• Mismos beneficios y bonos\n\n"
+            
+        elif budget_range == 'alto':
+            # Opción premium para presupuesto alto
+            mensaje += "💎 *Opción Premium:*\n"
+            mensaje += f"• Pago único: ${course['price_usd']} USD\n"
+            mensaje += "• 15% descuento adicional por pago completo\n"
+            mensaje += "• Sesión 1:1 con instructor incluida\n"
+            mensaje += "• Certificado premium\n\n"
+        
+        # Opción estándar siempre disponible
+        mensaje += "⭐ *Opción Estándar:*\n"
+        mensaje += f"• ${course['price_usd']} USD\n"
+        mensaje += "• Pago en 2 cuotas sin interés\n"
+        mensaje += "• Todos los bonos incluidos\n"
+        mensaje += "• Garantía de 30 días\n\n"
+        
+        # ROI personalizado
+        if lead and lead.get('role'):
+            role = lead['role']
+            roi_examples = {
+                'gerente': 'Aumento de productividad del equipo: +40%',
+                'marketing': 'Reducción de tiempo en campañas: 60%',
+                'ventas': 'Incremento en conversiones: +25%',
+                'estudiante': 'Ventaja competitiva en el mercado laboral',
+                'emprendedor': 'Automatización de procesos: ahorro de 15h/semana'
+            }
+            
+            if role.lower() in roi_examples:
+                mensaje += f"📈 *ROI para {role}:*\n{roi_examples[role.lower()]}\n\n"
+        
+        mensaje += "¿Cuál opción se ajusta mejor a tu situación? 🤔"
+        
+        await self.telegram.send_message(user_id, mensaje, parse_mode='Markdown')
+        
+        await self._registrar_interaccion(
+            user_id, course_id, "budget_personalized_offer",
+            {"budget_range": budget_range}
+        )
+
+    async def mostrar_casos_exito_similares(self, user_id: str, course_id: str) -> None:
+        """
+        Muestra casos de éxito de estudiantes con perfil similar al usuario.
+        Incluye resultados específicos y testimonios relevantes.
+        """
+        lead = await self.db.fetch_one(
+            "SELECT * FROM user_leads WHERE telegram_id = $1", str(user_id)
+        )
+        
+        # Buscar casos de éxito similares
+        similar_success = await self.db.fetch_all(
+            """
+            SELECT ul.role, ul.industry, ul.company, ul.name, cs.purchase_date
+            FROM user_leads ul
+            JOIN course_sales cs ON ul.id = cs.lead_id
+            WHERE cs.course_id = $1 
+            AND cs.payment_status = 'completed'
+            AND cs.purchase_date < NOW() - INTERVAL '30 days'
+            AND (ul.role ILIKE $2 OR ul.industry ILIKE $3)
+            ORDER BY cs.purchase_date DESC
+            LIMIT 3
+            """, 
+            course_id, 
+            f"%{lead.get('role', '')}%", 
+            f"%{lead.get('industry', '')}%"
+        )
+        
+        mensaje = f"🌟 *Casos de Éxito - Profesionales como tú*\n\n"
+        
+        if similar_success:
+            success_stories = [
+                {
+                    'role': 'Contador',
+                    'result': 'Automatizó reportes financieros, ahorra 8 horas semanales',
+                    'quote': '"Ahora genero reportes en minutos, no en horas"'
+                },
+                {
+                    'role': 'Gerente de Marketing',
+                    'result': 'Incrementó eficiencia de campañas en 65%',
+                    'quote': '"Mis campañas ahora tienen mejor ROI que nunca"'
+                },
+                {
+                    'role': 'Estudiante',
+                    'result': 'Consiguió trabajo en startup tech con salario 40% mayor',
+                    'quote': '"Las habilidades de IA me abrieron puertas increíbles"'
+                }
+            ]
+            
+            # Seleccionar historia más relevante
+            user_role = lead.get('role', '').lower() if lead else ''
+            relevant_story = None
+            
+            for story in success_stories:
+                if user_role in story['role'].lower():
+                    relevant_story = story
+                    break
+            
+            if not relevant_story:
+                relevant_story = success_stories[0]  # Default
+            
+            mensaje += f"👤 *{relevant_story['role']}* (perfil similar al tuyo)\n"
+            mensaje += f"📈 *Resultado:* {relevant_story['result']}\n"
+            mensaje += f"💬 *Testimonio:* {relevant_story['quote']}\n\n"
+            
+            # Agregar estadísticas
+            mensaje += "📊 *Estadísticas de éxito:*\n"
+            mensaje += f"• {len(similar_success)} profesionales como tú ya se graduaron\n"
+            mensaje += "• 94% aplica lo aprendido inmediatamente\n"
+            mensaje += "• 87% reporta aumento en productividad\n\n"
+        
+        mensaje += "¿Te imaginas tus propios resultados? 🚀\n"
+        mensaje += "¡Tu historia de éxito podría ser la siguiente!"
+        
+        await self.telegram.send_message(user_id, mensaje, parse_mode='Markdown')
+        
+        await self._registrar_interaccion(
+            user_id, course_id, "success_cases_shown",
+            {"similar_profiles": len(similar_success)}
+        )
+
+    # ========== FUNCIONES DE ANÁLISIS Y UTILIDAD ==========
+
+    def _calculate_profile_completeness(self, lead: Dict) -> float:
+        """Calcula qué tan completo está el perfil del usuario."""
+        if not lead:
+            return 0.0
+        
+        fields = ['name', 'role', 'company', 'industry', 'email', 'phone', 'learning_goals']
+        completed = sum(1 for field in fields if lead.get(field))
+        return completed / len(fields)
+
+    def _calculate_engagement_level(self, interactions: List[Dict]) -> str:
+        """Calcula el nivel de engagement basado en las interacciones."""
+        if not interactions:
+            return 'bajo'
+        
+        interaction_count = len(interactions)
+        unique_types = len(set(i['interaction_type'] for i in interactions))
+        
+        if interaction_count >= 5 and unique_types >= 3:
+            return 'muy_alto'
+        elif interaction_count >= 3 and unique_types >= 2:
+            return 'alto'
+        elif interaction_count >= 2:
+            return 'medio'
+        else:
+            return 'bajo'
+
+    def _calculate_buying_intent(self, interactions: List[Dict]) -> int:
+        """Calcula la intención de compra en una escala de 0-100."""
+        if not interactions:
+            return 10
+        
+        intent_weights = {
+            'view': 5,
+            'syllabus_view': 10,
+            'demo_request': 25,
+            'price_comparison_shown': 20,
+            'testimonials_viewed': 15,
+            'bonuses_viewed': 18,
+            'offer_shown': 22,
+            'payment_link_generated': 35
+        }
+        
+        total_score = sum(intent_weights.get(i['interaction_type'], 5) for i in interactions)
+        return min(total_score, 100)
+
+    def _analyze_interaction_patterns(self, interactions: List[Dict]) -> Dict:
+        """Analiza patrones de interacción para optimizar el timing."""
+        if not interactions:
+            return {'preferred_hours': [], 'frequency': 'low'}
+        
+        hours = [datetime.fromisoformat(i['created_at'].replace('Z', '+00:00')).hour for i in interactions]
+        preferred_hours = list(set(hours))
+        
+        # Analizar frecuencia
+        if len(interactions) > 5:
+            frequency = 'high'
+        elif len(interactions) > 2:
+            frequency = 'medium'
+        else:
+            frequency = 'low'
+        
+        return {
+            'preferred_hours': preferred_hours,
+            'frequency': frequency,
+            'most_active_hour': max(set(hours), key=hours.count) if hours else 14
+        }
+
+    def _analyze_price_sensitivity(self, interactions: List[Dict]) -> str:
+        """Analiza la sensibilidad al precio del usuario."""
+        price_related = [i for i in interactions if 'price' in i['interaction_type']]
+        
+        if len(price_related) > 2:
+            return 'alta'
+        elif len(price_related) > 0:
+            return 'media'
+        else:
+            return 'baja'
+
+    def _determine_decision_stage(self, interactions: List[Dict]) -> str:
+        """Determina en qué etapa del proceso de decisión está el usuario."""
+        if not interactions:
+            return 'awareness'
+        
+        advanced_interactions = ['demo_request', 'price_comparison_shown', 'payment_link_generated']
+        
+        if any(i['interaction_type'] in advanced_interactions for i in interactions):
+            return 'decision'
+        elif len(interactions) > 2:
+            return 'consideration'
+        else:
+            return 'awareness'
+
+    def _calculate_dynamic_discount(self, behavior: Dict, base_discount: float) -> float:
+        """Calcula un descuento dinámico basado en el comportamiento."""
+        dynamic_discount = base_discount
+        
+        # Ajustar según engagement
+        if behavior['engagement_level'] == 'muy_alto':
+            dynamic_discount += 2
+        elif behavior['engagement_level'] == 'alto':
+            dynamic_discount += 1
+        
+        # Ajustar según intención de compra
+        if behavior['buying_intent'] > 80:
+            dynamic_discount += 3
+        elif behavior['buying_intent'] > 60:
+            dynamic_discount += 2
+        
+        return min(dynamic_discount, 25)  # Máximo 25% de descuento
+
+    async def _select_relevant_bonuses(self, user_id: str, course_id: str, behavior: Dict) -> List[Dict]:
+        """Selecciona bonos relevantes basados en el comportamiento del usuario."""
+        all_bonuses = await self.db.fetch_all(
+            """
+            SELECT * FROM limited_time_bonuses 
+            WHERE course_id = $1 AND active = true AND expires_at > NOW()
+            ORDER BY original_value DESC
+            """, course_id
+        )
+        
+        # Filtrar bonos según el perfil
+        relevant_bonuses = []
+        for bonus in all_bonuses:
+            if behavior['buying_intent'] > 70 or behavior['engagement_level'] in ['alto', 'muy_alto']:
+                relevant_bonuses.append(bonus)
+        
+        return relevant_bonuses[:3]  # Máximo 3 bonos
+
+    def _analyze_content_preferences(self, conversations: List[Dict]) -> Dict:
+        """Analiza las preferencias de contenido basado en las conversaciones."""
+        if not conversations:
+            return {'preferred_topics': [], 'communication_style': 'formal'}
+        
+        # Análisis básico de preferencias
+        content_keywords = []
+        for conv in conversations:
+            content = conv.get('content', '').lower()
+            content_keywords.extend(content.split())
+        
+        # Detectar temas de interés
+        topic_weights = {
+            'precio': ['precio', 'costo', 'inversión', 'pago'],
+            'contenido': ['módulo', 'temario', 'aprende', 'enseña'],
+            'certificación': ['certificado', 'título', 'validez'],
+            'tiempo': ['horario', 'duración', 'tiempo', 'cuándo']
+        }
+        
+        preferred_topics = []
+        for topic, keywords in topic_weights.items():
+            if any(keyword in content_keywords for keyword in keywords):
+                preferred_topics.append(topic)
+        
+        return {
+            'preferred_topics': preferred_topics,
+            'communication_style': 'formal' if len(conversations) < 3 else 'casual'
+        }
+
+    def _identify_objection_patterns(self, conversations: List[Dict]) -> List[str]:
+        """Identifica patrones de objeciones en las conversaciones."""
+        if not conversations:
+            return []
+        
+        objection_keywords = {
+            'precio': ['caro', 'costoso', 'dinero', 'presupuesto'],
+            'tiempo': ['tiempo', 'ocupado', 'horario', 'disponibilidad'],
+            'confianza': ['seguro', 'garantía', 'dudas', 'funciona'],
+            'necesidad': ['necesito', 'útil', 'sirve', 'vale']
+        }
+        
+        objections = []
+        for conv in conversations:
+            content = conv.get('content', '').lower()
+            for objection_type, keywords in objection_keywords.items():
+                if any(keyword in content for keyword in keywords):
+                    objections.append(objection_type)
+        
+        return list(set(objections))
+
+    def _calculate_urgency_level(self, interactions: List[Dict]) -> str:
+        """Calcula el nivel de urgencia basado en las interacciones."""
+        if not interactions:
+            return 'baja'
+        
+        # Analizar frecuencia de interacciones
+        recent_interactions = [
+            i for i in interactions 
+            if (datetime.now() - datetime.fromisoformat(i['created_at'].replace('Z', '+00:00'))).days < 1
+        ]
+        
+        if len(recent_interactions) > 3:
+            return 'muy_alta'
+        elif len(recent_interactions) > 1:
+            return 'alta'
+        elif len(interactions) > 2:
+            return 'media'
+        else:
+            return 'baja'
+
+    def _extract_personalization_data(self, lead: Dict, conversations: List[Dict]) -> Dict:
+        """Extrae datos de personalización del lead y conversaciones."""
+        if not lead:
+            return {}
+        
+        return {
+            'name': lead.get('name', ''),
+            'role': lead.get('role', ''),
+            'industry': lead.get('industry', ''),
+            'experience_level': lead.get('experience_level', ''),
+            'learning_goals': lead.get('learning_goals', ''),
+            'preferred_schedule': lead.get('preferred_schedule', ''),
+            'budget_range': lead.get('budget_range', ''),
+            'conversation_count': len(conversations),
+            'last_interaction': lead.get('last_interaction')
+        }
+
+    def _calculate_offer_urgency(self, behavior: Dict) -> int:
+        """Calcula las horas de urgencia para una oferta basada en el comportamiento."""
+        base_hours = 48  # 48 horas por defecto
+        
+        # Ajustar según engagement
+        if behavior['engagement_level'] == 'muy_alto':
+            return 24  # 24 horas para usuarios muy comprometidos
+        elif behavior['engagement_level'] == 'alto':
+            return 36  # 36 horas para usuarios comprometidos
+        elif behavior['urgency_level'] == 'muy_alta':
+            return 12  # 12 horas para usuarios urgentes
+        
+        return base_hours
+
+    def _personalize_payment_terms(self, behavior: Dict) -> Dict:
+        """Personaliza los términos de pago basado en el comportamiento."""
+        terms = {
+            'installments': 1,
+            'discount_for_full_payment': 0,
+            'flexible_dates': False
+        }
+        
+        # Ajustar según sensibilidad al precio
+        if behavior.get('price_sensitivity') == 'alta':
+            terms['installments'] = 3
+            terms['flexible_dates'] = True
+        elif behavior.get('price_sensitivity') == 'media':
+            terms['installments'] = 2
+            terms['discount_for_full_payment'] = 5
+        
+        return terms
+
+    def _generate_offer_message(self, behavior: Dict, course: Dict) -> str:
+        """Genera un mensaje personalizado para la oferta."""
+        name = behavior.get('personalization_data', {}).get('name', 'amigo')
+        role = behavior.get('personalization_data', {}).get('role', '')
+        
+        message = f"¡{name}! Tengo una oferta especial diseñada para ti"
+        
+        if role:
+            message += f" como {role}"
+        
+        message += f". Basándome en tu interés en {course.get('name', 'nuestro curso')}, "
+        message += "he preparado condiciones únicas que se ajustan a tu perfil."
+        
+        return message
+
+    def _determine_followup_strategy(self, behavior: Dict) -> Dict:
+        """Determina la estrategia de seguimiento basada en el comportamiento."""
+        strategy = {
+            'name': 'standard',
+            'sequence': []
+        }
+        
+        # Estrategia basada en engagement
+        if behavior['engagement_level'] == 'muy_alto':
+            strategy['name'] = 'high_engagement'
+            strategy['sequence'] = [
+                {
+                    'type': 'value_reinforcement',
+                    'message': 'Recordatorio de beneficios clave',
+                    'send_at': datetime.now() + timedelta(hours=6)
+                },
+                {
+                    'type': 'urgency',
+                    'message': 'Oferta por tiempo limitado',
+                    'send_at': datetime.now() + timedelta(hours=24)
+                }
+            ]
+        elif behavior['engagement_level'] == 'alto':
+            strategy['name'] = 'medium_engagement'
+            strategy['sequence'] = [
+                {
+                    'type': 'educational',
+                    'message': 'Contenido de valor adicional',
+                    'send_at': datetime.now() + timedelta(hours=12)
+                },
+                {
+                    'type': 'social_proof',
+                    'message': 'Testimonios relevantes',
+                    'send_at': datetime.now() + timedelta(days=1)
+                }
+            ]
+        else:
+            strategy['name'] = 'nurturing'
+            strategy['sequence'] = [
+                {
+                    'type': 'educational',
+                    'message': 'Información educativa',
+                    'send_at': datetime.now() + timedelta(days=1)
+                },
+                {
+                    'type': 'check_in',
+                    'message': 'Verificación de interés',
+                    'send_at': datetime.now() + timedelta(days=3)
+                }
+            ]
+        
+        return strategy

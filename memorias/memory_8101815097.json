@@ -12,38 +12,57 @@
   "media_sent": true,
   "profile_type": "",
   "role": "",
-  "interests": [],
+  "interests": [
+    "cosas útiles para mi trabajo"
+  ],
   "lead_score": 50,
   "score_history": [],
   "message_history": [
     {
       "role": "user",
-      "content": "este curso me sirve si soy contador?",
-      "timestamp": "2025-07-04T19:34:07.828671"
+      "content": "este curso me sirve si trabajo en el area de marketing?",
+      "timestamp": "2025-07-04T20:06:04.503085"
     },
     {
       "role": "assistant",
-      "content": "El curso \"Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)\" ofrece un programa práctico para que profesionales sin conocimientos previos integren IA en su trabajo diario.",
-      "timestamp": "2025-07-04T19:34:07.828671"
+      "content": "Según mi base de datos, el curso está diseñado para profesionales sin conocimientos previos y cubre cómo automatizar tareas, crear documentos y generar imágenes con IA, todo aplicado a contextos laborales.",
+      "timestamp": "2025-07-04T20:06:04.503085"
     },
     {
       "role": "assistant",
-      "content": "Incluye módulos para automatizar tareas, crear documentos, generar imágenes y desarrollar proyectos reales con IA, usando herramientas como ChatGPT, DALL·E y Canva.",
-      "timestamp": "2025-07-04T19:34:07.828671"
+      "content": "Aunque no especifica usos concretos para marketing, el contenido incluye generación de textos y creación de imágenes que podrían ser útiles en esa área. ¿Quieres que te cuente más sobre algún módulo en particular?",
+      "timestamp": "2025-07-04T20:06:04.503085"
+    },
+    {
+      "role": "user",
+      "content": "que cosas utiles para mi trabajo seria capaz de hacer al finalizar el  curso",
+      "timestamp": "2025-07-04T20:06:59.338670"
     },
     {
       "role": "assistant",
-      "content": "No tengo información específica en mis datos sobre aplicaciones concretas para contadores en este curso. ¿Quieres que te comparta más detalles sobre los módulos para que evalúes si se ajustan a tus necesidades?",
-      "timestamp": "2025-07-04T19:34:07.828671"
+      "content": "Al finalizar el curso, serás capaz de automatizar y apoyar tareas diarias como redacción, resumen, traducción y organización de información usando prompts personalizados con ChatGPT.  \n\nTambién aprenderás a generar y mejorar documentos profesionales, incluyendo correos, informes y propuestas, con prompts avanzados y revisión asistida.  \n\nAdemás, podrás crear imágenes profesionales con DALL·E para presentaciones, redes sociales y materiales educativos, y desarrollar un proyecto real que integre texto e imagen generados con IA para aplicar en tu trabajo. ¿Quieres que te cuente más sobre algún módulo?",
+      "timestamp": "2025-07-04T20:06:59.338670"
+    },
+    {
+      "role": "user",
+      "content": "y eso como lo podria aplicar en mi trabajo?",
+      "timestamp": "2025-07-04T20:07:32.943364"
+    },
+    {
+      "role": "assistant",
+      "content": "El curso te enseña a automatizar y apoyar tareas diarias como redacción, resumen, traducción y organización de información usando prompts personalizados con ChatGPT.  \n\nTambién aprenderás a generar y mejorar documentos profesionales como correos, informes y propuestas mediante prompts avanzados y revisión asistida.  \n\nAdemás, podrás crear imágenes profesionales para presentaciones, redes sociales y materiales educativos con DALL·E, y desarrollar un proyecto real que combine texto e imagen generados con IA para tu ámbito profesional.  \n\n¿Quieres que te explique más a detalle algún módulo?",
+      "timestamp": "2025-07-04T20:07:32.943364"
     }
   ],
   "interaction_count": 0,
   "conversation_history": [],
   "pain_points": [],
-  "buying_signals": [],
-  "interest_level": "low",
+  "buying_signals": [
+    "interés en lo que será capaz de hacer al finalizar el curso"
+  ],
+  "interest_level": "medium",
   "last_interaction": null,
   "ad_source": "ADSIM_01",
-  "created_at": "2025-07-04T19:33:22.695904",
-  "updated_at": "2025-07-04T19:34:07.828671"
+  "created_at": "2025-07-04T20:05:26.707159",
+  "updated_at": "2025-07-04T20:07:32.943364"
 }

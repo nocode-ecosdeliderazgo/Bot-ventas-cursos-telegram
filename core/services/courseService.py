@@ -180,3 +180,24 @@ class CourseService:
         except Exception as e:
             logger.error(f"Error obteniendo interacciones del curso {courseId}: {e}")
             return [] 
+
+    async def getModuleExercises(self, moduleId: str) -> List[Dict[str, Any]]:
+        """
+        Obtiene todos los ejercicios prácticos de un módulo específico.
+        Args:
+            moduleId: ID único del módulo
+        Returns:
+            Lista de ejercicios prácticos del módulo
+        """
+        try:
+            query = """
+            SELECT id, description, order_idx
+            FROM module_exercises
+            WHERE module_id = $1
+            ORDER BY order_idx;
+            """
+            results = await self.db.fetch_all(query, moduleId)
+            return results or []
+        except Exception as e:
+            logger.error(f"Error obteniendo ejercicios del módulo {moduleId}: {e}")
+            return [] 

@@ -13,6 +13,8 @@ import aiohttp
 from config.settings import settings
 from core.services.supabase_service import get_course_detail, get_courses, get_promotions
 from core.utils.memory import LeadMemory
+# NUEVO: importar CourseService
+from core.services.courseService import CourseService
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ class ConversationProcessor:
     y responde con información real de la base de datos manteniendo el objetivo de venta.
     """
     
-    def __init__(self):
+    def __init__(self, course_service: Optional[CourseService] = None):
         self.openai_headers = {
             "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
             "Content-Type": "application/json"
@@ -51,6 +53,8 @@ class ConversationProcessor:
             "refund_policy": "Pregunta sobre política de reembolso, garantías",
             "other": "Otra intención no clasificada"
         }
+        # NUEVO: guardar referencia a course_service
+        self.course_service = course_service
     
     async def process_message(self, message: str, user_memory: LeadMemory) -> Tuple[str, Optional[Dict]]:
         """
@@ -98,47 +102,97 @@ class ConversationProcessor:
     
     async def _analyze_intention(self, message: str, user_memory: LeadMemory) -> Dict:
         """
-        Analiza la intención del usuario usando OpenAI.
+        Analiza la intención del usuario usando OpenAI con contexto completo y herramientas avanzadas.
         """
         try:
-            # Contexto del usuario
-            context = f"""
-            Usuario: {user_memory.name}
-            Curso de interés: {user_memory.selected_course}
-            Historial de mensajes: {len(user_memory.message_history) if user_memory.message_history else 0}
-            Última interacción: {user_memory.last_interaction}
-            """
+            # Construir contexto completo del usuario
+            user_context = await self._build_user_context(user_memory)
             
-            # Prompt para OpenAI
+            # Prompt avanzado para OpenAI
             prompt = f"""
-            Eres un experto analizador de intenciones para un agente de ventas de cursos online.
-            
-            CONTEXTO DEL USUARIO:
-            {context}
-            
-            MENSAJE DEL USUARIO:
+            Eres un agente de ventas de élite con IA avanzada. Tu misión es convertir leads en ventas actuando como un amigo genuinamente interesado, pero siempre orientado a vender.
+
+            🎯 **TU OBJETIVO PRINCIPAL**: Vender el curso usando toda la información disponible y herramientas inteligentes.
+
+            📊 **HERRAMIENTAS AVANZADAS DISPONIBLES**:
+            1. **analizar_comportamiento_usuario** - Analiza patrones completos del usuario
+            2. **generar_oferta_dinamica** - Crea ofertas personalizadas con descuentos inteligentes
+            3. **mostrar_social_proof_inteligente** - Muestra testimonios de personas similares
+            4. **activar_seguimiento_predictivo** - Programa mensajes en momentos óptimos
+            5. **mostrar_comparativa_competidores** - Destaca ventajas vs competencia
+            6. **implementar_gamificacion** - Crea progreso y recompensas
+            7. **generar_urgencia_dinamica** - Urgencia basada en datos reales
+            8. **personalizar_oferta_por_budget** - Adapta precios al presupuesto
+            9. **mostrar_casos_exito_similares** - Casos de éxito relevantes
+            10. **enviar_preview_curso** - Video preview personalizado
+            11. **mostrar_syllabus_interactivo** - Contenido detallado
+            12. **presentar_oferta_limitada** - Ofertas con tiempo límite
+            13. **mostrar_bonos_exclusivos** - Bonos con urgencia
+            14. **agendar_demo_personalizada** - Sesiones 1:1
+            15. **enviar_recursos_gratuitos** - Contenido de valor
+            16. **mostrar_comparativa_precios** - Análisis de ROI
+
+            📋 **CONTEXTO ACTUAL DEL USUARIO**:
+            {user_context}
+
+            💬 **MENSAJE ACTUAL DEL USUARIO**:
             "{message}"
-            
-            INTENCIONES POSIBLES:
-            {json.dumps(self.intentions, indent=2)}
-            
-            INSTRUCCIONES:
-            1. Analiza el mensaje del usuario considerando errores ortográficos, ambigüedades
-            2. Identifica la intención principal y secundarias si las hay
-            3. Detecta el nivel de interés (bajo, medio, alto, muy_alto)
-            4. Identifica si hay señales de compra o objeciones
-            5. Determina la urgencia (baja, media, alta)
-            
+
+            🧠 **INSTRUCCIONES DE ANÁLISIS**:
+            1. **Actualiza el resumen del usuario** con cualquier información nueva detectada
+            2. **Analiza la intención principal** y secundarias del mensaje
+            3. **Determina el nivel de interés** y señales de compra
+            4. **Identifica objeciones** o preocupaciones
+            5. **Recomienda herramientas específicas** para usar en la respuesta
+            6. **Define la estrategia de respuesta** (educar, persuadir, cerrar, etc.)
+            7. **Establece el timing** para follow-ups o acciones adicionales
+
+            🎭 **PERSONALIDAD**:
+            - Actúa como un amigo experto y entusiasta
+            - Haz preguntas inteligentes para conocer mejor al usuario
+            - Usa información previa para personalizar cada respuesta
+            - Sé curioso sobre su profesión, retos y metas
+            - Mantén el foco en vender sin ser hostigoso
+
+            🚀 **ESTRATEGIAS DINÁMICAS**:
+            - Si detectas alta intención de compra → usa herramientas de cierre
+            - Si hay objeciones de precio → personalizar_oferta_por_budget
+            - Si necesita más confianza → mostrar_social_proof_inteligente
+            - Si está evaluando → mostrar_comparativa_competidores
+            - Si es primera interacción → implementar_gamificacion
+            - Si muestra urgencia → generar_urgencia_dinamica
+
             RESPONDE EN JSON CON ESTA ESTRUCTURA:
             {{
-                "primary_intention": "clave_de_intencion",
-                "secondary_intentions": ["clave1", "clave2"],
-                "interest_level": "nivel",
-                "buying_signals": ["señal1", "señal2"],
-                "objections": ["objecion1", "objecion2"],
-                "urgency": "nivel",
-                "emotional_tone": "positivo/neutro/negativo",
-                "specific_questions": ["pregunta1", "pregunta2"],
+                "user_summary_update": {{
+                    "new_info_detected": "información nueva del usuario",
+                    "updated_profile": "resumen actualizado completo",
+                    "key_insights": ["insight1", "insight2"]
+                }},
+                "intention_analysis": {{
+                    "primary_intention": "intención principal",
+                    "secondary_intentions": ["int1", "int2"],
+                    "interest_level": "bajo/medio/alto/muy_alto",
+                    "buying_signals": ["señal1", "señal2"],
+                    "objections": ["objeción1", "objeción2"],
+                    "urgency": "baja/media/alta/muy_alta",
+                    "emotional_tone": "positivo/neutro/negativo",
+                    "decision_stage": "awareness/consideration/decision"
+                }},
+                "recommended_tools": [
+                    {{
+                        "tool_name": "nombre_herramienta",
+                        "priority": "alta/media/baja",
+                        "reason": "por qué usar esta herramienta"
+                    }}
+                ],
+                "response_strategy": {{
+                    "approach": "educativo/persuasivo/cierre/nurturing",
+                    "tone": "casual/formal/entusiasta",
+                    "key_points": ["punto1", "punto2"],
+                    "questions_to_ask": ["pregunta1", "pregunta2"],
+                    "timing_for_followup": "inmediato/6h/24h/3d"
+                }},
                 "confidence": 0.95
             }}
             """
@@ -147,11 +201,11 @@ class ConversationProcessor:
                 payload = {
                     "model": "gpt-4.1-mini",
                     "messages": [
-                        {"role": "system", "content": "Eres un experto analizador de intenciones. Responde solo en JSON válido."},
+                        {"role": "system", "content": "Eres un agente de ventas de élite con IA avanzada. Responde solo en JSON válido."},
                         {"role": "user", "content": prompt}
                     ],
-                    "temperature": 0.3,
-                    "max_tokens": 500
+                    "temperature": 0.4,
+                    "max_tokens": 1000
                 }
                 
                 async with session.post(
@@ -178,6 +232,45 @@ class ConversationProcessor:
         except Exception as e:
             logger.error(f"Error analizando intención: {e}", exc_info=True)
             return self._fallback_intention_analysis(message)
+
+    async def _build_user_context(self, user_memory: LeadMemory) -> str:
+        """
+        Construye un contexto completo del usuario para el LLM.
+        """
+        context = f"""
+        **INFORMACIÓN DEL USUARIO:**
+        - Nombre: {user_memory.name}
+        - Curso de interés: {user_memory.selected_course or 'No especificado'}
+        - Puntuación de interés: {user_memory.lead_score}/100
+        - Interacciones previas: {len(user_memory.message_history) if user_memory.message_history else 0}
+        - Última interacción: {user_memory.last_interaction}
+        
+        **HISTORIAL RECIENTE:**
+        """
+        
+        if user_memory.message_history:
+            for msg in user_memory.message_history[-5:]:  # Últimos 5 mensajes
+                timestamp = msg.get('timestamp', 'N/A')
+                message_text = msg.get('message', 'N/A')
+                intention = msg.get('intention', 'N/A')
+                context += f"- [{timestamp}] Usuario: {message_text} (Intención: {intention})\n"
+        else:
+            context += "- Sin historial previo\n"
+        
+        context += f"""
+        
+        **PERFIL DETECTADO:**
+        - Profesión: {getattr(user_memory, 'role', 'No detectada')}
+        - Nivel de experiencia: {getattr(user_memory, 'experience_level', 'No especificado')}
+        - Intereses: {getattr(user_memory, 'interests', 'No especificados')}
+        - Objetivos de aprendizaje: {getattr(user_memory, 'learning_goals', 'No especificados')}
+        
+        **SEÑALES DE COMPRA:**
+        - Nivel de engagement: {'Alto' if user_memory.lead_score > 70 else 'Medio' if user_memory.lead_score > 40 else 'Bajo'}
+        - Tiempo desde primer contacto: {user_memory.created_at if hasattr(user_memory, 'created_at') else 'N/A'}
+        """
+        
+        return context
     
     def _fallback_intention_analysis(self, message: str) -> Dict:
         """
@@ -647,67 +740,96 @@ class ConversationProcessor:
         return None
     
     async def _generate_profession_specific_response(self, profession: str, user_name: str, course_info: Optional[Dict]) -> str:
-        """Genera respuesta específica y conversacional por profesión"""
-        
-        profession_responses = {
-            "marketing": f"¡{user_name}, como profesional de marketing vas a AMAR este curso! 🎯\n\n"
-                        f"La IA va a revolucionar tu trabajo:\n"
-                        f"• **Campañas automáticas**: Crea 50 variaciones de copy en 5 minutos\n"
-                        f"• **Segmentación inteligente**: Analiza comportamiento de clientes automáticamente\n"
-                        f"• **Contenido viral**: Genera ideas que realmente conectan con tu audiencia\n"
-                        f"• **A/B testing inteligente**: La IA predice qué funcionará mejor\n"
-                        f"• **Reportes automáticos**: Dashboards que se actualizan solos\n\n"
-                        f"💡 **Caso real**: Una alumna aumentó su CTR 340% usando las técnicas del curso.\n\n"
-                        f"Cuéntame, ¿trabajas más en digital, tradicional, o ambos? ¿Qué tipo de campañas manejas normalmente? 🤔",
-            
-            "ventas": f"¡{user_name}, este curso va a multiplicar tus ventas! 💰\n\n"
-                     f"Imagínate tener un asistente que:\n"
-                     f"• **Califica leads automáticamente**: Sabe quién está listo para comprar\n"
-                     f"• **Personaliza propuestas**: Cada cliente recibe exactamente lo que necesita\n"
-                     f"• **Predice objeciones**: Te prepara las respuestas perfectas\n"
-                     f"• **Automatiza seguimiento**: Nunca más se te olvida un prospecto\n"
-                     f"• **Analiza competencia**: Encuentra ventajas que otros no ven\n\n"
-                     f"🚀 **Resultado**: Nuestros alumnos de ventas aumentan su cierre promedio 60%.\n\n"
-                     f"¿Vendes B2B o B2C? ¿Cuál es tu mayor desafío en el proceso de ventas? 🎯",
-            
-            "gerente": f"¡{user_name}, como gerente vas a transformar tu equipo! 👑\n\n"
-                      f"La IA te va a dar superpoderes de liderazgo:\n"
-                      f"• **Decisiones basadas en datos**: Análisis predictivo en tiempo real\n"
-                      f"• **Optimización de equipos**: Identifica fortalezas y áreas de mejora\n"
-                      f"• **Automatización de reportes**: Tu tiempo se enfoca en estrategia\n"
-                      f"• **Predicción de tendencias**: Anticípate a los cambios del mercado\n"
-                      f"• **Comunicación efectiva**: Mensajes que realmente motivan\n\n"
-                      f"📊 **Impacto real**: Gerentes que toman el curso aumentan productividad del equipo 45%.\n\n"
-                      f"¿Qué tamaño de equipo lideras? ¿Cuál es tu mayor reto como gerente actualmente? 🤝",
-            
-            "estudiante": f"¡{user_name}, vas a estar AÑOS adelante de tus compañeros! 🎓\n\n"
-                         f"Mientras otros luchan con tareas básicas, tú vas a:\n"
-                         f"• **Investigar 10x más rápido**: IA encuentra fuentes y datos relevantes\n"
-                         f"• **Escribir ensayos impecables**: Estructura, argumentos y referencias automáticas\n"
-                         f"• **Crear presentaciones épicas**: Contenido visual y narrativa perfecta\n"
-                         f"• **Dominar cualquier materia**: Tutor personal 24/7 que explica todo\n"
-                         f"• **Prepararte para el futuro**: Las empresas buscan profesionales con IA\n\n"
-                         f"🚀 **Ventaja competitiva**: Serás el candidato que TODOS quieren contratar.\n\n"
-                         f"¿Qué carrera estudias? ¿En qué semestre/año vas? ¿Ya tienes idea de dónde quieres trabajar? 📚",
-            
-            "emprendedor": f"¡{user_name}, esto va a catapultar tu negocio! 🚀\n\n"
-                          f"Como emprendedor, la IA es tu arma secreta:\n"
-                          f"• **Automatiza operaciones**: Tu negocio funciona mientras duermes\n"
-                          f"• **Análisis de mercado**: Encuentra nichos que nadie más ve\n"
-                          f"• **Atención al cliente 24/7**: Chatbots que venden por ti\n"
-                          f"• **Optimización de costos**: Reduce gastos y maximiza ganancias\n"
-                          f"• **Escalabilidad inteligente**: Crece sin contratar más personal\n\n"
-                          f"💰 **Caso de éxito**: Un alumno automatizó su startup y triplicó ingresos en 6 meses.\n\n"
-                          f"¿En qué giro está tu negocio? ¿Ya tienes equipo o trabajas solo? ¿Cuál es tu mayor desafío ahora? 💪"
-        }
-        
-        base_response = profession_responses.get(profession, 
-            f"¡{user_name}, la IA va a transformar tu área profesional! 🌟\n\n"
-            f"Cuéntame más específicamente a qué te dedicas para darte ejemplos exactos de cómo te va a beneficiar. "
-            f"¿Cuáles son tus principales responsabilidades en el trabajo? 🤔"
-        )
-        
-        return base_response
+        """Genera respuesta específica y conversacional por profesión, SOLO usando información real del curso y ejercicios prácticos."""
+        if not course_info:
+            return f"No tengo información suficiente sobre el contenido del curso para darte ejemplos específicos para tu profesión, {user_name}. ¿Quieres que te muestre el temario real para que evalúes si se ajusta a tus necesidades?"
+
+        modules = course_info.get('modules', [])
+        if isinstance(modules, str):
+            import json
+            try:
+                modules = json.loads(modules.replace("'", '"'))
+            except Exception:
+                modules = []
+        tools_used = course_info.get('tools_used', [])
+        if isinstance(tools_used, str):
+            import json
+            try:
+                tools_used = json.loads(tools_used.replace("'", '"'))
+            except Exception:
+                tools_used = []
+
+        aplicaciones = []
+        # NUEVO: consultar ejercicios prácticos relevantes
+        if modules and self.course_service:
+            for mod in modules:
+                mod_name = mod['name'] if isinstance(mod, dict) and 'name' in mod else str(mod)
+                mod_desc = mod['description'] if isinstance(mod, dict) and 'description' in mod else ''
+                mod_id = mod['id'] if isinstance(mod, dict) and 'id' in mod else None
+                mod_lower = mod_name.lower() + ' ' + mod_desc.lower()
+                # Buscar ejercicios prácticos del módulo
+                ejercicios = []
+                if mod_id:
+                    try:
+                        ejercicios = await self.course_service.getModuleExercises(mod_id)
+                    except Exception:
+                        ejercicios = []
+                # Personalizar ejemplos según profesión
+                if profession == 'finanzas' and any(x in mod_lower for x in ['automatización', 'análisis', 'documentos', 'datos', 'reportes']):
+                    if ejercicios:
+                        for ej in ejercicios:
+                            aplicaciones.append(f"• {ej['description']} (aplicable a reportes o documentos contables)")
+                    else:
+                        aplicaciones.append(f"• Aplicar IA para automatizar reportes financieros o documentos contables en el módulo '{mod_name}'")
+                if profession == 'marketing' and any(x in mod_lower for x in ['contenido', 'copy', 'redes', 'publicidad', 'campañas']):
+                    if ejercicios:
+                        for ej in ejercicios:
+                            aplicaciones.append(f"• {ej['description']} (aplicable a campañas o contenido de marketing)")
+                    else:
+                        aplicaciones.append(f"• Generar contenido o ideas de campañas con IA en el módulo '{mod_name}'")
+                if profession == 'ventas' and any(x in mod_lower for x in ['clientes', 'propuestas', 'seguimiento', 'personalización']):
+                    if ejercicios:
+                        for ej in ejercicios:
+                            aplicaciones.append(f"• {ej['description']} (aplicable a ventas o seguimiento de clientes)")
+                    else:
+                        aplicaciones.append(f"• Automatizar seguimiento de clientes o personalizar propuestas en el módulo '{mod_name}'")
+                if profession == 'gerente' and any(x in mod_lower for x in ['análisis', 'estrategia', 'equipos', 'productividad']):
+                    if ejercicios:
+                        for ej in ejercicios:
+                            aplicaciones.append(f"• {ej['description']} (aplicable a gestión de equipos o análisis estratégico)")
+                    else:
+                        aplicaciones.append(f"• Analizar datos de desempeño de equipos o automatizar reportes estratégicos en el módulo '{mod_name}'")
+                if profession == 'estudiante' and any(x in mod_lower for x in ['presentaciones', 'ensayos', 'investigación', 'proyectos']):
+                    if ejercicios:
+                        for ej in ejercicios:
+                            aplicaciones.append(f"• {ej['description']} (aplicable a tareas escolares o proyectos académicos)")
+                    else:
+                        aplicaciones.append(f"• Automatizar tareas escolares como presentaciones, ensayos o investigación en el módulo '{mod_name}'")
+                if profession == 'emprendedor' and any(x in mod_lower for x in ['automatización', 'negocio', 'clientes', 'costos']):
+                    if ejercicios:
+                        for ej in ejercicios:
+                            aplicaciones.append(f"• {ej['description']} (aplicable a operaciones de negocio o análisis de costos)")
+                    else:
+                        aplicaciones.append(f"• Automatizar operaciones de negocio, atención al cliente o análisis de costos en el módulo '{mod_name}'")
+        # Herramientas
+        if tools_used:
+            for tool in tools_used:
+                tool_lower = tool.lower() if isinstance(tool, str) else str(tool).lower()
+                if profession == 'finanzas' and any(x in tool_lower for x in ['excel', 'chatgpt', 'canva']):
+                    aplicaciones.append('• Usar herramientas como ChatGPT o Excel para crear plantillas automáticas de informes')
+                if profession == 'marketing' and any(x in tool_lower for x in ['chatgpt', 'dall', 'canva']):
+                    aplicaciones.append('• Crear imágenes, copies o presentaciones para campañas usando IA')
+                if profession == 'ventas' and any(x in tool_lower for x in ['chatgpt']):
+                    aplicaciones.append('• Generar respuestas automáticas a clientes o scripts de ventas')
+        aplicaciones = list(dict.fromkeys(aplicaciones))
+
+        if aplicaciones:
+            response = f"¡{user_name}, según el temario real del curso y sus ejercicios prácticos, podrías aplicar lo aprendido así en tu área profesional:\n\n"
+            response += '\n'.join(aplicaciones)
+            response += "\n\n¿Te gustaría que te comparta más detalles sobre los módulos o ejercicios específicos? 😊"
+            return response
+        else:
+            return f"No tengo información específica en mis datos sobre aplicaciones concretas para tu profesión en este curso, {user_name}. ¿Quieres que te comparta el temario real para que evalúes si se ajusta a tus necesidades?"
     
     async def _handle_group_question(self, analysis: Dict, message: str, user_name: str, course_info: Dict) -> str:
         response = f"¡Buena pregunta, {user_name}! 👥\n\n"
