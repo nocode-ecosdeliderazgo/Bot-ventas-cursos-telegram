@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     SMTP_USERNAME: str
     SMTP_PASSWORD: str
     ADVISOR_EMAIL: str
+    
     class Config:
         env_file = ".env"
 
-settings = Settings() 
+settings = Settings()

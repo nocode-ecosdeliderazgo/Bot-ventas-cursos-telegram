@@ -121,8 +121,15 @@ class SmartSalesAgent:
             if user_memory.stage == "awaiting_preferred_name":
                 return await self._handle_name_and_send_media(message_data, user_data, user_memory)
             
-            # **MEJORADO: Usar el agente inteligente para conversaciones después de presentación inicial**
-            if user_memory.stage in ["info_sent", "brenda_introduced", "course_presented"] or user_memory.interaction_count > 1:
+            # **MEJORADO: Usar el agente inteligente para la mayoría de conversaciones**
+            # Usar LLM si: ya se presentó Brenda, hay más de 1 interacción, o es una pregunta general
+            should_use_llm = (
+                user_memory.stage in ["info_sent", "brenda_introduced", "course_presented"] or
+                user_memory.interaction_count > 0 or
+                any(word in message_text.lower() for word in ['qué', 'cómo', 'cuándo', 'dónde', 'por qué', 'precio', 'curso'])
+            )
+            
+            if should_use_llm:
                 # Verificar si el agente inteligente está disponible
                 if self.intelligent_agent is None:
                     logger.warning("Agente inteligente no disponible, usando respuesta por defecto")

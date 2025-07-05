@@ -289,6 +289,16 @@ class IntelligentSalesAgent:
             user_memory.lead_score = interest_score
             user_memory.interaction_count += 1
             
+            # CRÍTICO: Guardar mensaje del usuario en historial
+            if user_memory.message_history is None:
+                user_memory.message_history = []
+            
+            user_memory.message_history.append({
+                'role': 'user',
+                'content': user_message,
+                'timestamp': datetime.utcnow().isoformat()
+            })
+            
             # Extraer información del mensaje del usuario
             await self._extract_user_info(user_message, user_memory)
             
@@ -446,7 +456,7 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
             
             # Llamar a la API de OpenAI
             response = await self.client.chat.completions.create(
-                model="gpt-4.1-mini",
+                model="gpt-4o-mini",  # Corregir nombre del modelo
                 messages=messages,
                 max_tokens=500,
                 temperature=0.7
@@ -476,8 +486,15 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
                     # Si la respuesta es inválida, intentar generar una nueva
                     return await self.generate_response(user_message, user_memory, course_info)
             
-            # Procesar la respuesta para dividirla en mensajes si es necesario
-            return await self._process_response(response_text, user_memory)
+            # Procesar la respuesta y activar herramientas si es necesario
+            final_response = await self._process_response(response_text, user_memory)
+            
+            # Activar herramientas basado en el análisis de intención
+            if intent_analysis.get('recommended_tools'):
+                tools = intent_analysis['recommended_tools']
+                await self._activate_recommended_tools(tools, user_memory, course_info)
+            
+            return final_response
                 
         except Exception as e:
             logger.error(f"Error generando respuesta: {e}", exc_info=True)
@@ -560,7 +577,7 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
             """
 
             response = await self.client.chat.completions.create(
-                model="gpt-4.1-mini",
+                model="gpt-4o-mini",  # Corregir nombre del modelo
                 messages=[{"role": "user", "content": extraction_prompt}],
                 max_tokens=500,
                 temperature=0.1
@@ -608,9 +625,27 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
         except Exception as e:
             logger.error(f"Error extrayendo información del usuario: {e}")
 
-    async def _process_response(self, response_text: str, user_memory: LeadMemory) -> List[Dict[str, str]]:
-        """Procesa la respuesta del LLM y maneja múltiples mensajes"""
-        messages: List[Dict[str, str]] = []
+    async def _process_response(self, response_text: str, user_memory: LeadMemory) -> Union[str, List[Dict[str, str]]]:
+        """Procesa la respuesta del LLM y actualiza historial de conversación"""
+        
+        # CRÍTICO: Actualizar historial de conversación
+        if user_memory.message_history is None:
+            user_memory.message_history = []
+        
+        # Agregar la respuesta del bot al historial
+        user_memory.message_history.append({
+            'role': 'assistant',
+            'content': response_text,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        # Limitar historial a los últimos 20 mensajes para evitar sobrecarga
+        if len(user_memory.message_history) > 20:
+            user_memory.message_history = user_memory.message_history[-20:]
+        
+        # Actualizar timestamp de última interacción
+        user_memory.last_interaction = datetime.utcnow()
+        user_memory.updated_at = datetime.utcnow()
         
         # Verificar si la respuesta contiene múltiples mensajes
         if "[MENSAJE_" in response_text:
@@ -619,17 +654,44 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
             message_parts = re.split(r'\[MENSAJE_\d+\]', response_text)
             message_parts = [part.strip() for part in message_parts if part.strip()]
             
+            messages = []
             for part in message_parts:
                 if part:
                     messages.append({
                         'type': 'text',
                         'content': part
                     })
+            return messages
         else:
-            # Mensaje único
-            messages.append({
-                'type': 'text', 
-                'content': response_text
-            })
-        
-        return messages 
+            # Mensaje único como string
+            return response_text
+
+    async def _activate_recommended_tools(self, tools: Dict[str, bool], user_memory: LeadMemory, course_info: Optional[Dict]):
+        """Activa herramientas recomendadas por el análisis de intención"""
+        try:
+            course_id = user_memory.selected_course or (course_info.get('id') if course_info else None)
+            if not course_id:
+                return
+            
+            # Marcar que se han usado herramientas de ventas
+            if any(tools.values()):
+                user_memory.buying_signals = user_memory.buying_signals or []
+                user_memory.buying_signals.append("tools_activated")
+            
+            # Log de herramientas activadas para métricas
+            activated_tools = [tool for tool, active in tools.items() if active]
+            if activated_tools:
+                logger.info(f"Herramientas activadas para usuario {user_memory.user_id}: {activated_tools}")
+                
+                # Guardar en historial que se activaron herramientas
+                if user_memory.message_history is None:
+                    user_memory.message_history = []
+                
+                user_memory.message_history.append({
+                    'role': 'system',
+                    'content': f"Herramientas activadas: {', '.join(activated_tools)}",
+                    'timestamp': datetime.utcnow().isoformat()
+                })
+            
+        except Exception as e:
+            logger.error(f"Error activando herramientas: {e}") 

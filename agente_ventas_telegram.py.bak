@@ -35,7 +35,6 @@ class VentasBot:
         self.ventas_bot = None
         self.ads_flow_handler = None
         self.global_memory = GlobalMemory()
-        self.templates = None
 
     async def setup(self):
         # Inicializar el pool de conexiones
@@ -44,10 +43,6 @@ class VentasBot:
         self.agent_tools = AgentTools(self.db, None)  # Se actualizará con la API de Telegram
         self.ventas_bot = SmartSalesAgent(self.db, self.agent_tools)
         self.ads_flow_handler = AdsFlowHandler(self.db, self.agent_tools)
-        
-        # Importar templates para privacidad
-        from core.utils.message_templates import MessageTemplates
-        self.templates = MessageTemplates()
 
     async def handle_message(self, update: Update, context):
         """
@@ -110,10 +105,7 @@ class VentasBot:
             else:
                 # Flujo conversacional normal
                 logger.info(f"Usuario {user.id} en conversación normal")
-                if self.ventas_bot:
-                    response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
-                else:
-                    response, keyboard = "Error: Bot no inicializado correctamente.", None
+                response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
             
             # Manejar respuesta que puede ser string o lista de diccionarios
             if isinstance(response, str):
@@ -158,8 +150,8 @@ class VentasBot:
         """
         try:
             # Extraer curso y campaña de hashtags
-            course_info = ""
-            campaign_info = ""
+            course_info = None
+            campaign_info = None
             
             for tag in hashtags:
                 if tag.startswith('curso:') or tag.startswith('CURSO_'):
@@ -170,24 +162,18 @@ class VentasBot:
             logger.info(f"Procesando anuncio - Curso: {course_info}, Campaña: {campaign_info}")
             
             # Usar el ads_flow_handler para procesar
-            if self.ads_flow_handler and course_info and campaign_info:
+            if self.ads_flow_handler:
                 return await self.ads_flow_handler.process_ad_message(
                     message_data, user_data, course_info, campaign_info
                 )
             else:
-                # Fallback si no hay ads_flow_handler o faltan datos
-                if self.ventas_bot:
-                    return await self.ventas_bot.handle_conversation(message_data, user_data)
-                else:
-                    return "Error: Bot no inicializado correctamente.", None
+                # Fallback si no hay ads_flow_handler
+                return await self.ventas_bot.handle_conversation(message_data, user_data)
                 
         except Exception as e:
             logger.error(f"Error en handle_ad_flow: {e}")
             # Fallback a conversación normal
-            if self.ventas_bot:
-                return await self.ventas_bot.handle_conversation(message_data, user_data)
-            else:
-                return "Error: Bot no inicializado correctamente.", None
+            return await self.ventas_bot.handle_conversation(message_data, user_data)
 
     async def handle_callback_query(self, update: Update, context):
         """Maneja las consultas de callback de botones inline."""
@@ -220,10 +206,7 @@ class VentasBot:
                     }
                     
                     # Procesar la consulta con el agente
-                    if self.ventas_bot:
-                        response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
-                    else:
-                        response, keyboard = "Error: Bot no inicializado correctamente.", None
+                    response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
                 
                 # Manejar respuesta
                 if isinstance(response, str):
@@ -275,7 +258,7 @@ class VentasBot:
                 user_memory.privacy_accepted = True
                 self.global_memory.save_lead_memory(user_id, user_memory)
             
-            message = "¡Gracias por aceptar! 😊\n\nAhora podemos continuar con el proceso."
+            message = "¡Gracias por aceptar! 🎉\n\nAhora podemos continuar con el proceso."
             return message, None
             
         elif callback_data == "privacy_decline":
@@ -283,16 +266,12 @@ class VentasBot:
 
 Si cambias de opinión y quieres conocer más sobre nuestros cursos de IA, estaremos aquí para ayudarte.
 
-¡Que tengas un excelente día! 😊
-"""
+¡Que tengas un excelente día! 😊"""
             return message, None
             
         elif callback_data == "privacy_full":
             # Mostrar aviso completo de privacidad
-            if self.templates:
-                message = self.templates.get_full_privacy_policy()
-            else:
-                message = "Aviso de privacidad no disponible temporalmente."
+            message = self.templates.get_full_privacy_policy()
             return message, None
         
         return "Opción no reconocida.", None
@@ -343,3 +322,4 @@ if __name__ == "__main__":
         logger.error(f"Error fatal en la aplicación principal: {e}", exc_info=True)
         import sys
         sys.exit(1)
+ 
