@@ -201,3 +201,31 @@ class CourseService:
         except Exception as e:
             logger.error(f"Error obteniendo ejercicios del módulo {moduleId}: {e}")
             return [] 
+
+    async def getAvailableBonuses(self, courseId: str) -> List[Dict[str, Any]]:
+        """
+        Obtiene todos los bonos por tiempo limitado disponibles para un curso.
+        
+        Args:
+            courseId: ID único del curso
+            
+        Returns:
+            Lista de bonos disponibles con su información completa
+        """
+        try:
+            query = """
+            SELECT *
+            FROM limited_time_bonuses
+            WHERE 
+                course_id = $1 AND
+                active = true AND
+                expires_at > NOW() AND
+                (current_claims < max_claims OR max_claims = 0)
+            ORDER BY expires_at ASC;
+            """
+            
+            results = await self.db.fetch_all(query, courseId)
+            return results or []
+        except Exception as e:
+            logger.error(f"Error obteniendo bonos del curso {courseId}: {e}")
+            return [] 

@@ -24,101 +24,55 @@ logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """
 Eres Brenda, una asesora experta en ventas de IA de Ecos de Liderazgo. Tu objetivo es convertir leads en ventas del curso de Inteligencia Artificial 
-de manera natural y estratégica.
+de manera natural y efectiva, SIN ser insistente.
 
-REGLAS IMPORTANTES:
+REGLAS FUNDAMENTALES:
 1. NO saludes en cada mensaje - solo al primer contacto
-2. NO seas insistente con demos/cursos - menciona máximo 1 vez cada 3-4 intercambios
-3. Divide mensajes largos automáticamente (máximo 2-3 oraciones por mensaje)
-4. Sé conversacional y enfócate en entender sus necesidades ANTES de vender
-5. Usa herramientas solo cuando sea estratégicamente apropiado
+2. NO hagas más de 1 pregunta por mensaje
+3. SI YA TIENES INFORMACIÓN DEL USUARIO, ÚSALA - no pidas más detalles innecesarios
+4. Conecta DIRECTAMENTE con los beneficios del curso basado en lo que ya sabes
+5. Sé conversacional pero orientada a resultados
 
-ESTRATEGIA DE MENSAJES:
-- Mensaje 1: Pregunta/conversación principal (máximo 2-3 oraciones)
-- Mensaje 2: Información adicional si es necesario (máximo 2-3 oraciones)  
-- Mensaje 3: Call-to-action o demo SOLO si es el momento apropiado
+ESTRATEGIA ANTI-INSISTENCIA:
+- Si el usuario menciona su profesión/necesidad, conecta inmediatamente con el curso
+- Si ya sabes que quiere automatizar reportes, muestra cómo el curso lo ayuda
+- Si cambió de profesión, actualiza y conecta con nuevos beneficios
+- NO sigas preguntando detalles si ya tienes suficiente información
 
-CUÁNDO USAR HERRAMIENTAS:
-- send_demo_link: Solo después de 2-3 intercambios de valor, cuando muestren interés real
-- send_course_info: Solo cuando pregunten específicamente por detalles del curso
-- send_pricing_info: Solo cuando mencionen presupuesto o pregunten por precios
-- schedule_call: Solo cuando estén listos para comprar o necesiten asesoría personalizada
+CLASIFICACIÓN DE MENSAJES:
+Basándote en el análisis de intención, responde según la categoría:
 
-PERSONALIZACIÓN POR PROFESIÓN:
-- Marketing: Automatización de copy, segmentación inteligente, A/B testing con IA
-- Ventas: Calificación automática de leads, personalización de propuestas
-- Estudiante: Investigación 10x más rápida, ventaja competitiva en el mercado
-- Contador: Automatización de reportes, análisis predictivo, reducción de errores
-- Gerente: Decisiones basadas en datos, optimización de equipos, KPIs inteligentes
-- Emprendedor: Validación de ideas, automatización de procesos, análisis de mercado
+1. EXPLORATION: Muestra beneficios específicos + herramientas si es apropiado
+2. OBJECTION_PRICE: Enfócate en ROI y valor + bonos por tiempo limitado
+3. OBJECTION_TIME: Muestra flexibilidad y eficiencia del curso
+4. OBJECTION_VALUE: Demuestra resultados concretos + demo/recursos
+5. OBJECTION_TRUST: Usa testimonios y garantías
+6. BUYING_SIGNALS: Facilita el proceso de compra
+7. AUTOMATION_NEED: Conecta directamente con módulos de automatización
+8. PROFESSION_CHANGE: Adapta beneficios a nueva profesión
+9. GENERAL_QUESTION: Responde y conecta con el curso
 
-RESPUESTA FORMATO:
-Si tu respuesta tiene más de 3 oraciones, divídela en múltiples mensajes usando el formato:
-[MENSAJE_1] contenido del primer mensaje
-[MENSAJE_2] contenido del segundo mensaje
-[MENSAJE_3] contenido del tercer mensaje (si es necesario)
+HERRAMIENTAS DE VENTAS (usa según recomendación del análisis):
+- BONOS: Cuando hay objeciones de precio o indecisión
+- DEMO: Cuando necesitan ver resultados concretos
+- RECURSOS: Para validar calidad y profundidad
+- TESTIMONIOS: Para generar confianza
 
-Mantén cada mensaje conversacional, valioso y enfocado en sus necesidades específicas.
+TÉCNICAS DE VENTAS INTEGRADAS:
+- Valor vs. Costo: "No es un gasto, es inversión"
+- Urgencia suave: "Solo quedan X lugares"
+- Prueba social: "500+ estudiantes ya transformaron su carrera"
+- ROI claro: "Recuperas la inversión en el primer mes"
 
-# Instrucciones Críticas de Veracidad
+EJEMPLO DE RESPUESTA DIRECTA:
+Usuario: "Soy de marketing, ¿me sirve el curso?"
+Respuesta: "¡Perfecto! Para marketing, la IA es revolucionaria. Te ayuda a crear contenido 10x más rápido, automatizar campañas, y analizar datos como experto. El módulo 3 se enfoca específicamente en marketing digital con IA. ¿Qué aspecto te interesa más: creación de contenido o análisis de datos?"
 
-**NUNCA INVENTES INFORMACIÓN. SOLO USA DATOS DE LA BASE DE DATOS.**
-
-## Reglas Estrictas:
-1. **OBLIGATORIO**: Antes de responder cualquier pregunta sobre cursos, SIEMPRE consulta la base de datos
-2. **PROHIBIDO**: Agregar información que no esté explícitamente en la base de datos
-3. **VERIFICACIÓN**: Si no encuentras información específica en la BD, di "No tengo esa información específica en mis datos"
-4. **EJERCICIOS PRÁCTICOS**: Si hay ejercicios prácticos disponibles, menciona que se pueden aplicar en el módulo o herramienta específica
-
-
-## Estructura de la Base de Datos
-
-### Tablas Principales:
-- `courses`: Información completa de cursos
-- `course_modules`: Módulos específicos de cada curso
-- `course_prompts`: Ejemplos de uso para cada curso
-- `user_leads`: Información de prospectos
-- `course_sales`: Ventas realizadas
-- `course_interactions`: Interacciones con cursos
-
-### Campos Críticos de `courses`:
-- `name`: Nombre exacto del curso
-- `short_description`: Descripción breve
-- `long_description`: Descripción completa (USAR ESTA COMO FUENTE PRINCIPAL)
-- `total_duration`: Duración total
-- `price_usd`: Precio en USD
-- `level`: Nivel del curso
-- `category`: Categoría
-- `tools_used`: Herramientas utilizadas
-- `prerequisites`: Prerrequisitos
-- `requirements`: Requerimientos
-
-## Protocolo de Respuesta
-
-### Al describir un curso:
-1. **PASO 1**: Verificar que tienes la información del curso en los datos proporcionados
-2. **PASO 2**: Usar SOLO la información disponible
-3. **PASO 3**: Si necesitas información de módulos, verificar que esté disponible
-4. **PASO 4**: Estructurar respuesta basada únicamente en datos de BD
-
-
-❌ "Tiene soporte 24/7" (si no está en los datos)
-
-## Manejo de Preguntas sin Información
-
-### Si no tienes la información específica:
-- "No tengo esa información específica en mis datos del curso"
-- "Según mi base de datos, el curso incluye [listar solo lo que está]"
-- "Para obtener más detalles sobre ese aspecto, te recomiendo contactar directamente"
-
-## Validación de Respuestas
-
-### Antes de enviar cada respuesta, verificar:
-1. ✅ ¿Toda la información proviene de los datos disponibles?
-2. ✅ ¿Estoy citando textualmente los campos relevantes?
-3. ✅ ¿Evité agregar interpretaciones o suposiciones?
-4. ✅ ¿Verifiqué los datos antes de responder?
-
+IMPORTANTE:
+- Usa la información de automatización conocida para personalizar respuestas
+- Menciona módulos específicos del curso que aplican
+- Siempre conecta con beneficios tangibles
+- Sé directa pero amigable
 """
 
 class IntelligentSalesAgent:
@@ -142,14 +96,209 @@ class IntelligentSalesAgent:
         self.course_service = CourseService(db)
         self.prompt_service = PromptService(openai_api_key)
 
+    async def _analyze_user_intent(self, user_message: str, user_memory: LeadMemory) -> Dict[str, Any]:
+        """
+        Analiza el mensaje del usuario para detectar intenciones y decidir qué herramientas usar.
+        """
+        if not self.client:
+            return self._get_default_intent()
+            
+        try:
+            # Preparar historial de mensajes recientes
+            recent_messages = []
+            if user_memory.message_history:
+                recent_messages = [
+                    msg.get('content', '') 
+                    for msg in user_memory.message_history[-3:] 
+                    if msg.get('role') == 'user'
+                ]
+
+            # Preparar información de automatización conocida
+            automation_info = ""
+            if user_memory.automation_needs:
+                automation_info = f"""
+                Necesidades de automatización conocidas:
+                - Tipos de reportes: {', '.join(user_memory.automation_needs.get('report_types', []))}
+                - Frecuencia: {user_memory.automation_needs.get('frequency', 'No especificada')}
+                - Tiempo invertido: {user_memory.automation_needs.get('time_investment', 'No especificado')}
+                - Herramientas actuales: {', '.join(user_memory.automation_needs.get('current_tools', []))}
+                - Frustraciones: {', '.join(user_memory.automation_needs.get('specific_frustrations', []))}
+                """
+
+            intent_prompt = f"""
+            Clasifica el mensaje del usuario en una de estas CATEGORÍAS PRINCIPALES:
+
+            1. EXPLORATION - Usuario explorando, preguntando sobre el curso
+            2. OBJECTION_PRICE - Preocupación por el precio/inversión
+            3. OBJECTION_TIME - Preocupación por tiempo/horarios
+            4. OBJECTION_VALUE - Dudas sobre si vale la pena/sirve
+            5. OBJECTION_TRUST - Dudas sobre confiabilidad/calidad
+            6. BUYING_SIGNALS - Señales de interés en comprar
+            7. AUTOMATION_NEED - Necesidad específica de automatización
+            8. PROFESSION_CHANGE - Cambio de profesión/área de trabajo
+            9. GENERAL_QUESTION - Pregunta general sobre IA/tecnología
+
+            MENSAJE ACTUAL: {user_message}
+
+            CONTEXTO DEL USUARIO:
+            - Profesión actual: {user_memory.role if user_memory.role else 'No especificada'}
+            - Intereses conocidos: {', '.join(user_memory.interests if user_memory.interests else [])}
+            - Puntos de dolor: {', '.join(user_memory.pain_points if user_memory.pain_points else [])}
+            - Mensajes recientes: {recent_messages}
+            {automation_info}
+
+            IMPORTANTE: 
+            - Si ya tienes información suficiente del usuario, NO pidas más detalles
+            - Si el usuario cambió de profesión, actualiza y conecta con el curso
+            - Si menciona automatización, conecta directamente con beneficios del curso
+            - Si muestra objeciones, activa herramientas de ventas
+
+            Responde SOLO con JSON:
+            {{
+                "category": "CATEGORIA_PRINCIPAL",
+                "confidence": 0.8,
+                "should_ask_more": false,
+                "recommended_tools": {{
+                    "show_bonuses": false,
+                    "show_demo": false,
+                    "show_resources": false,
+                    "show_testimonials": false
+                }},
+                "sales_strategy": "direct_benefit|explore_need|handle_objection|close_sale",
+                "key_topics": [],
+                "response_focus": "Qué debe enfocar la respuesta"
+            }}
+            """
+
+            response = await self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": intent_prompt}],
+                max_tokens=300,
+                temperature=0.1
+            )
+
+            content = response.choices[0].message.content
+            if not content:
+                return self._get_default_intent()
+
+            intent_analysis = self._safe_json_parse(content)
+            if not intent_analysis:
+                return self._get_default_intent()
+
+            return intent_analysis
+
+        except Exception as e:
+            logger.error(f"Error analizando intención: {e}")
+            return self._get_default_intent()
+
+    def _get_default_intent(self) -> Dict[str, Any]:
+        """Retorna un análisis de intención por defecto"""
+        return {
+            "category": "GENERAL_QUESTION",
+            "confidence": 0.5,
+            "should_ask_more": False,
+            "recommended_tools": {
+                "show_bonuses": False,
+                "show_demo": False,
+                "show_resources": False,
+                "show_testimonials": False
+            },
+            "sales_strategy": "direct_benefit",
+            "key_topics": [],
+            "response_focus": "Responder directamente y mostrar beneficios"
+        }
+
+    def _detect_objection_type(self, message: str) -> str:
+        """Detecta el tipo de objeción en el mensaje del usuario."""
+        message_lower = message.lower()
+        
+        objection_patterns = {
+            'price': ['caro', 'costoso', 'precio', 'dinero', 'presupuesto', 'barato', 'económico'],
+            'time': ['tiempo', 'ocupado', 'horario', 'disponible', 'rápido', 'lento', 'duración'],
+            'trust': ['confianza', 'seguro', 'garantía', 'estafa', 'real', 'verdad', 'experiencia'],
+            'value': ['necesito', 'útil', 'sirve', 'funciona', 'beneficio', 'resultado', 'vale la pena'],
+            'decision': ['pensarlo', 'decidir', 'consultar', 'después', 'más tarde', 'mañana']
+        }
+        
+        objection_scores = {}
+        for objection_type, keywords in objection_patterns.items():
+            score = sum(1 for keyword in keywords if keyword in message_lower)
+            if score > 0:
+                objection_scores[objection_type] = score
+        
+        if objection_scores:
+            return max(objection_scores.keys(), key=lambda x: objection_scores[x])
+        else:
+            return 'general'
+
+    def _detect_buying_signals(self, message: str) -> List[str]:
+        """Detecta señales de compra en el mensaje del usuario."""
+        buying_signals = []
+        message_lower = message.lower()
+        
+        signal_patterns = {
+            'ready_to_buy': ['comprar', 'adquirir', 'inscribir', 'registrar'],
+            'payment_interest': ['pagar', 'precio', 'costo', 'tarjeta', 'transferencia'],
+            'timing_questions': ['cuando', 'inicio', 'empezar', 'comenzar'],
+            'urgency': ['ya', 'ahora', 'inmediato', 'rápido', 'urgente'],
+            'value_accepted': ['perfecto', 'excelente', 'me gusta', 'interesante']
+        }
+        
+        for signal_type, keywords in signal_patterns.items():
+            if any(keyword in message_lower for keyword in keywords):
+                buying_signals.append(signal_type)
+        
+        return buying_signals
+
+    def _calculate_interest_score(self, message: str, user_memory: LeadMemory) -> int:
+        """Calcula una puntuación de interés basada en el mensaje y historial."""
+        score = 50  # Base score
+        
+        # Analizar mensaje actual
+        buying_signals = self._detect_buying_signals(message)
+        score += len(buying_signals) * 10
+        
+        # Analizar historial
+        if user_memory.message_history:
+            score += min(len(user_memory.message_history) * 5, 30)
+            
+            # Buscar progresión de interés
+            recent_messages = user_memory.message_history[-3:] if len(user_memory.message_history) >= 3 else user_memory.message_history
+            for msg in recent_messages:
+                if any(word in msg.get('content', '').lower() for word in ['precio', 'pago', 'inscribir']):
+                    score += 15
+        
+        # Normalizar entre 0-100
+        return min(max(score, 0), 100)
+
     async def generate_response(self, user_message: str, user_memory: LeadMemory, course_info: Optional[Dict]) -> Union[str, List[Dict[str, str]]]:
         """Genera una respuesta personalizada usando OpenAI"""
         if self.client is None:
             return "Lo siento, hay un problema con el sistema. Por favor intenta más tarde."
         
         try:
+            # Analizar intención del usuario
+            intent_analysis = await self._analyze_user_intent(user_message, user_memory)
+            
+            # Detectar objeciones y señales de compra
+            objection_type = self._detect_objection_type(user_message)
+            buying_signals = self._detect_buying_signals(user_message)
+            interest_score = self._calculate_interest_score(user_message, user_memory)
+            
+            # Actualizar puntuación de interés
+            user_memory.lead_score = interest_score
+            user_memory.interaction_count += 1
+            
             # Extraer información del mensaje del usuario
             await self._extract_user_info(user_message, user_memory)
+            
+            # Actualizar memoria con temas clave detectados
+            key_topics = intent_analysis.get('key_topics', [])
+            if key_topics and isinstance(key_topics, list):
+                if user_memory.interests is None:
+                    user_memory.interests = []
+                user_memory.interests.extend(key_topics)
+                user_memory.interests = list(set(user_memory.interests))
             
             # Buscar referencias a cursos en el mensaje del usuario
             course_references = await self.prompt_service.extract_course_references(user_message)
@@ -187,6 +336,43 @@ class IntelligentSalesAgent:
             # Construir contexto para el prompt
             system_message = self.system_prompt
             
+            # Agregar análisis de intención al contexto
+            intent_context = f"""
+## Análisis de Intención:
+- Categoría: {intent_analysis.get('category', 'GENERAL_QUESTION')}
+- Confianza: {intent_analysis.get('confidence', 0.5)}
+- Estrategia de ventas: {intent_analysis.get('sales_strategy', 'direct_benefit')}
+- Enfoque de respuesta: {intent_analysis.get('response_focus', 'Responder directamente')}
+- Debe preguntar más: {intent_analysis.get('should_ask_more', False)}
+
+## Herramientas Recomendadas:
+{json.dumps(intent_analysis.get('recommended_tools', {}), indent=2, ensure_ascii=False)}
+
+## Información Acumulada del Usuario:
+- Profesión: {user_memory.role if user_memory.role else 'No especificada'}
+- Intereses: {', '.join(user_memory.interests if user_memory.interests else ['Ninguno registrado'])}
+- Puntos de dolor: {', '.join(user_memory.pain_points if user_memory.pain_points else ['Ninguno registrado'])}
+- Nivel de interés: {user_memory.interest_level}
+- Interacciones: {user_memory.interaction_count}
+"""
+
+            # Agregar información de automatización si existe
+            if user_memory.automation_needs and any(user_memory.automation_needs.values()):
+                automation_context = f"""
+## Necesidades de Automatización Identificadas:
+- Tipos de reportes: {', '.join(user_memory.automation_needs.get('report_types', []))}
+- Frecuencia: {user_memory.automation_needs.get('frequency', 'No especificada')}
+- Tiempo invertido: {user_memory.automation_needs.get('time_investment', 'No especificado')}
+- Herramientas actuales: {', '.join(user_memory.automation_needs.get('current_tools', []))}
+- Frustraciones específicas: {', '.join(user_memory.automation_needs.get('specific_frustrations', []))}
+
+INSTRUCCIÓN ESPECIAL: El usuario YA expresó necesidades de automatización. NO preguntes más detalles. 
+Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
+"""
+                intent_context += automation_context
+
+            system_message = intent_context + "\n" + system_message
+            
             # Agregar información del curso si está disponible
             if course_info:
                 course_context = f"""
@@ -218,6 +404,22 @@ class IntelligentSalesAgent:
                                 if module.get('duration'):
                                     modules_info += f"  Duración: {module.get('duration')}\n"
                         system_message += "\n" + modules_info
+                    
+                    # Obtener bonos disponibles
+                    bonuses = await self.course_service.getAvailableBonuses(course_info['id'])
+                    if bonuses:
+                        bonuses_info = "\n## Bonos por Tiempo Limitado:\n"
+                        for bonus in bonuses:
+                            if bonus and bonus.get('active'):  # Solo bonos activos
+                                bonuses_info += f"""
+- {bonus.get('name', 'Sin nombre')}:
+  Descripción: {bonus.get('description', 'No disponible')}
+  Valor: ${bonus.get('original_value', '0')} USD
+  Propuesta: {bonus.get('value_proposition', 'No disponible')}
+  Expira: {bonus.get('expires_at', 'No disponible')}
+  Cupos: {bonus.get('max_claims', '0')} totales, {bonus.get('current_claims', '0')} reclamados
+"""
+                        system_message += "\n" + bonuses_info
             
             # Agregar información del usuario
             user_context = f"""
@@ -250,79 +452,32 @@ class IntelligentSalesAgent:
                 temperature=0.7
             )
             
-            # Obtener respuesta
-            response_text = response.choices[0].message.content or ""
+            # Obtener la respuesta
+            response_text = response.choices[0].message.content
+            if not response_text:
+                return "Lo siento, no pude generar una respuesta."
             
             # Validar la respuesta si tenemos información del curso
             if course_info:
-                validation = await self.prompt_service.validate_response(response_text, course_info)
+                # Obtener bonos disponibles para validación
+                bonuses = await self.course_service.getAvailableBonuses(course_info['id'])
                 
-                # Si la respuesta no es válida, registrar advertencia
+                # Validar respuesta incluyendo bonos
+                validation = await self.prompt_service.validate_response(
+                    response=response_text,
+                    course_data=course_info,
+                    bonuses_data=bonuses
+                )
+                
                 if not validation.get('is_valid', True):
                     errors = validation.get('errors', [])
                     logger.warning(f"Respuesta inválida para usuario {user_memory.user_id}: {', '.join(errors)}")
                     
-                    # Si la confianza es muy baja, regenerar la respuesta con instrucciones más estrictas
-                    if validation.get('confidence', 1.0) < 0.3:
-                        logger.info(f"Regenerando respuesta para usuario {user_memory.user_id}")
-                        
-                        # Agregar advertencia al prompt
-                        warning_message = f"""
-ADVERTENCIA: Tu respuesta anterior contenía información incorrecta o inventada:
-{', '.join(errors)}
-
-RECUERDA:
-1. SOLO usa información que esté explícitamente en los datos del curso
-2. NO agregues detalles que no estén en la base de datos
-3. Si no tienes la información, di "No tengo esa información específica"
-4. Verifica cada afirmación antes de incluirla
-
-Por favor, genera una nueva respuesta que sea 100% precisa según los datos proporcionados.
-"""
-                        
-                        # Agregar mensaje de advertencia
-                        messages.append({"role": "assistant", "content": response_text})
-                        messages.append({"role": "user", "content": warning_message})
-                        
-                        # Regenerar respuesta
-                        new_response = await self.client.chat.completions.create(
-                            model="gpt-4.1-mini",
-                            messages=messages,
-                            max_tokens=500,
-                            temperature=0.5
-                        )
-                        
-                        # Actualizar respuesta
-                        response_text = new_response.choices[0].message.content or ""
+                    # Si la respuesta es inválida, intentar generar una nueva
+                    return await self.generate_response(user_message, user_memory, course_info)
             
-            # Procesar la respuesta para manejar múltiples mensajes
-            processed_messages = await self._process_response(response_text, user_memory)
-            
-            # Actualizar historial de conversación
-            if not user_memory.message_history:
-                user_memory.message_history = []
-            
-            # Agregar mensaje del usuario al historial
-            user_memory.message_history.append({
-                'role': 'user',
-                'content': user_message,
-                'timestamp': datetime.now().isoformat()
-            })
-            
-            # Agregar respuesta del agente al historial
-            for msg in processed_messages:
-                if msg['type'] == 'text':
-                    user_memory.message_history.append({
-                        'role': 'assistant',
-                        'content': msg['content'],
-                        'timestamp': datetime.now().isoformat()
-                    })
-            
-            # Si hay múltiples mensajes, formatearlos correctamente
-            if len(processed_messages) > 1:
-                return processed_messages
-            else:
-                return processed_messages[0]['content'] if processed_messages else "Lo siento, no pude generar una respuesta."
+            # Procesar la respuesta para dividirla en mensajes si es necesario
+            return await self._process_response(response_text, user_memory)
                 
         except Exception as e:
             logger.error(f"Error generando respuesta: {e}", exc_info=True)
@@ -367,69 +522,91 @@ Por favor, genera una nueva respuesta que sea 100% precisa según los datos prop
 
     async def _extract_user_info(self, user_message: str, user_memory: LeadMemory):
         """Extrae información relevante del mensaje del usuario"""
-        try:
-            if self.client is None:
-                logger.debug("No se puede extraer información del usuario: cliente OpenAI no disponible")
-                return
-                
-            extraction_prompt = f"""
-Analiza el siguiente mensaje del usuario y extrae información relevante:
-
-MENSAJE: "{user_message}"
-
-Extrae y devuelve en formato JSON:
-{{
-    "profession": "profesión detectada o null",
-    "interests": ["lista", "de", "intereses"],
-    "pain_points": ["puntos", "de", "dolor"],
-    "buying_signals": ["señales", "de", "compra"],
-    "objections": ["objeciones", "mencionadas"],
-    "interest_level": "low/medium/high"
-}}
-
-Solo extrae información que esté claramente presente en el mensaje.
-Responde ÚNICAMENTE con el JSON, sin texto adicional.
-"""
+        if not self.client:
+            return
             
+        try:
+            extraction_prompt = f"""
+            Analiza el siguiente mensaje del usuario para extraer información relevante sobre sus necesidades, intereses y puntos de dolor.
+            Presta especial atención a menciones sobre:
+            - Automatización de procesos o reportes
+            - Tipos específicos de reportes o documentos
+            - Frecuencia de tareas manuales
+            - Tiempo invertido en tareas
+            - Herramientas o software actual
+            - Frustraciones o problemas específicos
+
+            MENSAJE DEL USUARIO:
+            {user_message}
+
+            CONTEXTO ACTUAL:
+            - Profesión: {user_memory.role if user_memory.role else 'No disponible'}
+            - Intereses conocidos: {', '.join(user_memory.interests if user_memory.interests else [])}
+            - Puntos de dolor conocidos: {', '.join(user_memory.pain_points if user_memory.pain_points else [])}
+
+            Devuelve un JSON con el siguiente formato:
+            {{
+                "role": "profesión o rol detectado",
+                "interests": ["lista", "de", "intereses"],
+                "pain_points": ["lista", "de", "problemas"],
+                "automation_needs": {{
+                    "report_types": ["tipos", "de", "reportes"],
+                    "frequency": "frecuencia de tareas",
+                    "time_investment": "tiempo invertido",
+                    "current_tools": ["herramientas", "actuales"],
+                    "specific_frustrations": ["frustraciones", "específicas"]
+                }}
+            }}
+            """
+
             response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-mini",
                 messages=[{"role": "user", "content": extraction_prompt}],
-                max_tokens=300,
+                max_tokens=500,
                 temperature=0.1
             )
-            
-            # Parsear respuesta JSON de forma segura
-            raw_content = response.choices[0].message.content or ""
-            extracted_info = self._safe_json_parse(raw_content)
-            
-            if not extracted_info:
-                logger.debug(f"No se pudo parsear información del usuario: {raw_content[:100]}...")
+
+            content = response.choices[0].message.content
+            if not content:
                 return
-            
-            # Actualizar memoria del usuario solo si tenemos información válida
-            if extracted_info.get('profession') and extracted_info['profession'] != 'null':
-                user_memory.role = extracted_info['profession']
-            
-            if extracted_info.get('interests') and isinstance(extracted_info['interests'], list):
-                current_interests = user_memory.interests or []
-                new_interests = [i for i in extracted_info['interests'] if i and i not in current_interests]
-                user_memory.interests = current_interests + new_interests
-            
-            # Agregar información adicional
-            if extracted_info.get('pain_points') and isinstance(extracted_info['pain_points'], list):
-                user_memory.pain_points = user_memory.pain_points or []
-                user_memory.pain_points.extend([p for p in extracted_info['pain_points'] if p])
-                
-            if extracted_info.get('buying_signals') and isinstance(extracted_info['buying_signals'], list):
-                user_memory.buying_signals = user_memory.buying_signals or []
-                user_memory.buying_signals.extend([s for s in extracted_info['buying_signals'] if s])
-                
-            if extracted_info.get('interest_level') and extracted_info['interest_level'] in ['low', 'medium', 'high']:
-                user_memory.interest_level = extracted_info['interest_level']
-                
+
+            extracted_info = self._safe_json_parse(content)
+            if not extracted_info:
+                return
+
+            # Actualizar información del usuario
+            if extracted_info.get('role'):
+                user_memory.role = extracted_info['role']
+
+            # Actualizar intereses
+            if extracted_info.get('interests'):
+                if user_memory.interests is None:
+                    user_memory.interests = []
+                user_memory.interests.extend(extracted_info['interests'])
+                user_memory.interests = list(set(user_memory.interests))
+
+            # Actualizar puntos de dolor
+            if extracted_info.get('pain_points'):
+                if user_memory.pain_points is None:
+                    user_memory.pain_points = []
+                user_memory.pain_points.extend(extracted_info['pain_points'])
+                user_memory.pain_points = list(set(user_memory.pain_points))
+
+            # Guardar información de automatización
+            automation_needs = extracted_info.get('automation_needs', {})
+            if automation_needs:
+                if user_memory.automation_needs is None:
+                    user_memory.automation_needs = {
+                        "report_types": [],
+                        "frequency": "",
+                        "time_investment": "",
+                        "current_tools": [],
+                        "specific_frustrations": []
+                    }
+                user_memory.automation_needs.update(automation_needs)
+
         except Exception as e:
-            logger.debug(f"Error extrayendo información del usuario: {e}")
-            # No logear como error ya que esto es opcional y no debe afectar el funcionamiento
+            logger.error(f"Error extrayendo información del usuario: {e}")
 
     async def _process_response(self, response_text: str, user_memory: LeadMemory) -> List[Dict[str, str]]:
         """Procesa la respuesta del LLM y maneja múltiples mensajes"""

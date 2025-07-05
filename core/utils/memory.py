@@ -50,6 +50,9 @@ class LeadMemory:
     buying_signals: Optional[List[str]] = None
     interest_level: str = "low"
     
+    # Necesidades de automatización
+    automation_needs: Optional[Dict[str, Any]] = None
+    
     # Seguimiento
     last_interaction: Optional[datetime] = None
     ad_source: str = ""
@@ -71,6 +74,14 @@ class LeadMemory:
             self.pain_points = []
         if self.buying_signals is None:
             self.buying_signals = []
+        if self.automation_needs is None:
+            self.automation_needs = {
+                "report_types": [],
+                "frequency": "",
+                "time_investment": "",
+                "current_tools": [],
+                "specific_frustrations": []
+            }
         if self.created_at is None:
             self.created_at = datetime.now()
         if self.updated_at is None:

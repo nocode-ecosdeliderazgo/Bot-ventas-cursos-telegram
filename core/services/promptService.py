@@ -67,13 +67,14 @@ class PromptService:
             
         return None
 
-    async def validate_response(self, response: str, course_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def validate_response(self, response: str, course_data: Dict[str, Any], bonuses_data: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """
-        Valida que la respuesta del agente coincida con la información del curso en la base de datos.
+        Valida que la respuesta del agente coincida con la información del curso y bonos en la base de datos.
         
         Args:
             response: Respuesta generada por el agente
             course_data: Datos del curso de la base de datos
+            bonuses_data: Lista de bonos por tiempo limitado disponibles
             
         Returns:
             Diccionario con el resultado de la validación:
@@ -95,11 +96,16 @@ class PromptService:
         try:
             # Construir prompt para validación
             validation_prompt = f"""
-            Eres un validador de precisión que verifica que las respuestas de un agente de ventas coincidan exactamente con la información de la base de datos.
+            Eres un validador de precisión que verifica que las respuestas de un agente de ventas coincidan con la información de la base de datos, permitiendo cierta flexibilidad en el estilo de venta.
             
             # Datos del curso en la base de datos:
             ```json
             {json.dumps(course_data, ensure_ascii=False, default=str)}
+            ```
+            
+            # Bonos por tiempo limitado disponibles:
+            ```json
+            {json.dumps(bonuses_data, ensure_ascii=False, default=str) if bonuses_data else "[]"}
             ```
             
             # Respuesta del agente:
@@ -107,18 +113,34 @@ class PromptService:
             {response}
             ```
             
-            Verifica que TODA la información proporcionada por el agente esté presente en los datos del curso.
-            El agente NO DEBE inventar información ni agregar detalles que no estén explícitamente en los datos.
+            Verifica que la información CLAVE proporcionada por el agente esté presente en los datos del curso y bonos.
+            El agente NO DEBE:
+            1. Contradecir información explícita de los datos
+            2. Mencionar bonos que no existan o modificar sus condiciones
+            3. Prometer beneficios específicos no documentados
+            4. Dar información incorrecta sobre fechas de expiración o valores
+            
+            El agente PUEDE:
+            1. Adaptar el lenguaje y tono para conectar con el usuario
+            2. Enfatizar beneficios que se derivan lógicamente del contenido
+            3. Sugerir usos y aplicaciones razonables del contenido
+            4. Mencionar herramientas de venta disponibles (demo, preview, recursos)
             
             Devuelve ÚNICAMENTE un JSON con el siguiente formato:
             {{
                 "is_valid": true,
                 "errors": [],
                 "warnings": [],
-                "confidence": 0.9
+                "confidence": 0.9,
+                "sales_tools_used": {{
+                    "bonuses_mentioned": [],
+                    "demo_offered": false,
+                    "preview_offered": false,
+                    "resources_offered": false
+                }}
             }}
             
-            La confianza debe ser alta (>0.8) solo si estás seguro de que toda la información es correcta.
+            La confianza debe ser alta (>0.8) si la información clave es correcta, incluso si el agente usa lenguaje persuasivo o ejemplos derivados.
             """
             
             # Llamar a la API de OpenAI
@@ -175,7 +197,13 @@ class PromptService:
             Devuelve ÚNICAMENTE un JSON con el siguiente formato:
             {{
                 "course_references": ["lista", "de", "referencias"],
-                "topics": ["lista", "de", "temas"]
+                "topics": ["lista", "de", "temas"],
+                "sales_signals": {{
+                    "shows_interest": false,
+                    "shows_doubt": false,
+                    "price_sensitive": false,
+                    "needs_more_info": false
+                }}
             }}
             
             Solo extrae información que esté claramente presente en el mensaje.
