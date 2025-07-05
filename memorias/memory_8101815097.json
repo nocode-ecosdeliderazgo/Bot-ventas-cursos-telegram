@@ -11,58 +11,138 @@
   "course_presented": false,
   "media_sent": true,
   "profile_type": "",
-  "role": "",
+  "role": "contador",
   "interests": [
-    "cosas útiles para mi trabajo"
+    "módulos útiles"
   ],
   "lead_score": 50,
   "score_history": [],
   "message_history": [
     {
       "role": "user",
-      "content": "este curso me sirve si trabajo en el area de marketing?",
-      "timestamp": "2025-07-04T20:06:04.503085"
+      "content": "este curso me sirve si soy contador?",
+      "timestamp": "2025-07-04T20:32:15.793664"
     },
     {
       "role": "assistant",
-      "content": "Según mi base de datos, el curso está diseñado para profesionales sin conocimientos previos y cubre cómo automatizar tareas, crear documentos y generar imágenes con IA, todo aplicado a contextos laborales.",
-      "timestamp": "2025-07-04T20:06:04.503085"
+      "content": "Sí, este curso es muy útil para contadores. Te ayuda a automatizar reportes, hacer análisis predictivos y reducir errores en tus tareas diarias usando IA.",
+      "timestamp": "2025-07-04T20:32:15.793664"
     },
     {
       "role": "assistant",
-      "content": "Aunque no especifica usos concretos para marketing, el contenido incluye generación de textos y creación de imágenes que podrían ser útiles en esa área. ¿Quieres que te cuente más sobre algún módulo en particular?",
-      "timestamp": "2025-07-04T20:06:04.503085"
+      "content": "Además, incluye un módulo para crear documentos profesionales y otro para integrar imágenes, lo que puede facilitar presentaciones o reportes visuales. ¿Hay algún proceso específico en tu trabajo que te gustaría mejorar con IA?",
+      "timestamp": "2025-07-04T20:32:15.793664"
     },
     {
       "role": "user",
-      "content": "que cosas utiles para mi trabajo seria capaz de hacer al finalizar el  curso",
-      "timestamp": "2025-07-04T20:06:59.338670"
+      "content": "hablame mas acerca de los modulos que me serian mas utiles en  mi profesion",
+      "timestamp": "2025-07-04T20:33:23.311910"
     },
     {
       "role": "assistant",
-      "content": "Al finalizar el curso, serás capaz de automatizar y apoyar tareas diarias como redacción, resumen, traducción y organización de información usando prompts personalizados con ChatGPT.  \n\nTambién aprenderás a generar y mejorar documentos profesionales, incluyendo correos, informes y propuestas, con prompts avanzados y revisión asistida.  \n\nAdemás, podrás crear imágenes profesionales con DALL·E para presentaciones, redes sociales y materiales educativos, y desarrollar un proyecto real que integre texto e imagen generados con IA para aplicar en tu trabajo. ¿Quieres que te cuente más sobre algún módulo?",
-      "timestamp": "2025-07-04T20:06:59.338670"
+      "content": "Claro, para un contador como tú, el primer módulo es clave: \"ChatGPT como Asistente en tus Tareas Diarias\". Aquí aprenderás a automatizar la redacción, resúmenes y organización de información, lo que puede agilizar mucho tus reportes.  \n\nEl segundo módulo, \"Creando Documentos Profesionales con ChatGPT\", te permitirá generar y mejorar correos, informes y propuestas con ayuda de IA, asegurando claridad y precisión.  \n\n¿Quieres que te detalle más cómo se aplican estos módulos en el área contable?",
+      "timestamp": "2025-07-04T20:33:23.311910"
     },
     {
       "role": "user",
-      "content": "y eso como lo podria aplicar en mi trabajo?",
-      "timestamp": "2025-07-04T20:07:32.943364"
+      "content": "si",
+      "timestamp": "2025-07-04T20:33:43.504213"
     },
     {
       "role": "assistant",
-      "content": "El curso te enseña a automatizar y apoyar tareas diarias como redacción, resumen, traducción y organización de información usando prompts personalizados con ChatGPT.  \n\nTambién aprenderás a generar y mejorar documentos profesionales como correos, informes y propuestas mediante prompts avanzados y revisión asistida.  \n\nAdemás, podrás crear imágenes profesionales para presentaciones, redes sociales y materiales educativos con DALL·E, y desarrollar un proyecto real que combine texto e imagen generados con IA para tu ámbito profesional.  \n\n¿Quieres que te explique más a detalle algún módulo?",
-      "timestamp": "2025-07-04T20:07:32.943364"
+      "content": "Perfecto. En el primer módulo, podrás mapear tareas repetitivas como la elaboración de resúmenes financieros o conciliaciones, y crear prompts personalizados para que ChatGPT las haga automáticamente.  \n\nEn el segundo módulo, aprenderás a generar informes claros y personalizados, incluso propuestas para clientes o reportes internos, con prompts avanzados que mejoran la precisión y legibilidad.  \n\n¿Te interesaría ver algunos ejemplos prácticos de prompts para contadores?",
+      "timestamp": "2025-07-04T20:33:43.504213"
+    },
+    {
+      "role": "user",
+      "content": "si",
+      "timestamp": "2025-07-04T20:34:11.450209"
+    },
+    {
+      "role": "assistant",
+      "content": "Aquí tienes un ejemplo práctico para el módulo 1: puedes usar un prompt para que ChatGPT resuma automáticamente grandes volúmenes de datos financieros en puntos clave, facilitando el análisis rápido.  \n\nPara el módulo 2, un prompt podría ayudarte a redactar un informe mensual claro y profesional, adaptando el lenguaje según el público, ya sea para clientes o para tu equipo interno.  \n\n¿Quieres que te comparta el enlace con más ejemplos y recursos del curso?",
+      "timestamp": "2025-07-04T20:34:11.450209"
+    },
+    {
+      "role": "user",
+      "content": "si",
+      "timestamp": "2025-07-04T20:36:28.841732"
+    },
+    {
+      "role": "assistant",
+      "content": "send_demo_link",
+      "timestamp": "2025-07-04T20:36:28.841732"
+    },
+    {
+      "role": "user",
+      "content": "mmm pero como que no estoy seguro",
+      "timestamp": "2025-07-04T20:38:45.021265"
+    },
+    {
+      "role": "assistant",
+      "content": "Entiendo que quieras estar seguro antes de avanzar. ¿Qué dudas o aspectos te gustaría aclarar sobre el curso o su aplicación en contabilidad?  \n\nAsí puedo ayudarte con información más precisa y relevante para ti.",
+      "timestamp": "2025-07-04T20:38:45.021265"
+    },
+    {
+      "role": "user",
+      "content": "y si no quedo satisfecho al finalizar el curso?",
+      "timestamp": "2025-07-04T20:39:08.546089"
+    },
+    {
+      "role": "assistant",
+      "content": "Comprendo que la satisfacción es fundamental para ti. El curso incluye actividades prácticas y un proyecto personal para que puedas aplicar lo aprendido en situaciones reales, lo que ayuda a confirmar tus resultados.  \n\nAdemás, hay criterios claros de evaluación y recomendaciones para que puedas seguir mejorando el uso de IA en tu trabajo después del curso.  \n\n¿Quieres que te cuente cómo es el soporte o seguimiento post-curso?",
+      "timestamp": "2025-07-04T20:39:08.546089"
+    },
+    {
+      "role": "user",
+      "content": "si",
+      "timestamp": "2025-07-04T20:39:26.174132"
+    },
+    {
+      "role": "assistant",
+      "content": "No tengo esa información específica en mis datos del curso sobre soporte o seguimiento post-curso.  \n\nLo que sí puedo confirmar es que el programa está diseñado para que a través de las actividades y proyecto personal puedas consolidar el aprendizaje y aplicarlo de forma inmediata.  \n\n¿Quieres que te detalle cómo se estructura el proyecto personal para que evalúes si encaja con tus expectativas?",
+      "timestamp": "2025-07-04T20:39:26.174132"
+    },
+    {
+      "role": "user",
+      "content": "si",
+      "timestamp": "2025-07-04T20:39:42.460896"
+    },
+    {
+      "role": "assistant",
+      "content": "El proyecto personal se desarrolla en el módulo 4, donde integras texto e imágenes generados con IA para crear un trabajo real aplicable a tu área profesional.  \n\nAdemás, incluye presentación ante colegas y retroalimentación para mejorar y planificar el uso continuo de IA en tu trabajo diario.  \n\n¿Quieres que te explique qué herramientas usarás en este proyecto?",
+      "timestamp": "2025-07-04T20:39:42.460896"
+    },
+    {
+      "role": "user",
+      "content": "si",
+      "timestamp": "2025-07-04T20:39:57.783751"
+    },
+    {
+      "role": "assistant",
+      "content": "En el proyecto personal usas ChatGPT para generar textos y DALL·E para crear imágenes profesionales.  \n\nTambién puedes apoyar la presentación con Canva para darle un diseño atractivo y profesional.  \n\nEsto facilita aplicar lo aprendido y crear resultados concretos que puedes usar en tu trabajo contable. ¿Quieres saber más sobre algún módulo en particular?",
+      "timestamp": "2025-07-04T20:39:57.783751"
+    },
+    {
+      "role": "user",
+      "content": "mmm no, voy a pensarlo",
+      "timestamp": "2025-07-04T20:40:22.787086"
+    },
+    {
+      "role": "assistant",
+      "content": "Perfecto, tomarte tu tiempo es importante para decidir bien.  \n\nSi en algún momento quieres que te comparta más detalles o una demo para ver cómo funciona el curso, solo dime.  \n\nEstoy aquí para ayudarte cuando lo necesites.",
+      "timestamp": "2025-07-04T20:40:22.787086"
     }
   ],
   "interaction_count": 0,
   "conversation_history": [],
-  "pain_points": [],
-  "buying_signals": [
-    "interés en lo que será capaz de hacer al finalizar el curso"
+  "pain_points": [
+    "no quedar satisfecho al finalizar el curso"
   ],
-  "interest_level": "medium",
+  "buying_signals": [],
+  "interest_level": "low",
   "last_interaction": null,
   "ad_source": "ADSIM_01",
-  "created_at": "2025-07-04T20:05:26.707159",
-  "updated_at": "2025-07-04T20:07:32.943364"
+  "created_at": "2025-07-04T20:31:56.172577",
+  "updated_at": "2025-07-04T20:40:22.787086"
 }

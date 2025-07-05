@@ -52,11 +52,13 @@ class SmartSalesAgent:
         self.lead_scorer = LeadScorer()
         self.templates = MessageTemplates()
         self.sales_techniques = SalesTechniques()
-        self.conversation_processor = ConversationProcessor()  # Nuevo procesador
         
         # Servicios adicionales
         self.course_service = CourseService(db)
         self.prompt_service = PromptService(settings.OPENAI_API_KEY)
+        
+        # Inicializar el procesador de conversaciones con CourseService
+        self.conversation_processor = ConversationProcessor(self.course_service)
         
         # Inicializar el agente inteligente con la API key
         try:

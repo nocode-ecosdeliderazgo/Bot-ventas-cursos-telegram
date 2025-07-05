@@ -328,11 +328,48 @@ Por favor, genera una nueva respuesta que sea 100% precisa según los datos prop
             logger.error(f"Error generando respuesta: {e}", exc_info=True)
             return "Lo siento, ocurrió un error al procesar tu mensaje. Por favor intenta nuevamente."
     
+    def _safe_json_parse(self, content: str) -> Optional[Dict]:
+        """
+        Parsea JSON de forma segura, limpiando el contenido si es necesario.
+        """
+        if not content:
+            return None
+            
+        try:
+            # Limpiar el contenido
+            content = content.strip()
+            
+            # Remover markdown si existe
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            
+            # Intentar parsear directamente
+            return json.loads(content)
+            
+        except json.JSONDecodeError:
+            try:
+                # Buscar JSON dentro del texto
+                import re
+                json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                if json_match:
+                    return json.loads(json_match.group())
+            except:
+                pass
+                
+        except Exception:
+            pass
+            
+        return None
+
     async def _extract_user_info(self, user_message: str, user_memory: LeadMemory):
         """Extrae información relevante del mensaje del usuario"""
         try:
             if self.client is None:
-                logger.error("No se puede extraer información del usuario: cliente OpenAI no disponible")
+                logger.debug("No se puede extraer información del usuario: cliente OpenAI no disponible")
                 return
                 
             extraction_prompt = f"""
@@ -351,40 +388,48 @@ Extrae y devuelve en formato JSON:
 }}
 
 Solo extrae información que esté claramente presente en el mensaje.
+Responde ÚNICAMENTE con el JSON, sin texto adicional.
 """
             
             response = await self.client.chat.completions.create(
-                model="gpt-4.1-mini",
+                model="gpt-4o-mini",
                 messages=[{"role": "user", "content": extraction_prompt}],
                 max_tokens=300,
                 temperature=0.1
             )
             
-            # Parsear respuesta JSON
+            # Parsear respuesta JSON de forma segura
             raw_content = response.choices[0].message.content or ""
-            extracted_info = json.loads(raw_content)
+            extracted_info = self._safe_json_parse(raw_content)
             
-            # Actualizar memoria del usuario
-            if extracted_info.get('profession'):
+            if not extracted_info:
+                logger.debug(f"No se pudo parsear información del usuario: {raw_content[:100]}...")
+                return
+            
+            # Actualizar memoria del usuario solo si tenemos información válida
+            if extracted_info.get('profession') and extracted_info['profession'] != 'null':
                 user_memory.role = extracted_info['profession']
             
-            if extracted_info.get('interests'):
+            if extracted_info.get('interests') and isinstance(extracted_info['interests'], list):
                 current_interests = user_memory.interests or []
-                new_interests = [i for i in extracted_info['interests'] if i not in current_interests]
+                new_interests = [i for i in extracted_info['interests'] if i and i not in current_interests]
                 user_memory.interests = current_interests + new_interests
             
             # Agregar información adicional
-            if extracted_info.get('pain_points'):
+            if extracted_info.get('pain_points') and isinstance(extracted_info['pain_points'], list):
                 user_memory.pain_points = user_memory.pain_points or []
-                user_memory.pain_points.extend(extracted_info['pain_points'])
-            if extracted_info.get('buying_signals'):
+                user_memory.pain_points.extend([p for p in extracted_info['pain_points'] if p])
+                
+            if extracted_info.get('buying_signals') and isinstance(extracted_info['buying_signals'], list):
                 user_memory.buying_signals = user_memory.buying_signals or []
-                user_memory.buying_signals.extend(extracted_info['buying_signals'])
-            if extracted_info.get('interest_level'):
+                user_memory.buying_signals.extend([s for s in extracted_info['buying_signals'] if s])
+                
+            if extracted_info.get('interest_level') and extracted_info['interest_level'] in ['low', 'medium', 'high']:
                 user_memory.interest_level = extracted_info['interest_level']
                 
         except Exception as e:
-            logger.error(f"Error extrayendo información del usuario: {e}", exc_info=True)
+            logger.debug(f"Error extrayendo información del usuario: {e}")
+            # No logear como error ya que esto es opcional y no debe afectar el funcionamiento
 
     async def _process_response(self, response_text: str, user_memory: LeadMemory) -> List[Dict[str, str]]:
         """Procesa la respuesta del LLM y maneja múltiples mensajes"""
