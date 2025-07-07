@@ -63,6 +63,8 @@ class SmartSalesAgent:
         # Inicializar el agente inteligente con la API key
         try:
             self.intelligent_agent = IntelligentSalesAgent(settings.OPENAI_API_KEY, db)
+            # CRÍTICO: Configurar agent_tools en el agente inteligente
+            self.intelligent_agent.agent_tools = agent
         except Exception as e:
             logger.error(f"Error inicializando agente inteligente: {e}")
             self.intelligent_agent = None

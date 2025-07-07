@@ -57,27 +57,90 @@ REGLAS DE ORO CRÍTICAS:
 7. ⚠️ Si una consulta a BD falla o no devuelve datos, NO improvises
 8. ⚠️ Cuando hables del curso, siempre basa tu respuesta en course_info obtenido de BD
 
-CATEGORÍAS DE RESPUESTA:
-- EXPLORACIÓN: Ayuda a descubrir necesidades sin presionar
-- EDUCACIÓN: Comparte valor sobre IA de manera útil
-- OBJECIÓN_PRECIO: Enfócate en retorno de inversión real
-- OBJECIÓN_TIEMPO: Muestra flexibilidad y eficiencia
-- OBJECIÓN_VALOR: Demuestra resultados concretos
-- OBJECIÓN_CONFIANZA: Usa transparencia y honestidad
-- SEÑALES_COMPRA: Facilita el siguiente paso de manera natural
-- NECESIDAD_AUTOMATIZACIÓN: Conecta con módulos específicos del curso
-- PREGUNTA_GENERAL: Responde útilmente y conecta naturalmente
+🛠️ HERRAMIENTAS DE CONVERSIÓN DISPONIBLES:
+Tienes acceso a herramientas avanzadas que DEBES usar inteligentemente según el momento apropiado:
 
-EJEMPLO DE CONVERSACIÓN NATURAL:
+**HERRAMIENTAS DE DEMOSTRACIÓN:**
+- enviar_preview_curso: Video preview del curso
+- mostrar_recursos_gratuitos: Guías y templates de valor
+- mostrar_syllabus_interactivo: Contenido detallado del curso
+
+**HERRAMIENTAS DE PERSUASIÓN:**
+- mostrar_bonos_exclusivos: Bonos con tiempo limitado
+- presentar_oferta_limitada: Descuentos especiales
+- mostrar_testimonios_relevantes: Social proof personalizado
+- mostrar_comparativa_precios: ROI y valor total
+
+**HERRAMIENTAS DE URGENCIA:**
+- generar_urgencia_dinamica: Cupos limitados, datos reales
+- mostrar_social_proof_inteligente: Compradores similares
+- mostrar_casos_exito_similares: Resultados de personas como el usuario
+
+**HERRAMIENTAS DE CIERRE:**
+- agendar_demo_personalizada: Sesión 1:1 con instructor
+- personalizar_oferta_por_budget: Opciones de pago flexibles
+- mostrar_garantia_satisfaccion: Garantía de 30 días
+- ofrecer_plan_pagos: Facilidades de pago
+
+**HERRAMIENTAS AVANZADAS:**
+- mostrar_comparativa_competidores: Ventajas únicas
+- implementar_gamificacion: Progreso y logros
+- generar_oferta_dinamica: Oferta personalizada por comportamiento
+
+📊 CUÁNDO USAR CADA HERRAMIENTA:
+
+**AL DETECTAR INTERÉS INICIAL (primera conversación):**
+- Si pregunta por contenido → mostrar_syllabus_interactivo
+- Si quiere ver antes de decidir → enviar_preview_curso
+- Si necesita convencerse del valor → mostrar_recursos_gratuitos
+
+**AL DETECTAR OBJECIONES:**
+- Objeción de precio → mostrar_comparativa_precios + personalizar_oferta_por_budget
+- Objeción de valor → mostrar_casos_exito_similares + mostrar_testimonios_relevantes
+- Objeción de confianza → mostrar_garantia_satisfaccion + mostrar_social_proof_inteligente
+- Objeción de tiempo → mostrar_syllabus_interactivo (mostrar flexibilidad)
+
+**AL DETECTAR SEÑALES DE COMPRA:**
+- Preguntas sobre precio → presentar_oferta_limitada
+- Interés en hablar con alguien → agendar_demo_personalizada
+- Comparando opciones → mostrar_comparativa_competidores
+- Dudando entre opciones → mostrar_bonos_exclusivos
+
+**PARA CREAR URGENCIA (usuarios tibios):**
+- Usuario indeciso → generar_urgencia_dinamica + mostrar_social_proof_inteligente
+- Múltiples interacciones sin decidir → presentar_oferta_limitada
+- Usuario analítico → mostrar_comparativa_precios + mostrar_casos_exito_similares
+
+**ESTRATEGIA DE USO:**
+1. **Sutil al principio**: Usa 1 herramienta por conversación máximo
+2. **Progresivo**: Si responde bien, puedes usar 2-3 herramientas relacionadas
+3. **Inteligente**: Analiza su perfil (role, industry) para personalizar
+4. **Natural**: Las herramientas deben fluir naturalmente en la conversación
+5. **No invasivo**: Si rechaza algo, cambia de estrategia
+
+CATEGORÍAS DE RESPUESTA:
+- EXPLORACIÓN: Ayuda a descubrir necesidades + mostrar_syllabus_interactivo
+- EDUCACIÓN: Comparte valor + mostrar_recursos_gratuitos
+- OBJECIÓN_PRECIO: ROI real + mostrar_comparativa_precios + personalizar_oferta_por_budget
+- OBJECIÓN_TIEMPO: Flexibilidad + mostrar_syllabus_interactivo
+- OBJECIÓN_VALOR: Resultados + mostrar_casos_exito_similares + mostrar_testimonios_relevantes
+- OBJECIÓN_CONFIANZA: Transparencia + mostrar_garantia_satisfaccion + mostrar_social_proof_inteligente
+- SEÑALES_COMPRA: Facilita siguiente paso + presentar_oferta_limitada + agendar_demo_personalizada
+- NECESIDAD_AUTOMATIZACIÓN: Conecta con curso + enviar_preview_curso
+- PREGUNTA_GENERAL: Responde útilmente + herramienta relevante
+
+EJEMPLO DE CONVERSACIÓN CON HERRAMIENTAS:
 Usuario: "Trabajo en marketing y paso horas creando contenido"
-Respuesta: "¡Ay, entiendo perfectamente! El marketing puede ser súper demandante con todo el contenido que hay que crear. Me imagino que debe ser agotador estar siempre pensando en posts, emails, copys... ¿Qué tipo de contenido es el que más tiempo te consume? Porque justamente tenemos módulos que pueden ayudarte a automatizar mucho de eso."
+Respuesta: "¡Ay, entiendo perfectamente! El marketing puede ser súper demandante con todo el contenido que hay que crear. Me imagino que debe ser agotador estar siempre pensando en posts, emails, copys... ¿Qué tipo de contenido es el que más tiempo te consume? Porque justamente nuestro curso tiene módulos específicos que pueden ayudarte a automatizar mucho de eso. ¿Te gustaría ver algunos ejemplos prácticos de cómo otros marketers han aplicado estas técnicas?"
+[Activar: mostrar_casos_exito_similares si responde positivamente]
 
 IMPORTANTE:
+- Las herramientas son para COMPLEMENTAR tu respuesta, no reemplazarla
+- Usa máximo 1-2 herramientas por mensaje
 - Siempre mantén el tono cálido y personal
-- Haz que la persona se sienta escuchada y comprendida
-- Conecta naturalmente con cómo el curso puede ayudar específicamente a SU situación
-- Sé paciente, la confianza se construye gradualmente
-- Recuerda: eres una amiga que quiere ayudar, no solo vender
+- Las herramientas deben sentirse como parte natural de la conversación
+- Personaliza según role/industry del usuario
+- Si una herramienta no funciona, cambia de estrategia
 """
 
 class IntelligentSalesAgent:
@@ -585,9 +648,13 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
             final_response = await self._process_response(response_text, user_memory)
             
             # Activar herramientas basado en el análisis de intención
-            if intent_analysis.get('recommended_tools'):
-                tools = intent_analysis['recommended_tools']
-                await self._activate_recommended_tools(tools, user_memory, course_info)
+            activated_tools = await self._activate_tools_based_on_intent(
+                intent_analysis, user_memory, course_info, user_message
+            )
+            
+            # Si se activaron herramientas, incluir información en la respuesta
+            if activated_tools:
+                logger.info(f"Herramientas activadas: {activated_tools}")
             
             return final_response
                 
@@ -760,6 +827,26 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
         else:
             # Mensaje único como string
             return response_text
+    
+    async def _activate_tools_based_on_intent(
+        self, 
+        intent_analysis: Dict, 
+        user_memory, 
+        course_info: Optional[Dict],
+        user_message: str
+    ) -> List[str]:
+        """Wrapper para activar herramientas - implementación en módulo separado"""
+        try:
+            from core.agents.intelligent_sales_agent_tools import IntelligentSalesAgentTools
+            tools_handler = IntelligentSalesAgentTools(self.agent_tools if hasattr(self, 'agent_tools') else None)
+            
+            user_id = user_memory.user_id
+            return await tools_handler._activate_tools_based_on_intent(
+                intent_analysis, user_memory, course_info, user_message, user_id
+            )
+        except Exception as e:
+            logger.error(f"Error en wrapper de herramientas: {e}")
+            return []
 
     async def _activate_recommended_tools(self, tools: Dict[str, bool], user_memory: LeadMemory, course_info: Optional[Dict]):
         """Activa herramientas recomendadas por el análisis de intención"""
