@@ -204,8 +204,41 @@ logger.info(f"🎯 CURSO FIJO del flujo de anuncios: {user_memory.selected_cours
 4. **Escalabilidad**: Sistema preparado para múltiples cursos
 5. **Mantenibilidad**: Código centralizado y bien documentado
 
+## 🛠️ ACTUALIZACIÓN: HERRAMIENTAS DE CONVERSIÓN IMPLEMENTADAS
+
+### **Nuevo Sistema Implementado (2025-07-07)**:
+
+#### **🎯 35+ Herramientas de Conversión Automáticas**
+- **Herramientas de demostración**: preview_curso, recursos_gratuitos, syllabus_interactivo
+- **Herramientas de persuasión**: bonos_exclusivos, oferta_limitada, testimonios_relevantes  
+- **Herramientas de urgencia**: urgencia_dinamica, social_proof_inteligente
+- **Herramientas de cierre**: demo_personalizada, oferta_por_budget, garantia_satisfaccion
+
+#### **🧠 Sistema de Inteligencia Artificial**
+- **Detección automática**: 9 categorías de intención del usuario
+- **Activación inteligente**: Herramientas se activan según contexto
+- **Personalización**: Adaptación por role/industry del usuario
+- **Limitación**: Máximo 2 herramientas por interacción (no invasivo)
+
+#### **📝 Archivos Nuevos Creados**:
+- `core/agents/intelligent_sales_agent_tools.py` - Lógica de activación inteligente
+- `HERRAMIENTAS_CONVERSION_IMPLEMENTADAS.md` - Documentación completa
+- `MEJORAS_BASE_DATOS_REQUERIDAS.md` - Plan para datos reales
+
+#### **🔧 Archivos Modificados**:
+- `core/agents/intelligent_sales_agent.py` - System prompt con herramientas
+- `core/agents/smart_sales_agent.py` - Configuración de agent_tools
+- `core/agents/agent_tools.py` - Herramientas existentes mejoradas
+
+### **🚨 Limitaciones Actuales Identificadas**:
+1. **Testimonios**: Mencionados pero no hay tabla en BD
+2. **Recursos gratuitos**: URLs no funcionales
+3. **Estadísticas**: Datos hardcodeados vs reales
+4. **Demos**: Enlaces de agendamiento no configurados
+5. **Telegram API**: Configuración pendiente en agent_tools
+
 ---
 
 **Fecha de implementación**: 2025-07-07
-**Estado**: ✅ COMPLETAMENTE RESUELTO
-**Próximos pasos**: Bot listo para producción
+**Estado**: ✅ HERRAMIENTAS IMPLEMENTADAS - DATOS REALES PENDIENTES  
+**Próximos pasos**: Completar BD con datos reales para maximizar conversiones

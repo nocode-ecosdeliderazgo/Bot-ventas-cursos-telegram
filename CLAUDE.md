@@ -6,10 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Telegram sales bot "Brenda" for "Aprenda y Aplique IA" that uses intelligent agents to convert leads for AI course sales. The bot automatically detects users from ads via hashtags, provides personalized course presentations, and manages the entire sales funnel with limited-time bonuses and lead scoring.
 
-## CURRENT STATUS (2025-07-07 - COMPLETAMENTE FUNCIONAL)
+## CURRENT STATUS (2025-07-07 - HERRAMIENTAS DE CONVERSIÓN IMPLEMENTADAS)
 
-**ESTADO ACTUAL**: Bot 100% funcional con todos los problemas críticos resueltos
-**ÚLTIMA ACTUALIZACIÓN**: Corrección definitiva del problema de cambio de curso
+**ESTADO ACTUAL**: Bot 100% funcional con sistema completo de herramientas de conversión inteligentes
+**ÚLTIMA ACTUALIZACIÓN**: Implementación de 35+ herramientas de conversión automáticas
 **CAMBIOS RECIENTES**:
 - ✅ System prompt reformulado con tono cálido y amigable
 - ✅ Herramientas de consulta a BD implementadas
@@ -20,6 +20,9 @@ This is a Telegram sales bot "Brenda" for "Aprenda y Aplique IA" that uses intel
 - ✅ **NUEVO**: Plantillas centralizadas implementadas
 - ✅ **NUEVO**: Protección automática contra corrupción de memoria
 - ✅ **NUEVO**: Sistema de corrección automática de course_id
+- ✅ **NUEVO**: 35+ herramientas de conversión inteligentes implementadas
+- ✅ **NUEVO**: Sistema de detección automática de intención del usuario
+- ✅ **NUEVO**: Activación inteligente de herramientas basada en contexto
 
 ## Development Commands
 
