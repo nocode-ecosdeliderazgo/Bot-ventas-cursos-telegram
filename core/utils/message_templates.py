@@ -185,9 +185,9 @@ Justo ahora tenemos una **promoción especial** que termina en pocas horas:
 Este curso no es solo "otro curso de IA". Es una **transformación completa** de tu forma de trabajar:
 
 💼 **Valor profesional real:**
-• Aumenta tu productividad hasta 400%
-• Habilidades demandadas por empresas Fortune 500
-• Salario promedio: +$15,000 USD anuales
+• Mejora significativamente tu productividad
+• Habilidades cada vez más demandadas en el mercado
+• Potencial de crecimiento profesional y salarial
 
 🎯 **Metodología probada:**
 • Casos reales de empresas exitosas
@@ -196,9 +196,9 @@ Este curso no es solo "otro curso de IA". Es una **transformación completa** de
 • Mentoría personalizada
 
 ⭐ **Resultados de nuestros estudiantes:**
-• 94% consigue mejor empleo en 6 meses
-• 87% inicia proyecto propio exitoso
-• 100% recomienda el curso
+• Alta satisfacción con el contenido
+• Mejora notable en habilidades de IA
+• Recomendación positiva del curso
 
 {user_name}, no estás comprando un curso... estás invirtiendo en tu futuro profesional.
 

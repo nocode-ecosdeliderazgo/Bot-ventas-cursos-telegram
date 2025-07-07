@@ -248,6 +248,9 @@ pip install -r requirements.txt
 - **Problemas críticos solucionados** - Encoding, credenciales, dependencias, funciones faltantes
 - **Limpieza de proyecto** - Archivos temporales eliminados
 - **Seguridad mejorada** - .gitignore creado
+- **Memoria persistente mejorada** - Implementado manejo de usuarios que regresan
+- **Manejo de errores robusto** - Validaciones para archivos multimedia
+- **Integración con Supabase** - Obtención dinámica de información de cursos
 
 ### 🎯 ESTADO FINAL
 El bot está **90% operacional** con una arquitectura sólida y implementación profesional. Las funcionalidades core están completas y funcionando. El único problema pendiente es la compatibilidad de asyncpg en el ambiente WSL, que no impide el funcionamiento básico del bot.

@@ -4,7 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Telegram sales bot that uses intelligent agents to convert leads for AI course sales. The bot automatically detects users from ads via hashtags, provides personalized course presentations, and manages the entire sales funnel with limited-time bonuses and lead scoring.
+This is a Telegram sales bot "Brenda" for "Aprenda y Aplique IA" that uses intelligent agents to convert leads for AI course sales. The bot automatically detects users from ads via hashtags, provides personalized course presentations, and manages the entire sales funnel with limited-time bonuses and lead scoring.
+
+## CURRENT STATUS (2025-07-07)
+
+**RESET STATE**: User has reset code to last commit and removed all name management functionality
+**REQUESTED TASK**: Re-implement ONLY the name request functionality after privacy acceptance
+**REQUIREMENTS**: 
+- After privacy acceptance, ask for preferred name
+- Show files (PDF/image) and course summary after name collection
+- Don't change other things - focus ONLY on name request feature
+- Clean up fake statistics from message templates
 
 ## Development Commands
 
@@ -81,6 +91,13 @@ psql -d your_database -f database/sql/limited_time_bonuses_rows.sql
 - **Lead Scoring**: Dynamic scoring system to prioritize high-intent users
 - **Hashtag Detection**: Automatic course and campaign source identification
 
+### CURRENT IMPLEMENTATION STATUS
+
+- **ads_flow.py**: Simplified, lacks name handling (lines 77-82)
+- **memory.py**: Missing preferred_name field (removed from LeadMemory class)
+- **message_templates.py**: Still contains fake statistics (lines 200-203, 210-213)
+- **Bot is 95% functional** but user reset changes to focus on name request only
+
 ### Database Schema
 
 The bot uses PostgreSQL with these key tables:
@@ -116,19 +133,31 @@ The bot automatically detects:
 - Course hashtags (e.g., `#CURSO_IA_CHATGPT`) to identify user interest
 - Campaign hashtags (e.g., `#ADSIM_01`) to track advertising sources
 
-### Lead Conversion Process
+### Lead Conversion Process (CURRENT FOCUS)
 1. **Detection**: Identify ad source and course interest from hashtags
-2. **Scoring**: Calculate lead score based on interactions and behavior
-3. **Personalization**: Provide course-specific presentations and offers
-4. **Conversion**: Present limited-time bonuses and scheduling options
-5. **Follow-up**: Automated follow-up sequences based on user actions
+2. **Privacy**: Show privacy notice and get acceptance
+3. **NAME REQUEST**: After privacy acceptance, ask for preferred name ⚠️ NEEDS RE-IMPLEMENTATION
+4. **Personalization**: Show files and course summary with user's name
+5. **Conversion**: Present limited-time bonuses and scheduling options
+6. **Follow-up**: Automated follow-up sequences based on user actions
 
 ### Memory System
 - Each user has persistent conversation memory stored in `memorias/`
 - Context includes interaction history, preferences, and lead score
 - Memory is used to provide personalized responses and avoid repetition
+- **MISSING**: preferred_name field needs to be re-added to LeadMemory class
 
 ## Development Guidelines
+
+### CURRENT TASK: Re-implement Name Request Feature
+
+**FOCUS AREAS**:
+1. **memory.py**: Add preferred_name field back to LeadMemory class
+2. **ads_flow.py**: Add name request stage after privacy acceptance
+3. **message_templates.py**: Remove fake statistics (lines 200-203, 210-213)
+4. **Flow**: Privacy → Name Request → Files + Course Summary
+
+**USER INSTRUCTION**: "no cambies otras cosas extra solo corrige lo que te estoy diciendo"
 
 ### Adding New Flows
 1. Create handler in `core/handlers/`
@@ -153,3 +182,79 @@ Use the provided verification scripts to ensure components work correctly:
 - `verificar_servicios.py`: Test service connections
 - `test_imports.py`: Verify all imports work
 - `test_env.py`: Check environment configuration
+
+## IMPORTANT REMINDERS FOR CLAUDE
+
+### CURRENT CONTEXT
+- **Bot Name**: "Brenda" from "Aprenda y Aplique IA"
+- **Current State**: Code reset to last commit, name functionality removed
+- **User Request**: Re-implement ONLY name request after privacy acceptance
+- **Key Requirement**: Show files and course summary after name collection
+- **Critical**: Don't change extra things, focus only on what's requested
+
+### FILES THAT NEED MODIFICATION
+1. `core/utils/memory.py` - Add preferred_name field to LeadMemory class
+2. `core/handlers/ads_flow.py` - Add name request stage after privacy
+3. `core/utils/message_templates.py` - Remove fake statistics
+
+### TESTING FLOW
+1. Send: `#CURSO_IA_CHATGPT #ADSIM_01`
+2. Accept privacy notice
+3. Bot asks for name
+4. User provides name
+5. Bot shows files (PDF/image) and course summary
+
+### CRITICAL RULES FOR THIS SESSION
+1. **ONLY** implement name request functionality after privacy acceptance
+2. **ONLY** modify files necessary for name request feature
+3. **REMOVE** fake statistics from message templates (lines 200-203, 210-213)
+4. **FOCUS** on: Privacy → Name Request → Files + Course Summary
+5. **DON'T** change other things beyond what's specifically requested
+
+## AGENTE INTELIGENTE
+
+### CONCEPTO ACTUALIZADO
+El agente inteligente es un LLM completo con capacidades de:
+- **Procesamiento conversacional**: Análisis de intención y contexto
+- **Uso de herramientas**: Acceso a BD, generación de demos, bonos
+- **Memoria avanzada**: Acumulación de información del usuario
+- **Personalización**: Respuestas adaptadas al perfil del usuario
+
+### ACTIVACIÓN DEL AGENTE
+El agente inteligente se activa ÚNICAMENTE después de completar cualquiera de estos flujos:
+1. **Flujo de Anuncios**: Hashtags → Privacidad → Nombre → Archivos → "¿Qué te gustaría saber más sobre este curso?"
+2. **Flujo Manual**: Inicio manual → Privacidad → Fin
+
+### CARACTERÍSTICAS DEL AGENTE
+- **Tono**: Cálido, amigable, como hablar con un amigo
+- **Estrategia**: Preguntas sutiles pero estratégicas para extraer información
+- **Memoria**: Procesa y almacena información crítica en JSON
+- **Personalización**: Genera user prompt dinámico con información acumulada
+- **Veracidad**: Solo información 100% real de la base de datos
+
+### FLUJO DEL AGENTE INTELIGENTE
+1. **Análisis**: LLM analiza mensaje del usuario
+2. **Extracción**: Identifica información relevante del usuario
+3. **Almacenamiento**: Guarda datos críticos en memoria JSON
+4. **Contextualización**: Genera prompt personalizado
+5. **Respuesta**: LLM genera respuesta personalizada usando contexto
+6. **Herramientas**: Activa bonos, demos, etc. según necesidad
+
+### CHECKLIST DE IMPLEMENTACIÓN
+
+| Componente | Estado | Validación Manual | Validación Automática |
+|------------|---------|-------------------|----------------------|
+| ✅ Activación post-flujos | ⬜ | ⬜ | ⬜ |
+| ✅ System prompt actualizado | ⬜ | ⬜ | ⬜ |
+| ✅ Análisis de mensajes | ⬜ | ⬜ | ⬜ |
+| ✅ Extracción de información | ⬜ | ⬜ | ⬜ |
+| ✅ Memoria JSON actualizada | ⬜ | ⬜ | ⬜ |
+| ✅ Respuestas personalizadas | ⬜ | ⬜ | ⬜ |
+| ✅ Integración con BD | ⬜ | ⬜ | ⬜ |
+| ✅ Herramientas de ventas | ⬜ | ⬜ | ⬜ |
+
+### PRÓXIMOS PASOS
+1. **Reformular system prompt** - Agente de ventas cálido y estratégico
+2. **Implementar activación** - Solo después de flujos predefinidos
+3. **Mejorar memoria** - Almacenamiento inteligente de información
+4. **Testing** - Validar que no rompe flujos existentes

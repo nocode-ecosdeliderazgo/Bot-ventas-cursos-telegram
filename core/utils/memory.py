@@ -99,6 +99,33 @@ class LeadMemory:
             data['created_at'] = data['created_at'].isoformat()
         if data['updated_at']:
             data['updated_at'] = data['updated_at'].isoformat()
+        
+        # Convertir cualquier UUID a string para JSON
+        def convert_uuids(obj):
+            if hasattr(obj, '__dict__'):
+                for key, value in obj.__dict__.items():
+                    if hasattr(value, 'hex'):  # Es un UUID
+                        setattr(obj, key, str(value))
+            elif isinstance(obj, dict):
+                for key, value in obj.items():
+                    if hasattr(value, 'hex'):  # Es un UUID
+                        obj[key] = str(value)
+                    elif isinstance(value, (dict, list)):
+                        convert_uuids(value)
+            elif isinstance(obj, list):
+                for i, item in enumerate(obj):
+                    if hasattr(item, 'hex'):  # Es un UUID
+                        obj[i] = str(item)
+                    elif isinstance(item, (dict, list)):
+                        convert_uuids(item)
+        
+        # Aplicar conversión recursiva a todos los campos
+        for key, value in data.items():
+            if hasattr(value, 'hex'):  # Es un UUID
+                data[key] = str(value)
+            elif isinstance(value, (dict, list)):
+                convert_uuids(value)
+        
         return data
     
     @classmethod

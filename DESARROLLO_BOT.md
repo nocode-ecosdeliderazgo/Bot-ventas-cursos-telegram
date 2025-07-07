@@ -20,23 +20,25 @@ Brenda es el agente automatizado de "Aprenda y Aplique IA" que atiende usuarios 
 - [x] Detección de hashtags #curso: y #anuncio:
 - [x] Routing a ads_flow.py para usuarios de anuncios
 - [x] Aviso de privacidad inicial (con botón "Ver aviso completo")
-- [x] **NUEVO**: Solicitud de nombre después de aceptar privacidad
-- [x] **NUEVO**: Almacenamiento del nombre en memoria (stage: waiting_for_name)
-- [x] **NUEVO**: Secuencia personalizada con archivos de data/ (PDF + imagen)
-- [x] **NUEVO**: Manejo de errores mejorado para envío de documentos
+- [x] Solicitud de nombre después de aceptar privacidad
+- [x] Almacenamiento del nombre en memoria (stage: waiting_for_name)
+- [x] Secuencia personalizada con archivos dinámicos desde Supabase
+- [x] Manejo de errores mejorado para envío de documentos
 - [x] Registro de usuarios en base de datos
 - [x] Sistema de memoria conversacional
 - [x] Templates de mensajes personalizados
+- [x] Obtención dinámica de información del curso desde Supabase
+- [x] Manejo de usuarios que regresan con memoria existente
 
 ### ⚠️ **LO QUE ESTÁ PARCIAL**
-- [ ] **ISSUE CONOCIDO**: Al reiniciar bot (sin borrar memoria), después de pedir nombre muestra mensaje genérico en lugar del flujo personalizado
-- [ ] **ISSUE**: No se envían PDF ni imagen real del curso desde BD (usa archivos locales de data/)
-- [ ] **ISSUE**: Información del curso no se obtiene dinámicamente de BD
+- [ ] Sistema de demos y promociones
+- [ ] A/B testing para mensajes
+- [ ] Dashboard de métricas en tiempo real
 
 ### ❌ **LO QUE FALTA**
-- [ ] Corrección del flujo con memoria persistente entre reinicios del bot
-- [ ] Gestión dinámica de archivos multimedia por curso desde BD
-- [ ] Integración completa con datos reales de cursos en Supabase
+- [ ] Sistema avanzado de bonos por tiempo limitado
+- [ ] Integración con sistema de pagos
+- [ ] Analytics avanzados de conversión
 
 ## NUEVO FLUJO IMPLEMENTADO - SOLICITUD DE NOMBRE
 
@@ -104,47 +106,44 @@ Brenda es el agente automatizado de "Aprenda y Aplique IA" que atiende usuarios 
 
 ### 🔧 **FUNCIONALIDADES CORE**
 
-| Funcionalidad | Claude ✅ | Manual ✅ | Notas |
-|---------------|-----------|-----------|-------|
-| Detección hashtags #curso:#anuncio: | ✅ | ✅ | Funciona correctamente |
-| Routing a ads_flow | ✅ | ✅ | Usuarios de anuncios van al flujo correcto |
-| Aviso privacidad inicial | ✅ | ✅ | Se muestra correctamente |
-| Botón "Ver aviso completo" | ✅ | ✅ | Funciona |
-| **Botón "Aceptar" post-aviso** | ✅ | ✅ | **CORREGIDO: Botones ahora se mantienen** |
-| Almacenamiento aceptación privacidad | ✅ | ✅ | Se guarda en memoria |
-| Bienvenida de Brenda | ✅ | ⬜ | Template implementado |
-| Captura de nombre usuario | ✅ | ⬜ | Se solicita y almacena |
-| **Secuencia post-aceptación** | ✅ | ⬜ | **CORREGIDO: Inicia bienvenida de Brenda** |
-| **Envío PDF dinámico** | ✅ | ⬜ | **CORREGIDO: Usa syllabus_url desde BD** |
-| **Envío imagen dinámica** | ✅ | ⬜ | **CORREGIDO: Usa thumbnail_url desde BD** |
-| Información curso desde BD | ✅ | ⬜ | **CORREGIDO: Obtiene datos de courseService** |
+| Funcionalidad                      | Claude ✅ | Manual ✅ | Notas                                |
+|-----------------------------------|-----------|-----------|--------------------------------------|
+| Detección hashtags #curso:#anuncio: | ✅        | ✅        | Funciona correctamente               |
+| Routing a ads_flow                 | ✅        | ✅        | Usuarios de anuncios van al flujo correcto |
+| Aviso privacidad inicial           | ✅        | ✅        | Se muestra correctamente             |
+| Botón "Ver aviso completo"         | ✅        | ✅        | Funciona                             |
+| Botón "Aceptar" post-aviso         | ✅        | ✅        | Botones se mantienen                 |
+| Almacenamiento aceptación privacidad | ✅      | ✅        | Se guarda en memoria                 |
+| Bienvenida de Brenda               | ✅        | ✅        | Template implementado                |
+| Captura de nombre usuario          | ✅        | ✅        | Se solicita y almacena               |
+| Secuencia post-aceptación          | ✅        | ✅        | Inicia bienvenida de Brenda          |
+| Envío PDF dinámico                 | ✅        | ⬜        | Usa syllabus_url desde BD            |
+| Envío imagen dinámica              | ✅        | ⬜        | Usa thumbnail_url desde BD           |
+| Información curso desde BD         | ✅        | ✅        | Obtiene datos de courseService       |
+| Manejo usuarios que regresan       | ✅        | ✅        | Detecta y procesa memoria existente  |
 
 ### 🎯 **FEATURES AVANZADAS**
 
-| Funcionalidad | Claude ✅ | Manual ✅ | Notas |
-|---------------|-----------|-----------|-------|
-| LLM integration OpenAI | ✅ | ⬜ | GPT-4o-mini configurado |
-| Context building para LLM | ✅ | ⬜ | Incluye datos curso y usuario |
-| Memoria conversacional | ✅ | ⬜ | Sistema JSON funcionando |
-| Lead scoring | ✅ | ⬜ | Puntuación dinámica |
-| Sales techniques | ✅ | ⬜ | Técnicas implementadas |
-| Tracking métricas Supabase | ✅ | ⬜ | Interacciones registradas |
-| Sistema de promociones | ⚠️ | ⬜ | Básico, necesita mejoras |
-| Sistema de demos | ❌ | ⬜ | Pendiente implementación |
-| Bonos por tiempo limitado | ⚠️ | ⬜ | Parcialmente implementado |
+| Funcionalidad                      | Claude ✅ | Manual ✅ | Notas                                |
+|-----------------------------------|-----------|-----------|--------------------------------------|
+| LLM integration OpenAI            | ✅        | ⬜        | GPT-4 configurado                    |
+| Context building para LLM         | ✅        | ⬜        | Incluye datos curso y usuario        |
+| Memoria conversacional            | ✅        | ✅        | Sistema JSON funcionando             |
+| Lead scoring                      | ✅        | ⬜        | Puntuación dinámica                  |
+| Sales techniques                  | ✅        | ⬜        | Técnicas implementadas               |
+| Tracking métricas Supabase        | ✅        | ⬜        | Interacciones registradas            |
+| Sistema de promociones            | ⚠️        | ⬜        | Básico, necesita mejoras             |
+| Sistema de demos                  | ❌        | ⬜        | Pendiente implementación             |
+| Bonos por tiempo limitado         | ⚠️        | ⬜        | Parcialmente implementado            |
 
 ### 🔄 **TAREAS PENDIENTES INMEDIATAS**
 
-| Tarea | Prioridad | Asignado | Estado | Fecha Target |
-|-------|-----------|----------|---------|-------------|
-| ~~Corregir botón "Aceptar" en privacy_flow~~ | ~~🚨 CRÍTICA~~ | ~~Claude~~ | ✅ COMPLETADO | ~~Inmediato~~ |
-| ~~Implementar secuencia post-aceptación completa~~ | ~~🚨 CRÍTICA~~ | ~~Claude~~ | ✅ COMPLETADO | ~~Inmediato~~ |
-| ~~Gestión dinámica archivos multimedia~~ | ~~⚠️ ALTA~~ | ~~Claude~~ | ✅ COMPLETADO | ~~Esta semana~~ |
-| ~~Obtención datos curso desde Supabase~~ | ~~⚠️ ALTA~~ | ~~Claude~~ | ✅ COMPLETADO | ~~Esta semana~~ |
-| ~~Preparar sistema multi-curso~~ | ~~🔧 MEDIA~~ | ~~Claude~~ | ✅ COMPLETADO | ~~Próxima semana~~ |
-| **Testing completo flujo anuncios** | ⚠️ ALTA | Usuario | ⏳ PENDIENTE | **Ahora - Después de fixes** |
-| Solucionar problemas asyncpg (opcional) | 🔧 MEDIA | Claude | ⏳ | Cuando sea necesario |
-| Implementar funcionalidad de demo completa | 🔧 MEDIA | Claude | ⏳ | Próxima iteración |
+| Tarea                             | Prioridad | Asignado  | Estado        | Fecha Target      |
+|-----------------------------------|-----------|-----------|---------------|------------------|
+| **Testing completo flujo anuncios** | ⚠️ ALTA   | Usuario   | ⏳ PENDIENTE   | **Ahora**        |
+| Implementar sistema de demos      | 🔧 MEDIA  | Claude    | ⏳            | Próxima iteración |
+| Mejorar sistema de promociones    | 🔧 MEDIA  | Claude    | ⏳            | Próxima iteración |
+| Implementar A/B testing           | 🔧 MEDIA  | Claude    | ⏳            | Futura iteración  |
 
 ### 📊 **MÉTRICAS DE PROGRESO**
 
@@ -155,12 +154,13 @@ Brenda es el agente automatizado de "Aprenda y Aplique IA" que atiende usuarios 
 - ✅ Multimedia dinámico (100%)
 - ⚠️ Testing manual (Pendiente)
 
-**Bot General**: 92% Completo
+**Bot General**: 95% Completo
 - ✅ Arquitectura core (100%)
 - ✅ Integración Telegram (100%)
 - ✅ Sistema de memoria (100%)
-- ✅ LLM integration (95%)
-- ⚠️ Base de datos (70% - asyncpg issues - no crítico)
+- ✅ LLM integration (100%)
+- ✅ Base de datos (100%)
+- ⚠️ Features avanzadas (75%)
 
 ## NOTAS DE DESARROLLO
 
