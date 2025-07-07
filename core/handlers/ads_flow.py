@@ -152,24 +152,22 @@ Antes de mostrarte toda la información del curso, ¿cómo te gustaría que te l
             response_items = []
             
             # 1. Enviar PDF si está disponible
-            if course_details.get('pdf_url') or course_details.get('syllabus_pdf'):
-                pdf_path = course_details.get('pdf_url') or course_details.get('syllabus_pdf')
-                if pdf_path:
-                    response_items.append({
-                        "type": "document",
-                        "path": pdf_path,
-                        "caption": "📚 Aquí tienes el PDF descriptivo del curso"
-                    })
+            syllabus_url = course_details.get('syllabus_url')
+            if syllabus_url:
+                response_items.append({
+                    "type": "document",
+                    "url": syllabus_url,
+                    "caption": "📚 Aquí tienes el PDF descriptivo del curso"
+                })
             
             # 2. Enviar imagen si está disponible
-            if course_details.get('thumbnail_url') or course_details.get('image_url'):
-                image_path = course_details.get('thumbnail_url') or course_details.get('image_url')
-                if image_path:
-                    response_items.append({
-                        "type": "image",
-                        "path": image_path,
-                        "caption": "🎯 Imagen del curso"
-                    })
+            thumbnail_url = course_details.get('thumbnail_url')
+            if thumbnail_url:
+                response_items.append({
+                    "type": "image",
+                    "url": thumbnail_url,
+                    "caption": "🎯 Imagen del curso"
+                })
             
             # 3. Enviar datos del curso
             course_info = self._format_course_info(course_details)

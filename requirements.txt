@@ -10,4 +10,5 @@ aiohttp==3.9.3
 python-dateutil==2.9.0
 pydantic==2.6.3
 pydantic-settings==2.2.1
-structlog==24.1.0 
+structlog==24.1.0
+openai>=1.0.0 

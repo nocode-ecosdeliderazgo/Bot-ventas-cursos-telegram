@@ -4,7 +4,7 @@ import os
 import logging
 import asyncio
 from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters
-from telegram import Update
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from core.services.database import DatabaseService
 from core.agents.agent_tools import AgentTools
 from core.agents.smart_sales_agent import SmartSalesAgent
@@ -20,6 +20,7 @@ logging.basicConfig(
     handlers=[
         logging.FileHandler('bot.log', encoding='utf-8'),
         logging.StreamHandler()
+        
     ]
 )
 logger = logging.getLogger(__name__)
@@ -138,11 +139,37 @@ class VentasBot:
                             parse_mode='Markdown'
                         )
                     elif item.get('type') == 'image':
-                        with open(item['path'], 'rb') as img_file:
-                            await message.reply_photo(img_file)
+                        # Manejar tanto URLs como archivos locales
+                        if item.get('url'):
+                            await message.reply_photo(
+                                photo=item['url'],
+                                caption=item.get('caption', '')
+                            )
+                        elif item.get('path'):
+                            try:
+                                with open(item['path'], 'rb') as img_file:
+                                    await message.reply_photo(
+                                        photo=img_file,
+                                        caption=item.get('caption', '')
+                                    )
+                            except FileNotFoundError:
+                                logger.warning(f"Archivo de imagen no encontrado: {item['path']}")
                     elif item.get('type') == 'document':
-                        with open(item['path'], 'rb') as doc_file:
-                            await message.reply_document(doc_file)
+                        # Manejar tanto URLs como archivos locales
+                        if item.get('url'):
+                            await message.reply_document(
+                                document=item['url'],
+                                caption=item.get('caption', '')
+                            )
+                        elif item.get('path'):
+                            try:
+                                with open(item['path'], 'rb') as doc_file:
+                                    await message.reply_document(
+                                        document=doc_file,
+                                        caption=item.get('caption', '')
+                                    )
+                            except FileNotFoundError:
+                                logger.warning(f"Archivo PDF no encontrado: {item['path']}")
 
         except Exception as e:
             logger.error(f"Error handling message: {str(e)}", exc_info=True)
@@ -275,7 +302,43 @@ class VentasBot:
                 user_memory.privacy_accepted = True
                 self.global_memory.save_lead_memory(user_id, user_memory)
             
-            message = "¡Gracias por aceptar! 😊\n\nAhora podemos continuar con el proceso."
+            # Iniciar secuencia post-aceptación completa según las imágenes de referencia
+            if self.ads_flow_handler and user_memory:
+                # Obtener course_id de la memoria o usar el curso por defecto
+                course_hashtag = user_memory.ad_source or "#CURSO_IA_CHATGPT"
+                course_id = "a392bf83-4908-4807-89a9-95d0acc807c9"  # ID del curso IA ChatGPT
+                
+                try:
+                    # Marcar que Brenda ya se presentó y privacidad aceptada
+                    user_memory.brenda_introduced = True
+                    user_memory.selected_course = course_id
+                    self.global_memory.save_lead_memory(str(user_data['id']), user_memory)
+                    
+                    # Crear secuencia completa: Bienvenida + Presentación del curso
+                    user_name = user_data.get('first_name', 'Usuario')
+                    brenda_message = f"""¡Gracias por aceptar! 😊
+
+¡Hola {user_name}! 👋
+
+Soy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayudar.
+
+A continuación te comparto toda la información del curso:"""
+                    
+                    # Preparar la respuesta como lista que incluye bienvenida + materiales del curso
+                    complete_response = [{"type": "text", "content": brenda_message}]
+                    
+                    # Obtener presentación del curso (PDF, imagen, datos)
+                    course_presentation, course_keyboard = await self.ads_flow_handler._present_course(user_data, course_id)
+                    if isinstance(course_presentation, list):
+                        complete_response.extend(course_presentation)
+                    
+                    return complete_response, course_keyboard
+                    
+                except Exception as e:
+                    logger.error(f"Error en secuencia post-aceptación: {e}")
+            
+            # Fallback si hay error
+            message = "¡Gracias por aceptar! 😊\n\nSoy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayudar.\n\n¿Cómo te gustaría que te llame?"
             return message, None
             
         elif callback_data == "privacy_decline":
@@ -293,7 +356,13 @@ Si cambias de opinión y quieres conocer más sobre nuestros cursos de IA, estar
                 message = self.templates.get_full_privacy_policy()
             else:
                 message = "Aviso de privacidad no disponible temporalmente."
-            return message, None
+            
+            # Mantener los botones para que el usuario pueda aceptar o rechazar
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("✅ Acepto", callback_data="privacy_accept")],
+                [InlineKeyboardButton("❌ No acepto", callback_data="privacy_decline")]
+            ])
+            return message, keyboard
         
         return "Opción no reconocida.", None
 
