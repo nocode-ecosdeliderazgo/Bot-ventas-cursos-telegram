@@ -103,15 +103,23 @@ class VentasBot:
                 'username': user.username or ''
             }
             
-            # Verificar si el usuario está en proceso de proporcionar su nombre
+            # Obtener memoria del usuario para decidir routing
             user_memory = self.global_memory.get_lead_memory(str(user.id))
+            
+            # Verificar si el usuario está en proceso de proporcionar su nombre
             if user_memory.privacy_accepted and user_memory.stage == "waiting_for_name":
                 # El usuario está proporcionando su nombre
                 response, keyboard = await self.handle_name_input(message_data, user_data)
             elif has_course_hashtag and has_ad_hashtag:
-                # Flujo de anuncios - usuario viene desde publicidad
-                logger.info(f"Usuario {user.id} viene de anuncio, procesando con ads_flow")
-                response, keyboard = await self.handle_ad_flow(message_data, user_data, hashtags)
+                # Flujo de anuncios - verificar estado del usuario
+                if user_memory.privacy_accepted and user_memory.name:
+                    # Usuario ya completó el flujo anteriormente - mostrar directamente secuencia post-nombre
+                    logger.info(f"Usuario {user.id} con memoria existente, mostrando secuencia directa")
+                    response, keyboard = await self.handle_returning_user_with_ads(user_data)
+                else:
+                    # Usuario nuevo o incompleto - procesar con ads_flow normal
+                    logger.info(f"Usuario {user.id} viene de anuncio, procesando con ads_flow")
+                    response, keyboard = await self.handle_ad_flow(message_data, user_data, hashtags)
             else:
                 # Flujo conversacional normal
                 logger.info(f"Usuario {user.id} en conversación normal")
@@ -202,6 +210,88 @@ class VentasBot:
                     "Lo siento, hubo un error procesando tu mensaje. Por favor, intenta nuevamente."
                 )
 
+    async def handle_returning_user_with_ads(self, user_data: dict):
+        """
+        Maneja usuarios que ya completaron el flujo pero envían hashtags de anuncio nuevamente.
+        Muestra directamente la secuencia post-nombre usando información de memoria.
+        """
+        try:
+            user_id = str(user_data['id'])
+            user_memory = self.global_memory.get_lead_memory(user_id)
+            
+            # Usar nombre de memoria
+            user_name = user_memory.name or user_data.get('first_name', 'Usuario')
+            
+            logger.info(f"Usuario {user_id} regresando con memoria existente, nombre: {user_name}")
+            
+            # Preparar secuencia de bienvenida personalizada + archivos (igual que handle_name_input)
+            welcome_message = f"""¡Hola de nuevo {user_name}! 😊
+
+Soy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayudar.
+
+A continuación te comparto toda la información del curso:"""
+            
+            # Obtener información del curso desde Supabase
+            course_id = "a392bf83-4908-4807-89a9-95d0acc807c9"  # ID del curso IA ChatGPT
+            course_info_text = ""
+            
+            try:
+                if self.ads_flow_handler:
+                    from core.services.courseService import CourseService
+                    course_service = CourseService(self.ads_flow_handler.db)
+                    course_data = await course_service.getCourseDetails(course_id)
+                    if course_data:
+                        # Formatear información del curso
+                        course_info_text = f"""🎓 {course_data.get('name', 'Curso de Inteligencia Artificial')}
+
+{course_data.get('short_description', 'Curso práctico de IA')}
+
+⏱️ Duración: {course_data.get('duration', '12:00:00')}
+📊 Nivel: {course_data.get('level', 'Beginner')}
+💰 Inversión: ${course_data.get('price', '120')} USD
+
+
+¿Qué te gustaría saber más sobre este curso?"""
+                    else:
+                        # Fallback si no se encuentra el curso
+                        course_info_text = """🎓 Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)
+
+Curso práctico de 12 horas dividido en 4 módulos: automatiza tareas, crea documentos, genera imágenes y desarrolla proyectos reales con IA.
+
+⏱️ Duración: 12:00:00
+📊 Nivel: Beginner
+💰 Inversión: $120 USD
+
+
+¿Qué te gustaría saber más sobre este curso?"""
+            except Exception as e:
+                logger.error(f"Error obteniendo datos del curso: {e}")
+                # Fallback si hay error
+                course_info_text = """🎓 Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)
+
+Curso práctico de 12 horas dividido en 4 módulos: automatiza tareas, crea documentos, genera imágenes y desarrolla proyectos reales con IA.
+
+⏱️ Duración: 12:00:00
+📊 Nivel: Beginner
+💰 Inversión: $120 USD
+
+
+¿Qué te gustaría saber más sobre este curso?"""
+            
+            # Preparar respuesta con archivos de data + información del curso
+            response = [
+                {"type": "text", "content": welcome_message},
+                {"type": "document", "path": "data/pdf_prueba.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
+                {"type": "image", "path": "data/imagen_prueba.jpg", "caption": "🎯 Imagen del curso"},
+                {"type": "text", "content": course_info_text}
+            ]
+            
+            return response, None
+            
+        except Exception as e:
+            logger.error(f"Error en handle_returning_user_with_ads: {e}")
+            return "Error procesando tu solicitud. Por favor, intenta nuevamente.", None
+
     async def handle_name_input(self, message_data: dict, user_data: dict):
         """
         Maneja la entrada del nombre del usuario después de aceptar privacidad.
@@ -225,11 +315,59 @@ Soy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayu
 
 A continuación te comparto toda la información del curso:"""
             
-            # Preparar respuesta con archivos de data
+            # Obtener información del curso desde Supabase
+            course_id = "a392bf83-4908-4807-89a9-95d0acc807c9"  # ID del curso IA ChatGPT
+            course_info_text = ""
+            
+            try:
+                if self.ads_flow_handler:
+                    from core.services.courseService import CourseService
+                    course_service = CourseService(self.ads_flow_handler.db)
+                    course_data = await course_service.getCourseDetails(course_id)
+                    if course_data:
+                        # Formatear información del curso
+                        course_info_text = f"""🎓 {course_data.get('name', 'Curso de Inteligencia Artificial')}
+
+{course_data.get('short_description', 'Curso práctico de IA')}
+
+⏱️ Duración: {course_data.get('duration', '12:00:00')}
+📊 Nivel: {course_data.get('level', 'Beginner')}
+💰 Inversión: ${course_data.get('price', '120')} USD
+
+
+¿Qué te gustaría saber más sobre este curso?"""
+                    else:
+                        # Fallback si no se encuentra el curso
+                        course_info_text = """🎓 Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)
+
+Curso práctico de 12 horas dividido en 4 módulos: automatiza tareas, crea documentos, genera imágenes y desarrolla proyectos reales con IA.
+
+⏱️ Duración: 12:00:00
+📊 Nivel: Beginner
+💰 Inversión: $120 USD
+
+
+¿Qué te gustaría saber más sobre este curso?"""
+            except Exception as e:
+                logger.error(f"Error obteniendo datos del curso: {e}")
+                # Fallback si hay error
+                course_info_text = """🎓 Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)
+
+Curso práctico de 12 horas dividido en 4 módulos: automatiza tareas, crea documentos, genera imágenes y desarrolla proyectos reales con IA.
+
+⏱️ Duración: 12:00:00
+📊 Nivel: Beginner
+💰 Inversión: $120 USD
+
+
+¿Qué te gustaría saber más sobre este curso?"""
+            
+            # Preparar respuesta con archivos de data + información del curso
             response = [
                 {"type": "text", "content": welcome_message},
                 {"type": "document", "path": "data/pdf_prueba.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
-                {"type": "image", "path": "data/imagen_prueba.jpg", "caption": "🎯 Imagen del curso: Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)"}
+                {"type": "image", "path": "data/imagen_prueba.jpg", "caption": "🎯 Imagen del curso"},
+                {"type": "text", "content": course_info_text}
             ]
             
             return response, None

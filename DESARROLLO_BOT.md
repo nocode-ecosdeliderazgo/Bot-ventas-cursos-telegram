@@ -110,8 +110,8 @@ Brenda es el agente automatizado de "Aprenda y Aplique IA" que atiende usuarios 
 | Routing a ads_flow | ✅ | ✅ | Usuarios de anuncios van al flujo correcto |
 | Aviso privacidad inicial | ✅ | ✅ | Se muestra correctamente |
 | Botón "Ver aviso completo" | ✅ | ✅ | Funciona |
-| **Botón "Aceptar" post-aviso** | ✅ | ⬜ | **CORREGIDO: Botones ahora se mantienen** |
-| Almacenamiento aceptación privacidad | ✅ | ⬜ | Se guarda en memoria |
+| **Botón "Aceptar" post-aviso** | ✅ | ✅ | **CORREGIDO: Botones ahora se mantienen** |
+| Almacenamiento aceptación privacidad | ✅ | ✅ | Se guarda en memoria |
 | Bienvenida de Brenda | ✅ | ⬜ | Template implementado |
 | Captura de nombre usuario | ✅ | ⬜ | Se solicita y almacena |
 | **Secuencia post-aceptación** | ✅ | ⬜ | **CORREGIDO: Inicia bienvenida de Brenda** |
