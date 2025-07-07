@@ -103,8 +103,12 @@ class VentasBot:
                 'username': user.username or ''
             }
             
-            # Rutear según tipo de mensaje
-            if has_course_hashtag and has_ad_hashtag:
+            # Verificar si el usuario está en proceso de proporcionar su nombre
+            user_memory = self.global_memory.get_lead_memory(str(user.id))
+            if user_memory.privacy_accepted and user_memory.stage == "waiting_for_name":
+                # El usuario está proporcionando su nombre
+                response, keyboard = await self.handle_name_input(message_data, user_data)
+            elif has_course_hashtag and has_ad_hashtag:
                 # Flujo de anuncios - usuario viene desde publicidad
                 logger.info(f"Usuario {user.id} viene de anuncio, procesando con ads_flow")
                 response, keyboard = await self.handle_ad_flow(message_data, user_data, hashtags)
@@ -157,19 +161,39 @@ class VentasBot:
                     elif item.get('type') == 'document':
                         # Manejar tanto URLs como archivos locales
                         if item.get('url'):
-                            await message.reply_document(
-                                document=item['url'],
-                                caption=item.get('caption', '')
-                            )
+                            try:
+                                await message.reply_document(
+                                    document=item['url'],
+                                    caption=item.get('caption', '')
+                                )
+                            except Exception as e:
+                                logger.error(f"Error enviando documento desde URL: {e}")
+                                await message.reply_text(f"❌ Error enviando documento: {item.get('caption', 'Documento')}")
                         elif item.get('path'):
                             try:
-                                with open(item['path'], 'rb') as doc_file:
-                                    await message.reply_document(
-                                        document=doc_file,
-                                        caption=item.get('caption', '')
-                                    )
+                                # Verificar que el archivo existe
+                                if not os.path.exists(item['path']):
+                                    logger.warning(f"Archivo no encontrado: {item['path']}")
+                                    await message.reply_text(f"❌ Archivo no encontrado: {item.get('caption', 'Documento')}")
+                                else:
+                                    # Verificar el tamaño del archivo
+                                    file_size = os.path.getsize(item['path'])
+                                    if file_size > 50 * 1024 * 1024:  # 50MB limit for Telegram
+                                        logger.warning(f"Archivo muy grande: {item['path']} ({file_size} bytes)")
+                                        await message.reply_text(f"❌ Archivo muy grande para enviar: {item.get('caption', 'Documento')}")
+                                    else:
+                                        with open(item['path'], 'rb') as doc_file:
+                                            await message.reply_document(
+                                                document=doc_file,
+                                                caption=item.get('caption', ''),
+                                                filename=os.path.basename(item['path'])
+                                            )
                             except FileNotFoundError:
                                 logger.warning(f"Archivo PDF no encontrado: {item['path']}")
+                                await message.reply_text(f"❌ Archivo no encontrado: {item.get('caption', 'Documento')}")
+                            except Exception as e:
+                                logger.error(f"Error enviando documento {item['path']}: {e}")
+                                await message.reply_text(f"❌ Error enviando documento: {item.get('caption', 'Documento')}")
 
         except Exception as e:
             logger.error(f"Error handling message: {str(e)}", exc_info=True)
@@ -177,6 +201,42 @@ class VentasBot:
                 await message.reply_text(
                     "Lo siento, hubo un error procesando tu mensaje. Por favor, intenta nuevamente."
                 )
+
+    async def handle_name_input(self, message_data: dict, user_data: dict):
+        """
+        Maneja la entrada del nombre del usuario después de aceptar privacidad.
+        """
+        try:
+            user_id = str(user_data['id'])
+            user_name = message_data['text'].strip()
+            
+            # Actualizar memoria con el nombre
+            user_memory = self.global_memory.get_lead_memory(user_id)
+            user_memory.name = user_name
+            user_memory.stage = "name_collected"
+            self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            logger.info(f"Nombre almacenado para usuario {user_id}: {user_name}")
+            
+            # Preparar secuencia de bienvenida personalizada + archivos
+            welcome_message = f"""¡Gracias {user_name}! 😊
+
+Soy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayudar.
+
+A continuación te comparto toda la información del curso:"""
+            
+            # Preparar respuesta con archivos de data
+            response = [
+                {"type": "text", "content": welcome_message},
+                {"type": "document", "path": "data/pdf_prueba.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
+                {"type": "image", "path": "data/imagen_prueba.jpg", "caption": "🎯 Imagen del curso: Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)"}
+            ]
+            
+            return response, None
+            
+        except Exception as e:
+            logger.error(f"Error en handle_name_input: {e}")
+            return "Error procesando tu nombre. Por favor, intenta nuevamente.", None
 
     async def handle_ad_flow(self, message_data: dict, user_data: dict, hashtags: list):
         """
@@ -297,48 +357,14 @@ class VentasBot:
         user_memory = self.global_memory.get_lead_memory(user_id)
         
         if callback_data == "privacy_accept":
-            # Marcar privacidad como aceptada
+            # Marcar privacidad como aceptada y establecer etapa para pedir nombre
             if user_memory:
                 user_memory.privacy_accepted = True
+                user_memory.stage = "waiting_for_name"
                 self.global_memory.save_lead_memory(user_id, user_memory)
             
-            # Iniciar secuencia post-aceptación completa según las imágenes de referencia
-            if self.ads_flow_handler and user_memory:
-                # Obtener course_id de la memoria o usar el curso por defecto
-                course_hashtag = user_memory.ad_source or "#CURSO_IA_CHATGPT"
-                course_id = "a392bf83-4908-4807-89a9-95d0acc807c9"  # ID del curso IA ChatGPT
-                
-                try:
-                    # Marcar que Brenda ya se presentó y privacidad aceptada
-                    user_memory.brenda_introduced = True
-                    user_memory.selected_course = course_id
-                    self.global_memory.save_lead_memory(str(user_data['id']), user_memory)
-                    
-                    # Crear secuencia completa: Bienvenida + Presentación del curso
-                    user_name = user_data.get('first_name', 'Usuario')
-                    brenda_message = f"""¡Gracias por aceptar! 😊
-
-¡Hola {user_name}! 👋
-
-Soy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayudar.
-
-A continuación te comparto toda la información del curso:"""
-                    
-                    # Preparar la respuesta como lista que incluye bienvenida + materiales del curso
-                    complete_response = [{"type": "text", "content": brenda_message}]
-                    
-                    # Obtener presentación del curso (PDF, imagen, datos)
-                    course_presentation, course_keyboard = await self.ads_flow_handler._present_course(user_data, course_id)
-                    if isinstance(course_presentation, list):
-                        complete_response.extend(course_presentation)
-                    
-                    return complete_response, course_keyboard
-                    
-                except Exception as e:
-                    logger.error(f"Error en secuencia post-aceptación: {e}")
-            
-            # Fallback si hay error
-            message = "¡Gracias por aceptar! 😊\n\nSoy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayudar.\n\n¿Cómo te gustaría que te llame?"
+            # Pedir el nombre del usuario
+            message = "¡Gracias por aceptar! 😊\n\n¿Cómo te gustaría que te llame?"
             return message, None
             
         elif callback_data == "privacy_decline":
