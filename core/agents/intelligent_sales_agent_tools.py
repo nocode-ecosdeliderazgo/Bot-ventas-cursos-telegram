@@ -44,8 +44,8 @@ class IntelligentSalesAgentTools:
                     await self.agent_tools.enviar_preview_curso(user_id, course_info['id'])
                     activated_tools.append('enviar_preview_curso')
                 else:
-                    await self.agent_tools.mostrar_recursos_gratuitos(user_id, course_info['id'])
-                    activated_tools.append('mostrar_recursos_gratuitos')
+                    await self.agent_tools.enviar_recursos_gratuitos(user_id, course_info['id'])
+                    activated_tools.append('enviar_recursos_gratuitos')
                     
             elif category == 'OBJECTION_PRICE' and confidence > 0.5:
                 await self.agent_tools.mostrar_comparativa_precios(user_id, course_info['id'])

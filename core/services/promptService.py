@@ -117,14 +117,17 @@ class PromptService:
             El agente NO DEBE:
             1. Contradecir información explícita de los datos
             2. Mencionar bonos que no existan o modificar sus condiciones
-            3. Prometer beneficios específicos no documentados
-            4. Dar información incorrecta sobre fechas de expiración o valores
+            3. Dar información incorrecta sobre fechas de expiración o valores
             
             El agente PUEDE:
             1. Adaptar el lenguaje y tono para conectar con el usuario
             2. Enfatizar beneficios que se derivan lógicamente del contenido
             3. Sugerir usos y aplicaciones razonables del contenido
             4. Mencionar herramientas de venta disponibles (demo, preview, recursos)
+            5. Mencionar recursos gratuitos disponibles en la plataforma (la plataforma tiene recursos en free_resources)
+            6. Ofrecer guías, templates y herramientas complementarias existentes
+            7. Prometer beneficios educativos y de capacitación generales
+            8. Mencionar la existencia de guías de prompts, calendarios de contenido y otros recursos que están en la base de datos
             
             Devuelve ÚNICAMENTE un JSON con el siguiente formato:
             {{

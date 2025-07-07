@@ -203,6 +203,9 @@ class IntelligentSalesAgent:
         # Servicios
         self.course_service = CourseService(db)
         self.prompt_service = PromptService(openai_api_key)
+        
+        # Agent tools - será asignado por SmartSalesAgent
+        self.agent_tools = None
 
     async def _analyze_user_intent(self, user_message: str, user_memory: LeadMemory) -> Dict[str, Any]:
         """
@@ -877,8 +880,13 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
     ) -> List[str]:
         """Wrapper para activar herramientas - implementación en módulo separado"""
         try:
+            # Verificar que agent_tools esté disponible
+            if not self.agent_tools:
+                logger.warning("Agent tools no está disponible. Las herramientas no se activarán.")
+                return []
+                
             from core.agents.intelligent_sales_agent_tools import IntelligentSalesAgentTools
-            tools_handler = IntelligentSalesAgentTools(self.agent_tools if hasattr(self, 'agent_tools') else None)
+            tools_handler = IntelligentSalesAgentTools(self.agent_tools)
             
             user_id = user_memory.user_id
             return await tools_handler._activate_tools_based_on_intent(

@@ -329,34 +329,61 @@ Para agendar tu sesión, haz clic en el botón de abajo o escríbeme tu horario 
     async def enviar_recursos_gratuitos(self, user_id: str, course_id: str) -> None:
         """
         Envía recursos de valor relacionados al curso para demostrar calidad.
-        Incluye guías, templates o herramientas básicas.
+        Incluye guías, templates o herramientas básicas desde la tabla free_resources.
         """
         course = await self.db.get_course_details(course_id)
         if not course:
             return
 
+        # Obtener TODOS los recursos gratuitos de la base de datos (sin filtrar por curso)
+        free_resources = await self.db.fetch_all(
+            """
+            SELECT resource_name, resource_type, resource_url, resource_description, file_size
+            FROM free_resources 
+            WHERE active = true
+            ORDER BY created_at DESC
+            """
+        )
+
         mensaje = f"""🎁 *¡Regalo especial para ti!*
 
-Como muestra de la calidad de nuestro curso "{course['name']}", te comparto estos recursos gratuitos:
+Te comparto estos recursos gratuitos disponibles:
 
-📚 *Recursos incluidos:*
-• Guía PDF: "Primeros pasos en IA"
-• Templates listos para usar
-• Lista de herramientas recomendadas
-• Checklist de mejores prácticas
+📚 *Recursos disponibles:*
+"""
 
-💡 *Esto es solo una pequeña muestra* de todo el contenido premium que incluye el curso completo.
+        buttons_list = []
+        
+        if free_resources:
+            for resource in free_resources:
+                # Agregar descripción del recurso
+                size_text = f" ({resource['file_size']})" if resource['file_size'] else ""
+                mensaje += f"• {resource['resource_name']}{size_text}\n"
+                if resource['resource_description']:
+                    mensaje += f"  {resource['resource_description']}\n"
+                
+                # Agregar botón de descarga
+                buttons_list.append([{"text": f"📥 {resource['resource_name']}", "url": resource['resource_url']}])
+        else:
+            mensaje += "• Guía PDF: \"Primeros pasos en IA\"\n"
+            mensaje += "• Templates listos para usar\n"
+            mensaje += "• Lista de herramientas recomendadas\n"
+            mensaje += "• Checklist de mejores prácticas\n"
+            
+            # Botón de recursos generales si no hay recursos específicos
+            if course.get('resources_url'):
+                buttons_list.append([{"text": "📥 Descargar Recursos", "url": course['resources_url']}])
 
-¿Te gustaría ver qué más incluye el curso? 👆"""
+        mensaje += "\n💡 *¡Estos recursos están disponibles gratis para todos!*\n\n¿Te gustaría conocer más sobre nuestros cursos? 👆"
 
-        buttons = {
-            "inline_keyboard": [
-                [{"text": "📥 Descargar Recursos", "url": course['resources_url']}],
-                [{"text": "📚 Ver Contenido Completo", "callback_data": f"show_syllabus_{course_id}"}],
-                [{"text": "💰 Ver Oferta Especial", "callback_data": f"show_pricing_{course_id}"}],
-                [{"text": "🧑‍💼 Contactar Asesor", "callback_data": "contact_advisor"}]
-            ]
-        }
+        # Agregar botones adicionales
+        buttons_list.extend([
+            [{"text": "📚 Ver Contenido Completo", "callback_data": f"show_syllabus_{course_id}"}],
+            [{"text": "💰 Ver Oferta Especial", "callback_data": f"show_pricing_{course_id}"}],
+            [{"text": "🧑‍💼 Contactar Asesor", "callback_data": "contact_advisor"}]
+        ])
+
+        buttons = {"inline_keyboard": buttons_list}
 
         await self.telegram.send_message(
             user_id,
@@ -369,7 +396,7 @@ Como muestra de la calidad de nuestro curso "{course['name']}", te comparto esto
             user_id,
             course_id,
             "free_resources_sent",
-            {}
+            {"resources_count": len(free_resources)}
         )
 
     async def mostrar_comparativa_precios(self, user_id: str, course_id: str) -> None:
