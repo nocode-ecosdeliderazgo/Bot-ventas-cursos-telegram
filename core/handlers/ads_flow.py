@@ -19,6 +19,7 @@ from core.services.courseService import CourseService
 from core.services.supabase_service import save_lead, get_course_detail
 from core.utils.memory import GlobalMemory, LeadMemory
 from core.utils.message_templates import MessageTemplates
+from core.utils.course_templates import CourseTemplates
 
 logger = logging.getLogger(__name__)
 
@@ -170,7 +171,7 @@ Antes de mostrarte toda la información del curso, ¿cómo te gustaría que te l
                 })
             
             # 3. Enviar datos del curso
-            course_info = self._format_course_info(course_details)
+            course_info = CourseTemplates.format_course_info(course_details)
             response_items.append({
                 "type": "text",
                 "content": course_info
@@ -190,14 +191,8 @@ Antes de mostrarte toda la información del curso, ¿cómo te gustaría que te l
             return [{"type": "text", "content": "Lo siento, hubo un error obteniendo la información del curso."}], None
 
     def _format_course_info(self, course_details: dict) -> str:
-        """Formatea la información del curso para mostrar al usuario."""
-        name = course_details.get('name', 'Curso')
-        description = course_details.get('short_description', 'Descripción no disponible')
-        duration = course_details.get('total_duration', 'Duración no especificada')
-        level = course_details.get('level', 'Nivel no especificado')
-        price = course_details.get('price_usd', 'Precio no disponible')
-        
-        modules = course_details.get('modules', [])
+        """Formatea la información del curso usando plantillas centralizadas."""
+        return CourseTemplates.format_course_info(course_details)
         modules_text = ""
         if modules and isinstance(modules, list):
             modules_text = "\n\n📚 **Módulos del curso:**\n"

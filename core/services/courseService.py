@@ -4,12 +4,25 @@ Implementa funciones que consultan directamente la base de datos
 sin transformaciones ni interpretaciones, retornando datos exactos.
 """
 
-import logging
-from typing import Dict, List, Optional, Any
-import asyncpg
+# Protección temprana contra ejecución directa
+if __name__ == "__main__":
+    print("❌ Este archivo es un módulo y no debe ejecutarse directamente.")
+    print("💡 Úsalo importándolo desde el bot principal: agente_ventas_telegram.py")
+    print("✅ Las importaciones están correctas para uso como módulo.")
+    import sys
+    sys.exit(0)
 
-from config.settings import settings
-from core.services.database import DatabaseService
+import logging
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core.services.database import DatabaseService
+else:
+    try:
+        from core.services.database import DatabaseService
+    except ImportError:
+        print("⚠️ DatabaseService no disponible - asegúrate de que las dependencias estén instaladas")
+        DatabaseService = None
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +33,7 @@ class CourseService:
     directamente desde la base de datos.
     """
     
-    def __init__(self, db_service: DatabaseService):
+    def __init__(self, db_service: "DatabaseService"):
         """Inicializa el servicio con una conexión a la base de datos."""
         self.db = db_service
     
@@ -229,3 +242,42 @@ class CourseService:
         except Exception as e:
             logger.error(f"Error obteniendo bonos del curso {courseId}: {e}")
             return [] 
+
+    async def getCourseBasicInfo(self, courseId: str) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene información básica específica del curso para mostrar en mensajes.
+        Optimizada para obtener solo los campos necesarios.
+        
+        Args:
+            courseId: ID único del curso
+            
+        Returns:
+            Diccionario con campos básicos: name, short_description, total_duration, level, price_usd
+        """
+        try:
+            query = """
+            SELECT 
+                id,
+                name,
+                short_description,
+                total_duration,
+                level,
+                price_usd,
+                published
+            FROM courses 
+            WHERE id = $1 AND published = true;
+            """
+            
+            result = await self.db.fetch_one(query, courseId)
+            return result
+        except Exception as e:
+            logger.error(f"Error obteniendo información básica del curso {courseId}: {e}")
+            return None
+
+# Protección para evitar ejecución directa del módulo
+if __name__ == "__main__":
+    print("❌ Este archivo es un módulo y no debe ejecutarse directamente.")
+    print("💡 Úsalo importándolo desde el bot principal: agente_ventas_telegram.py")
+    print("✅ Las importaciones están correctas para uso como módulo.")
+    import sys
+    sys.exit(0)  # Exit 0 para indicar que no es un error, solo prevención 

@@ -89,25 +89,10 @@ Solo escríbeme y continuamos con toda la información del curso que te interesa
     def get_course_presentation_message(self, user_name: str, course_info: Dict) -> str:
         """
         Presentación inicial del curso con información clave.
+        DEPRECATED: Use CourseTemplates.format_course_welcome() instead.
         """
-        return f"""¡Excelente, {user_name}! 🎯
-
-Te voy a enviar ahora mismo toda la información del curso que viste en el anuncio. ¡Estoy segura de que te va a encantar!
-
-**{course_info.get('name', 'Curso de IA')}** ⭐
-
-{course_info.get('description', 'Un curso transformador que cambiará tu perspectiva profesional')}
-
-📊 **Detalles importantes:**
-• **Modalidad:** {course_info.get('modality', 'Online')}
-• **Duración:** {course_info.get('duration', '12 horas')}
-• **Horario:** {course_info.get('schedule', 'Flexible')}
-• **Inversión:** ${course_info.get('price', 120)} USD
-• **Incluye:** Material completo, certificación y soporte
-
-{user_name}, este curso está diseñado específicamente para personas como tú que quieren dominar la IA y llevar su carrera al siguiente nivel.
-
-¿Qué te gustaría saber primero? 👇"""
+        from core.utils.course_templates import CourseTemplates
+        return CourseTemplates.format_course_welcome(course_info, user_name)
 
     def get_immediate_close_message(self, user_name: str) -> str:
         """
@@ -241,37 +226,13 @@ No hay respuestas correctas o incorrectas, solo quiero entender mejor tu context
 
 ¿Con cuál te identificas más? 👇"""
 
-    def get_curriculum_info_message(self, user_name: str, course_name: str) -> str:
+    def get_curriculum_info_message(self, user_name: str, course_details: Dict) -> str:
         """
         Información detallada del temario.
+        DEPRECATED: Use CourseTemplates.format_course_modules_detailed() instead.
         """
-        return f"""¡Perfecto, {user_name}! Aquí tienes el temario completo 📚
-
-**{course_name} - Programa Detallado:**
-
-🎯 **Módulo 1: Fundamentos de IA**
-• Introducción práctica a ChatGPT
-• Prompts efectivos y técnicas avanzadas
-• Casos de uso empresariales
-
-💼 **Módulo 2: IA para Productividad**
-• Automatización de tareas repetitivas
-• Creación de contenido profesional
-• Análisis de datos con IA
-
-🚀 **Módulo 3: IA para Negocios**
-• Estrategias de implementación
-• ROI y métricas de éxito
-• Casos de estudio reales
-
-🎓 **Módulo 4: Proyecto Final**
-• Implementación práctica
-• Presentación profesional
-• Certificación oficial
-
-Cada módulo incluye ejercicios prácticos, plantillas descargables y acceso a herramientas premium.
-
-{user_name}, ¿hay algún módulo que te emociona especialmente? 💡"""
+        from core.utils.course_templates import CourseTemplates
+        return CourseTemplates.format_course_modules_detailed(course_details)
 
     def get_instructor_info_message(self, user_name: str) -> str:
         """
@@ -358,71 +319,21 @@ Si en algún momento cambias de opinión y quieres conocer más sobre nuestros c
 
 ¡Que tengas un excelente día! 🌟"""
 
-    def get_pricing_info_message(self, user_name: str) -> str:
+    def get_pricing_info_message(self, user_name: str, course_details: Dict) -> str:
         """
         Información detallada de precios.
+        DEPRECATED: Use CourseTemplates.format_course_pricing() instead.
         """
-        return f"""Por supuesto, {user_name}! Hablemos de la inversión 💰
+        from core.utils.course_templates import CourseTemplates
+        return CourseTemplates.format_course_pricing(course_details)
 
-**Opciones de pago flexibles:**
-
-💳 **Pago único:**
-• Precio: $120 USD
-• Descuento: 15% ($102 USD)
-• Acceso inmediato completo
-
-📅 **Plan de pagos:**
-• 3 pagos de $45 USD
-• Sin intereses ni cargos adicionales
-• Inicio inmediato
-
-🎁 **¿Qué incluye tu inversión?**
-• 12 horas de contenido premium
-• Materiales y plantillas ($200 valor)
-• Certificación oficial ($150 valor)
-• Acceso de por vida ($300 valor)
-• Soporte 1-on-1 ($100 valor)
-
-**Total de valor: $870 USD**
-**Tu inversión: Solo $120 USD**
-
-{user_name}, es menos de $10 USD por hora de contenido que puede transformar tu carrera completa.
-
-¿Cuál opción se adapta mejor a ti? 🤔"""
-
-    def get_general_info_message(self, user_name: str, course_name: str) -> str:
+    def get_general_info_message(self, user_name: str, course_details: Dict) -> str:
         """
         Información general del curso.
+        DEPRECATED: Use CourseTemplates.format_course_details_with_benefits() instead.
         """
-        return f"""¡Por supuesto, {user_name}! Te comparto toda la información 📋
-
-**{course_name} - Información Completa:**
-
-🎯 **¿Para quién es?**
-• Profesionales que quieren potenciar su carrera
-• Emprendedores buscando ventaja competitiva
-• Estudiantes con visión de futuro
-• Cualquier persona curiosa sobre IA
-
-⏰ **Modalidad y tiempo:**
-• 100% online y en vivo
-• Clases interactivas de 2 horas
-• Grabaciones disponibles 24/7
-• Horarios flexibles
-
-🛠️ **Herramientas que dominarás:**
-• ChatGPT (nivel avanzado)
-• Claude AI, Midjourney
-• APIs de OpenAI
-• Automatizaciones con IA
-
-🎓 **Garantías:**
-• 30 días de garantía total
-• Soporte técnico incluido
-• Acceso de por vida
-• Certificación oficial
-
-{user_name}, ¿hay algo específico que te gustaría profundizar? Estoy aquí para resolver todas tus dudas 😊"""
+        from core.utils.course_templates import CourseTemplates
+        return CourseTemplates.format_course_details_with_benefits(course_details)
 
     def get_full_privacy_policy(self) -> str:
         """

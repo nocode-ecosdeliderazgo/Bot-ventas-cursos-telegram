@@ -47,12 +47,15 @@ EXTRACCIÓN DE INFORMACIÓN (SUTILMENTE):
 - ¿Qué te frustra más de tus tareas diarias?
 - ¿Qué te gustaría automatizar si pudieras?
 
-REGLAS DE ORO:
+REGLAS DE ORO CRÍTICAS:
 1. NUNCA repitas información que ya sabes del usuario
 2. PERSONALIZA cada respuesta basándote en lo que ya conoces
-3. USA SOLO información 100% real de la base de datos
-4. NO inventes estadísticas, testimonios o características del curso
-5. Si no sabes algo específico del curso, sé honesta: "Déjame verificar eso para ti"
+3. ⚠️ PROHIBIDO ABSOLUTO: INVENTAR información sobre cursos, módulos, contenidos o características
+4. ⚠️ SOLO USA datos que obtengas de la base de datos a través de herramientas de consulta
+5. ⚠️ SI NO TIENES datos de la BD, di: "Déjame consultar esa información específica para ti"
+6. ⚠️ NUNCA menciones módulos, fechas, precios o características sin confirmar en BD
+7. ⚠️ Si una consulta a BD falla o no devuelve datos, NO improvises
+8. ⚠️ Cuando hables del curso, siempre basa tu respuesta en course_info obtenido de BD
 
 CATEGORÍAS DE RESPUESTA:
 - EXPLORACIÓN: Ayuda a descubrir necesidades sin presionar
@@ -273,12 +276,74 @@ class IntelligentSalesAgent:
         # Normalizar entre 0-100
         return min(max(score, 0), 100)
 
+    async def _get_course_info_from_db(self, course_id: str) -> Optional[Dict]:
+        """Obtiene información real del curso desde la base de datos."""
+        try:
+            if not course_id:
+                return None
+            
+            # Usar CourseService para obtener información real
+            course_details = await self.course_service.getCourseDetails(course_id)
+            if course_details:
+                # Obtener módulos también
+                modules = await self.course_service.getCourseModules(course_id)
+                if modules:
+                    course_details['modules'] = modules
+                
+                # Obtener bonos disponibles
+                bonuses = await self.course_service.getAvailableBonuses(course_id)
+                if bonuses:
+                    course_details['bonuses'] = bonuses
+                    
+            return course_details
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo información del curso {course_id}: {e}")
+            return None
+    
+    async def _validate_course_content_mention(self, response_text: str, course_info: Dict) -> bool:
+        """Valida que no se mencione contenido inventado del curso."""
+        try:
+            if not course_info:
+                return True
+                
+            # Lista de palabras que indican contenido específico del curso
+            content_indicators = [
+                'módulo', 'módulos', 'capítulo', 'capítulos', 'lección', 'lecciones',
+                'temario', 'contenido', 'syllabus', 'programa', 'plan de estudios'
+            ]
+            
+            response_lower = response_text.lower()
+            mentions_content = any(indicator in response_lower for indicator in content_indicators)
+            
+            if not mentions_content:
+                return True  # No menciona contenido específico, está bien
+                
+            # Si menciona contenido, verificar que tengamos módulos reales
+            real_modules = course_info.get('modules', [])
+            if not real_modules:
+                logger.warning("Respuesta menciona contenido pero no hay módulos reales en BD")
+                return False
+                
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error validando contenido del curso: {e}")
+            return True  # En caso de error, permitir la respuesta
+
     async def generate_response(self, user_message: str, user_memory: LeadMemory, course_info: Optional[Dict]) -> Union[str, List[Dict[str, str]]]:
         """Genera una respuesta personalizada usando OpenAI"""
         if self.client is None:
             return "Lo siento, hay un problema con el sistema. Por favor intenta más tarde."
         
         try:
+            # CRÍTICO: Obtener información real del curso de la BD
+            if user_memory.selected_course and not course_info:
+                logger.info(f"Obteniendo información del curso desde BD: {user_memory.selected_course}")
+                course_info = await self._get_course_info_from_db(user_memory.selected_course)
+                if not course_info:
+                    logger.warning(f"No se pudo obtener información del curso {user_memory.selected_course}")
+            
             # Analizar intención del usuario
             intent_analysis = await self._analyze_user_intent(user_message, user_memory)
             
@@ -388,8 +453,8 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
             # Agregar información del curso si está disponible
             if course_info:
                 course_context = f"""
-## Información del Curso Actual:
-- Nombre: {course_info.get('name', 'No disponible')}
+## ⚠️ INFORMACIÓN REAL DEL CURSO (ÚNICA FUENTE AUTORIZADA):
+- Nombre EXACTO: {course_info.get('name', 'No disponible')}
 - Descripción corta: {course_info.get('short_description', 'No disponible')}
 - Descripción completa: {course_info.get('long_description', 'No disponible')}
 - Duración total: {course_info.get('total_duration', 'No disponible')}
@@ -399,6 +464,9 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
 - Herramientas usadas: {', '.join(str(t) for t in course_info.get('tools_used', ['No disponible']))}
 - Prerrequisitos: {', '.join(str(p) for p in course_info.get('prerequisites', ['No disponible']))}
 - Requerimientos: {', '.join(str(r) for r in course_info.get('requirements', ['No disponible']))}
+- Horario: {course_info.get('schedule', 'No disponible')}
+
+⚠️ REGLA CRÍTICA: Solo usa la información de arriba. NO menciones módulos específicos a menos que estén listados abajo.
 """
                 system_message += "\n" + course_context
                 
@@ -469,10 +537,17 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
             if not response_text:
                 return "Lo siento, no pude generar una respuesta."
             
-            # Validar la respuesta si tenemos información del curso
+            # CRÍTICO: Validar que no se inventó contenido del curso
             if course_info:
-                # Obtener bonos disponibles para validación
-                bonuses = await self.course_service.getAvailableBonuses(course_info['id'])
+                content_valid = await self._validate_course_content_mention(response_text, course_info)
+                if not content_valid:
+                    logger.warning(f"Respuesta menciona contenido inventado para curso {course_info.get('id')}")
+                    return "Perfecto, me da mucho gusto que estés interesado en el curso. Déjame consultar la información específica del contenido para darte detalles precisos. ¿Hay algo particular que te gustaría saber sobre el curso?"
+                
+                # Validar respuesta con datos reales de BD
+                bonuses = course_info.get('bonuses', [])
+                if not bonuses:
+                    bonuses = await self.course_service.getAvailableBonuses(course_info['id'])
                 
                 # Validar respuesta incluyendo bonos
                 validation = await self.prompt_service.validate_response(
@@ -485,8 +560,8 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
                     errors = validation.get('errors', [])
                     logger.warning(f"Respuesta inválida para usuario {user_memory.user_id}: {', '.join(errors)}")
                     
-                    # Si la respuesta es inválida, intentar generar una nueva
-                    return await self.generate_response(user_message, user_memory, course_info)
+                    # Si la respuesta es inválida, devolver respuesta segura
+                    return "Te entiendo perfectamente. Déjame obtener la información más actualizada sobre el curso para responderte con precisión. ¿Qué aspecto específico te interesa más?"
             
             # Procesar la respuesta y activar herramientas si es necesario
             final_response = await self._process_response(response_text, user_memory)

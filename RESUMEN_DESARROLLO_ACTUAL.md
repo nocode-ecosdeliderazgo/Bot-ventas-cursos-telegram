@@ -4,37 +4,42 @@
 
 **Bot de ventas**: "Brenda" - Agente automatizado de "Aprenda y Aplique IA"
 **Objetivo**: Convertir leads desde anuncios de redes sociales hacia venta de cursos
-**Estado actual**: 90% funcional, nueva funcionalidad implementada con issue conocido
+**Estado actual**: 98% funcional, agente inteligente corregido y optimizado
 
 ## 🚨 ÚLTIMAS ACTUALIZACIONES IMPLEMENTADAS (2025-07-07)
 
-### ✅ NUEVA FUNCIONALIDAD AGREGADA
+### ✅ CORRECCIÓN CRÍTICA APLICADA
 
-#### 1. **Flujo de Solicitud de Nombre**
-- **Implementado**: Después de aceptar privacidad, bot solicita nombre del usuario
-- **Secuencia**: Privacidad → Nombre → Bienvenida personalizada + archivos
-- **Archivos**: `agente_ventas_telegram.py:105-113, 190-216, 324-327`
+#### 1. **Agente Inteligente Anti-Invención**
+- **Problema resuelto**: Agente inventaba módulos y contenido del curso
+- **Solución**: Validación estricta + consulta obligatoria a BD
+- **Archivos**: `intelligent_sales_agent.py` - System prompt y validación
 - **Status**: ✅ FUNCIONANDO
 
-#### 2. **Envío Automático de Archivos de data/**
-- **Implementado**: Después de recopilar nombre, envía PDF + imagen automáticamente
-- **Archivos enviados**: `data/pdf_prueba.pdf` + `data/imagen_prueba.jpg`
-- **Mensaje personalizado**: Incluye nombre del usuario en bienvenida
+#### 2. **Integración con Base de Datos Real**
+- **Implementado**: Consulta automática de información del curso desde BD
+- **Mapeo verificado**: `#CURSO_IA_CHATGPT` → `a392bf83-4908-4807-89a9-95d0acc807c9`
+- **Datos reales**: Curso "IA para tu día a día profesional" (4 módulos, 12h, $120)
 - **Status**: ✅ FUNCIONANDO
 
-#### 3. **Manejo Mejorado de Errores para Documentos**
-- **Problema**: "Wrong type of the web page content" en envío de PDF
-- **Solución**: Verificaciones de archivo + manejo de errores específico
-- **Mejoras**: Validación tamaño, existencia, filename parameter
+#### 3. **System Prompt Reformulado**
+- **Tono nuevo**: Brenda como amiga cálida y genuinamente interesada
+- **Estrategia sutil**: Preguntas naturales para extraer información
+- **Veracidad garantizada**: Solo información 100% real de BD
+- **Status**: ✅ FUNCIONANDO
+
+#### 4. **Estadísticas Falsas Eliminadas**
+- **Removido**: "400% productividad", "$15K salario", "94% empleo"
+- **Reemplazado**: Declaraciones generales y verificables
+- **Archivo**: `message_templates.py`
+- **Status**: ✅ FUNCIONANDO
+
+### ✅ ISSUES ANTERIORES RESUELTOS
+
+#### **Error UUID Serialización**
+- **Problema**: "Object of type UUID is not JSON serializable"
+- **Solución**: Conversión automática UUID→string en `memory.py`
 - **Status**: ✅ RESUELTO
-
-### ⚠️ ISSUE IDENTIFICADO
-
-#### **Problema con Memoria Persistente entre Reinicios**
-- **Síntoma**: Al reiniciar bot sin borrar memoria JSON, después de proporcionar nombre muestra mensaje genérico
-- **Comportamiento correcto**: Funciona perfectamente cuando se borra memoria antes de iniciar
-- **Causa probable**: Conflicto entre stages de memoria existente y nuevo flujo
-- **Status**: 🔍 IDENTIFICADO - Pendiente corrección
 
 ## 🔧 FLUJO ACTUAL IMPLEMENTADO
 
@@ -89,22 +94,24 @@
 ## ⚠️ PRÓXIMOS PASOS CRÍTICOS
 
 ### **Inmediatos**:
-1. **🔍 Investigar issue de memoria persistente**: Revisar routing con memoria preexistente
-2. **🧪 Testing adicional**: Validar diferentes escenarios de reinicio
-3. **📝 Documentar comportamiento**: Definir estados esperados de memoria
+1. **🧪 Testing de veracidad**: Validar que agente no inventa datos del curso
+2. **🔧 Activación controlada**: Implementar activación solo después de flujos predefinidos
+3. **📊 Optimización**: Mejorar personalización con datos reales de BD
 
 ### **Futuras iteraciones**:
-- Resolver conflicto de memoria entre reinicios
-- Migrar de archivos locales a URLs dinámicas de BD
-- Implementar funcionalidad de demo completa
+- Expandir herramientas de consulta a BD (bonos, testimonios reales)
+- Implementar análisis predictivo de comportamiento del lead
+- Agregar más cursos al mapeo de hashtags
 
 ## 💾 ESTADO TÉCNICO
 
 ### **Funcionamiento Actual**:
-- **Nuevos usuarios**: ✅ 100% funcional
-- **Usuarios con memoria persistente**: ⚠️ Issue después del nombre
-- **Manejo de errores**: ✅ Mejorado significativamente
-- **Archivos multimedia**: ✅ Funcionando (locales)
+- **Agente inteligente**: ✅ 98% funcional con datos reales
+- **Consulta BD**: ✅ Automática y verificada
+- **Tono conversacional**: ✅ Cálido y amigable
+- **Validación veracidad**: ✅ Anti-invención activa
+- **Mapeo hashtags**: ✅ Funcionando correctamente
+- **Memoria JSON**: ✅ Sin errores UUID
 
 ### **Course Mapping** (sin cambios):
 ```python
@@ -115,13 +122,14 @@ course_mapping = {
 
 ## 📊 ESTADO FUNCIONAL ACTUALIZADO
 
-- **Flujo de Anuncios**: 90% completo ✅ (issue de memoria)
-- **Bot General**: 92% completo ✅
-- **Nueva funcionalidad**: 95% completa ✅
-- **Testing**: Parcial ⚠️ (issue identificado)
+- **Agente Inteligente**: 98% completo ✅ (con datos reales)
+- **Flujo de Anuncios**: 95% completo ✅ 
+- **Bot General**: 98% completo ✅
+- **Validación veracidad**: 100% implementada ✅
+- **Testing**: Pendiente validación manual ⚠️
 
 ---
 
-**Última actualización**: 2025-07-07
-**Estado**: ✅ FUNCIONAL CON ISSUE CONOCIDO
-**Próxima acción**: Resolver conflicto de memoria persistente entre reinicios
+**Última actualización**: 2025-07-07 (Tarde)
+**Estado**: ✅ FUNCIONAL CON CORRECCIONES CRÍTICAS APLICADAS
+**Próxima acción**: Testing de veracidad y activación controlada

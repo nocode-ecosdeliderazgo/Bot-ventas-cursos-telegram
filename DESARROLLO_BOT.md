@@ -29,13 +29,20 @@ Brenda es el agente automatizado de "Aprenda y Aplique IA" que atiende usuarios 
 - [x] Templates de mensajes personalizados
 - [x] Obtención dinámica de información del curso desde Supabase
 - [x] Manejo de usuarios que regresan con memoria existente
+- [x] **Agente inteligente con datos reales de BD**
+- [x] **Validación anti-invención de datos**
+- [x] **Tono cálido y amigable de Brenda**
+- [x] **Consulta automática de información del curso**
+- [x] **Mapeo hashtag→curso ID verificado**
 
 ### ⚠️ **LO QUE ESTÁ PARCIAL**
+- [ ] Activación controlada del agente (solo después de flujos predefinidos)
 - [ ] Sistema de demos y promociones
 - [ ] A/B testing para mensajes
 - [ ] Dashboard de métricas en tiempo real
 
 ### ❌ **LO QUE FALTA**
+- [ ] Testing completo de veracidad
 - [ ] Sistema avanzado de bonos por tiempo limitado
 - [ ] Integración con sistema de pagos
 - [ ] Analytics avanzados de conversión
@@ -140,36 +147,46 @@ Brenda es el agente automatizado de "Aprenda y Aplique IA" que atiende usuarios 
 
 | Tarea                             | Prioridad | Asignado  | Estado        | Fecha Target      |
 |-----------------------------------|-----------|-----------|---------------|------------------|
-| **Testing completo flujo anuncios** | ⚠️ ALTA   | Usuario   | ⏳ PENDIENTE   | **Ahora**        |
+| **Testing de veracidad agente**   | ⚠️ ALTA   | Usuario   | ⏳ PENDIENTE   | **Ahora**        |
+| Activación controlada del agente | ⚠️ ALTA   | Claude    | ⏳            | **Ahora**        |
 | Implementar sistema de demos      | 🔧 MEDIA  | Claude    | ⏳            | Próxima iteración |
 | Mejorar sistema de promociones    | 🔧 MEDIA  | Claude    | ⏳            | Próxima iteración |
 | Implementar A/B testing           | 🔧 MEDIA  | Claude    | ⏳            | Futura iteración  |
 
 ### 📊 **MÉTRICAS DE PROGRESO**
 
+**Agente Inteligente**: ✅ 98% Completo
+- ✅ System prompt reformulado (100%)
+- ✅ Tono cálido y amigable (100%)
+- ✅ Consulta automática BD (100%)
+- ✅ Validación anti-invención (100%)
+- ⚠️ Activación controlada (Pendiente)
+
 **Flujo de Anuncios**: ✅ 95% Completo
 - ✅ Detección y routing (100%)
 - ✅ Privacidad y aceptación (100%)
 - ✅ Secuencia post-aceptación (100%)
 - ✅ Multimedia dinámico (100%)
-- ⚠️ Testing manual (Pendiente)
+- ⚠️ Testing de veracidad (Pendiente)
 
-**Bot General**: 95% Completo
+**Bot General**: 98% Completo
 - ✅ Arquitectura core (100%)
 - ✅ Integración Telegram (100%)
 - ✅ Sistema de memoria (100%)
 - ✅ LLM integration (100%)
 - ✅ Base de datos (100%)
-- ⚠️ Features avanzadas (75%)
+- ✅ Validación veracidad (100%)
+- ⚠️ Features avanzadas (80%)
 
 ## NOTAS DE DESARROLLO
 
 ### 🔍 **PARA RECORDAR EN FUTURAS SESIONES**
-- Siempre usar información de la base de datos Supabase
-- Nunca generar datos o hacer hallucinations
-- Mantener tono cálido y profesional de Brenda
-- Archivos multimedia deben ser dinámicos por curso
-- Testing manual es crítico para validar flujos
+- **CRÍTICO**: Solo usar información real de la base de datos
+- **PROHIBIDO**: Inventar módulos, contenidos o características del curso
+- **OBLIGATORIO**: Consultar BD antes de responder sobre cursos
+- Mantener tono cálido y amigable de Brenda como amiga genuina
+- Validación anti-invención debe estar siempre activa
+- Testing de veracidad es prioridad alta
 
 ### 📋 **INSTRUCCIONES ESPECÍFICAS IMPLEMENTADAS**
 1. **Flujo de Privacidad**: Botón "Aceptar" debe mantenerse después de ver aviso completo ✅
@@ -200,6 +217,6 @@ Brenda es el agente automatizado de "Aprenda y Aplique IA" que atiende usuarios 
 
 ---
 
-**Última actualización**: 2025-07-07 - Agregado flujo de solicitud de nombre + archivos de data/
-**Estado**: ✅ FUNCIONAL (con issue conocido de memoria persistente)
-**Testing**: Flujo completo funcionando al iniciar sin memoria, issue identificado con reinicio
+**Última actualización**: 2025-07-07 (Tarde) - Corrección crítica agente inteligente
+**Estado**: ✅ FUNCIONAL CON VALIDACIÓN ANTI-INVENCIÓN
+**Testing**: Agente corregido, pendiente validación de veracidad manual

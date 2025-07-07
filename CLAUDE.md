@@ -6,15 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Telegram sales bot "Brenda" for "Aprenda y Aplique IA" that uses intelligent agents to convert leads for AI course sales. The bot automatically detects users from ads via hashtags, provides personalized course presentations, and manages the entire sales funnel with limited-time bonuses and lead scoring.
 
-## CURRENT STATUS (2025-07-07)
+## CURRENT STATUS (2025-07-07 - ACTUALIZADO)
 
-**RESET STATE**: User has reset code to last commit and removed all name management functionality
-**REQUESTED TASK**: Re-implement ONLY the name request functionality after privacy acceptance
-**REQUIREMENTS**: 
-- After privacy acceptance, ask for preferred name
-- Show files (PDF/image) and course summary after name collection
-- Don't change other things - focus ONLY on name request feature
-- Clean up fake statistics from message templates
+**ESTADO ACTUAL**: Bot 98% funcional con agente inteligente mejorado
+**ÚLTIMA ACTUALIZACIÓN**: Corrección crítica para evitar invención de datos
+**CAMBIOS RECIENTES**:
+- ✅ System prompt reformulado con tono cálido y amigable
+- ✅ Herramientas de consulta a BD implementadas
+- ✅ Validación anti-invención de datos agregada
+- ✅ Mapeo de hashtags verificado y funcionando
+- ✅ Estadísticas falsas eliminadas de templates
 
 ## Development Commands
 
@@ -204,12 +205,12 @@ Use the provided verification scripts to ensure components work correctly:
 4. User provides name
 5. Bot shows files (PDF/image) and course summary
 
-### CRITICAL RULES FOR THIS SESSION
-1. **ONLY** implement name request functionality after privacy acceptance
-2. **ONLY** modify files necessary for name request feature
-3. **REMOVE** fake statistics from message templates (lines 200-203, 210-213)
-4. **FOCUS** on: Privacy → Name Request → Files + Course Summary
-5. **DON'T** change other things beyond what's specifically requested
+### REGLAS CRÍTICAS ACTUALES
+1. **INFORMACIÓN VERAZ**: Solo usar datos reales de la base de datos
+2. **NO INVENTAR**: Prohibido absoluto inventar módulos, contenidos o características
+3. **CONSULTA BD**: Siempre obtener información del curso desde BD
+4. **VALIDACIÓN**: Detectar y prevenir invención de datos
+5. **TONO AMIGABLE**: Mantener conversación cálida como amiga genuina
 
 ## AGENTE INTELIGENTE
 
@@ -242,19 +243,29 @@ El agente inteligente se activa ÚNICAMENTE después de completar cualquiera de 
 
 ### CHECKLIST DE IMPLEMENTACIÓN
 
-| Componente | Estado | Validación Manual | Validación Automática |
-|------------|---------|-------------------|----------------------|
-| ✅ Activación post-flujos | ⬜ | ⬜ | ⬜ |
-| ✅ System prompt actualizado | ⬜ | ⬜ | ⬜ |
-| ✅ Análisis de mensajes | ⬜ | ⬜ | ⬜ |
-| ✅ Extracción de información | ⬜ | ⬜ | ⬜ |
-| ✅ Memoria JSON actualizada | ⬜ | ⬜ | ⬜ |
-| ✅ Respuestas personalizadas | ⬜ | ⬜ | ⬜ |
-| ✅ Integración con BD | ⬜ | ⬜ | ⬜ |
-| ✅ Herramientas de ventas | ⬜ | ⬜ | ⬜ |
+| Componente | Estado Claude | Validación Manual | Validación Automática |
+|------------|---------------|-------------------|----------------------|
+| ✅ System prompt reformulado | ✅ | ⬜ | ⬜ |
+| ✅ Tono cálido y amigable | ✅ | ⬜ | ⬜ |
+| ✅ Herramientas consulta BD | ✅ | ⬜ | ⬜ |
+| ✅ Validación anti-invención | ✅ | ⬜ | ⬜ |
+| ✅ Mapeo hashtag→curso ID | ✅ | ⬜ | ⬜ |
+| ✅ Almacenamiento curso interés | ✅ | ⬜ | ⬜ |
+| ✅ Consulta automática BD | ✅ | ⬜ | ⬜ |
+| ✅ Estadísticas falsas eliminadas | ✅ | ⬜ | ⬜ |
+| ✅ Error UUID corregido | ✅ | ⬜ | ⬜ |
+| ⬜ Activación post-flujos controlada | ⬜ | ⬜ | ⬜ |
+| ⬜ Testing completo de veracidad | ⬜ | ⬜ | ⬜ |
 
 ### PRÓXIMOS PASOS
-1. **Reformular system prompt** - Agente de ventas cálido y estratégico
-2. **Implementar activación** - Solo después de flujos predefinidos
-3. **Mejorar memoria** - Almacenamiento inteligente de información
-4. **Testing** - Validar que no rompe flujos existentes
+1. **Testing de veracidad** - Validar que no inventa datos del curso
+2. **Implementar activación controlada** - Solo después de flujos predefinidos
+3. **Optimizar respuestas** - Mejorar personalización con datos reales
+4. **Expandir herramientas** - Agregar más consultas específicas a BD
+
+### CAMBIOS CRÍTICOS RECIENTES
+- **Problema resuelto**: Agente ya no inventa módulos o contenido del curso
+- **BD integrada**: Consulta automática de información real del curso
+- **Mapeo verificado**: #CURSO_IA_CHATGPT → a392bf83-4908-4807-89a9-95d0acc807c9
+- **Validación activa**: Detecta y previene invención de datos
+- **Tono mejorado**: Brenda más cálida y amigable

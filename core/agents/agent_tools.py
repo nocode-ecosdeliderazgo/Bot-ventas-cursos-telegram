@@ -30,29 +30,14 @@ class AgentTools:
         if course['discount_percentage'] and course['discount_end_date'] > datetime.now(timezone.utc):
             precio_final = precio_final * (1 - course['discount_percentage'] / 100)
 
-        # Preparar mensaje con formato atractivo
-        mensaje = f"""🎓 *{course['name']}*
-
-{course['short_description']}
-
-📚 *Nivel:* {course['level']}
-⏰ *Duración:* {course['total_duration']}
-🗓️ *Horarios:* {course['schedule']}
-
-💡 *Herramientas que aprenderás:*
-{self._format_tools_list(course['tools_used'])}
-
-💰 *Inversión:*
-{'~~$' + str(course['original_price_usd']) + ' USD~~' if course['discount_percentage'] else ''}
-*${precio_final} USD*
-{f'🔥 {course["discount_percentage"]}% OFF - ¡Oferta termina en {self._time_until(course["discount_end_date"])}!' if course['discount_percentage'] else ''}
-
-✨ *Bonos Exclusivos:*
-{self._format_bonuses(course['active_bonuses'])}
-
-👥 *¡Últimos cupos disponibles!*
-Grupos reducidos: máximo {course['max_students']} estudiantes
-"""
+        # Usar plantilla centralizada para generar mensaje
+        from core.utils.course_templates import CourseTemplates
+        
+        # Agregar datos de descuento calculado para la plantilla
+        course_with_discount = course.copy()
+        course_with_discount['calculated_price'] = precio_final
+        
+        mensaje = CourseTemplates.format_course_details_with_benefits(course_with_discount)
         # Enviar mensaje y thumbnail
         await self.telegram.send_photo(
             user_id,
@@ -111,18 +96,8 @@ Te comparto este video donde podrás ver:
         if not course or not course['modules']:
             return
 
-        mensaje = f"""📚 *Contenido del curso: {course['name']}*
-
-{course['long_description']}
-
-*Módulos del curso:*
-"""
-        for module in course['modules']:
-            mensaje += f"""
-📌 *Módulo {module['module_index']}: {module['name']}*
-{module['description']}
-⏱️ Duración: {module['duration']}
-"""
+        from core.utils.course_templates import CourseTemplates
+        mensaje = CourseTemplates.format_course_modules_detailed(course)
 
         await self.telegram.send_message(
             user_id,
@@ -412,27 +387,14 @@ Como muestra de la calidad de nuestro curso "{course['name']}", te comparto esto
         # Valor de bonos
         bonus_value = sum(bonus['original_value'] for bonus in (course['active_bonuses'] or []))
 
-        mensaje = f"""💰 *Análisis de Inversión: {course['name']}*
-
-🎯 *Tu inversión:* ${precio_actual} USD
-
-🎁 *Lo que recibes:*
-• Curso completo: ${course['original_price_usd']} USD
-• Bonos exclusivos: ${bonus_value} USD
-• Soporte personalizado: $200 USD
-• Acceso de por vida: $300 USD
-• Actualizaciones futuras: $150 USD
-
-📊 *Valor total: ${course['original_price_usd'] + bonus_value + 650} USD*
-
-✨ *Tu ahorro: ${(course['original_price_usd'] + bonus_value + 650) - precio_actual} USD*
-
-💼 *ROI Esperado:*
-• Aumento de productividad: 40-60%
-• Ahorro en tiempo: 10-15 horas/semana
-• Valor de mercado de habilidades: +$5,000/año
-
-¿Cuándo más vas a encontrar una oportunidad así? 🚀"""
+        from core.utils.course_templates import CourseTemplates
+        
+        # Agregar precio calculado para la plantilla
+        course_with_pricing = course.copy()
+        course_with_pricing['calculated_price'] = precio_actual
+        course_with_pricing['bonus_value'] = bonus_value
+        
+        mensaje = CourseTemplates.format_course_pricing(course_with_pricing)
 
         await self.telegram.send_message(
             user_id,
@@ -529,30 +491,13 @@ Si no estás 100% satisfecho con el curso, te devolvemos tu dinero completo.
         if course['discount_percentage']:
             precio_base = precio_base * (1 - course['discount_percentage'] / 100)
 
-        mensaje = f"""💳 *Opciones de Pago Flexibles*
-
-Para el curso "{course['name']}"
-
-🏆 *OPCIÓN 1: Pago Único (Recomendado)*
-• Precio: ${precio_base} USD
-• ✅ Acceso inmediato completo
-• ✅ Todos los bonos incluidos
-• ✅ 10% descuento adicional
-• ✅ Certificado premium
-
-💼 *OPCIÓN 2: Plan 2 Pagos*
-• 2 pagos de ${(precio_base * 1.1) / 2:.0f} USD
-• ✅ Acceso inmediato al 70% del contenido
-• ✅ Bonos incluidos
-• ⚠️ Sin descuento adicional
-
-📈 *OPCIÓN 3: Plan 3 Pagos*
-• 3 pagos de ${(precio_base * 1.15) / 3:.0f} USD
-• ✅ Acceso gradual al contenido
-• ✅ Bonos incluidos después del 2do pago
-• ⚠️ Recargo del 15%
-
-¿Cuál opción se adapta mejor a tu presupuesto? 🤔"""
+        from core.utils.course_templates import CourseTemplates
+        
+        # Agregar precio calculado para la plantilla
+        course_with_pricing = course.copy()
+        course_with_pricing['calculated_price'] = precio_base
+        
+        mensaje = CourseTemplates.format_course_pricing(course_with_pricing)
 
         buttons = {
             "inline_keyboard": [

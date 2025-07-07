@@ -239,41 +239,32 @@ A continuación te comparto toda la información del curso:"""
                 if self.ads_flow_handler:
                     from core.services.courseService import CourseService
                     course_service = CourseService(self.ads_flow_handler.db)
-                    course_data = await course_service.getCourseDetails(course_id)
+                    course_data = await course_service.getCourseBasicInfo(course_id)
                     if course_data:
-                        # Formatear información del curso
-                        course_info_text = f"""🎓 {course_data.get('name', 'Curso de Inteligencia Artificial')}
-
-{course_data.get('short_description', 'Curso práctico de IA')}
-
-⏱️ Duración: {course_data.get('duration', '12:00:00')}
-📊 Nivel: {course_data.get('level', 'Beginner')}
-💰 Inversión: ${course_data.get('price', '120')} USD
-
-
-¿Qué te gustaría saber más sobre este curso?"""
+                        # Construir mensaje dinámicamente desde la base de datos
+                        course_info_text = await self._build_course_info_message(course_data)
                     else:
                         # Fallback si no se encuentra el curso
-                        course_info_text = """🎓 Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)
+                        course_info_text = """🎓 dato no encontrado
 
-Curso práctico de 12 horas dividido en 4 módulos: automatiza tareas, crea documentos, genera imágenes y desarrolla proyectos reales con IA.
+dato no encontrado
 
-⏱️ Duración: 12:00:00
-📊 Nivel: Beginner
-💰 Inversión: $120 USD
+⏱️ Duración: dato no encontrado
+📊 Nivel: dato no encontrado
+💰 Inversión: dato no encontrado
 
 
 ¿Qué te gustaría saber más sobre este curso?"""
             except Exception as e:
                 logger.error(f"Error obteniendo datos del curso: {e}")
                 # Fallback si hay error
-                course_info_text = """🎓 Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)
+                course_info_text = """🎓 dato no encontrado
 
-Curso práctico de 12 horas dividido en 4 módulos: automatiza tareas, crea documentos, genera imágenes y desarrolla proyectos reales con IA.
+dato no encontrado
 
-⏱️ Duración: 12:00:00
-📊 Nivel: Beginner
-💰 Inversión: $120 USD
+⏱️ Duración: dato no encontrado
+📊 Nivel: dato no encontrado
+💰 Inversión: dato no encontrado
 
 
 ¿Qué te gustaría saber más sobre este curso?"""
@@ -323,41 +314,32 @@ A continuación te comparto toda la información del curso:"""
                 if self.ads_flow_handler:
                     from core.services.courseService import CourseService
                     course_service = CourseService(self.ads_flow_handler.db)
-                    course_data = await course_service.getCourseDetails(course_id)
+                    course_data = await course_service.getCourseBasicInfo(course_id)
                     if course_data:
-                        # Formatear información del curso
-                        course_info_text = f"""🎓 {course_data.get('name', 'Curso de Inteligencia Artificial')}
-
-{course_data.get('short_description', 'Curso práctico de IA')}
-
-⏱️ Duración: {course_data.get('duration', '12:00:00')}
-📊 Nivel: {course_data.get('level', 'Beginner')}
-💰 Inversión: ${course_data.get('price', '120')} USD
-
-
-¿Qué te gustaría saber más sobre este curso?"""
+                        # Construir mensaje dinámicamente desde la base de datos
+                        course_info_text = await self._build_course_info_message(course_data)
                     else:
                         # Fallback si no se encuentra el curso
-                        course_info_text = """🎓 Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)
+                        course_info_text = """🎓 dato no encontrado
 
-Curso práctico de 12 horas dividido en 4 módulos: automatiza tareas, crea documentos, genera imágenes y desarrolla proyectos reales con IA.
+dato no encontrado
 
-⏱️ Duración: 12:00:00
-📊 Nivel: Beginner
-💰 Inversión: $120 USD
+⏱️ Duración: dato no encontrado
+📊 Nivel: dato no encontrado
+💰 Inversión: dato no encontrado
 
 
 ¿Qué te gustaría saber más sobre este curso?"""
             except Exception as e:
                 logger.error(f"Error obteniendo datos del curso: {e}")
                 # Fallback si hay error
-                course_info_text = """🎓 Curso de Inteligencia Artificial para tu día a día profesional desde cero (con ChatGPT e imágenes)
+                course_info_text = """🎓 dato no encontrado
 
-Curso práctico de 12 horas dividido en 4 módulos: automatiza tareas, crea documentos, genera imágenes y desarrolla proyectos reales con IA.
+dato no encontrado
 
-⏱️ Duración: 12:00:00
-📊 Nivel: Beginner
-💰 Inversión: $120 USD
+⏱️ Duración: dato no encontrado
+📊 Nivel: dato no encontrado
+💰 Inversión: dato no encontrado
 
 
 ¿Qué te gustaría saber más sobre este curso?"""
@@ -529,6 +511,62 @@ Si cambias de opinión y quieres conocer más sobre nuestros cursos de IA, estar
             return message, keyboard
         
         return "Opción no reconocida.", None
+
+    async def _build_course_info_message(self, course_data: dict) -> str:
+        """
+        Construye el mensaje de información del curso dinámicamente desde la base de datos.
+        Reutilizable para cualquier curso.
+        """
+        try:
+            # Extraer datos del curso con fallbacks a "dato no encontrado"
+            course_name = course_data.get('name', 'dato no encontrado')
+            course_description = course_data.get('short_description', 'dato no encontrado')
+            
+            # Formatear duración
+            duration = course_data.get('total_duration', 'dato no encontrado')
+            if duration != 'dato no encontrado' and duration:
+                # Si viene en formato timedelta o string, mantenerlo como está
+                duration_str = str(duration)
+            else:
+                duration_str = 'dato no encontrado'
+            
+            # Formatear nivel
+            level = course_data.get('level', 'dato no encontrado')
+            
+            # Formatear precio con moneda
+            price_usd = course_data.get('price_usd', 'dato no encontrado')
+            if price_usd != 'dato no encontrado' and price_usd is not None:
+                price_str = f"${price_usd} USD"
+            else:
+                price_str = 'dato no encontrado'
+            
+            # Construir mensaje con la estructura original
+            course_info_text = f"""🎓 {course_name}
+
+{course_description}
+
+⏱️ Duración: {duration_str}
+📊 Nivel: {level}
+💰 Inversión: {price_str}
+
+
+¿Qué te gustaría saber más sobre este curso?"""
+            
+            return course_info_text
+            
+        except Exception as e:
+            logger.error(f"Error construyendo mensaje del curso: {e}")
+            # Mensaje de error genérico si falla todo
+            return """🎓 dato no encontrado
+
+dato no encontrado
+
+⏱️ Duración: dato no encontrado
+📊 Nivel: dato no encontrado
+💰 Inversión: dato no encontrado
+
+
+¿Qué te gustaría saber más sobre este curso?"""
 
 def main_telegram_bot():
     """Función principal del bot de Telegram con manejo mejorado de errores."""
