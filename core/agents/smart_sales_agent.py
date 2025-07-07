@@ -97,6 +97,11 @@ class SmartSalesAgent:
                 user_memory = LeadMemory(user_id=user_id)
                 self.global_memory.save_lead_memory(user_id, user_memory)
             
+            # 🛡️ ÚLTIMA LÍNEA DE DEFENSA: Nunca permitir curso incorrecto
+            if user_memory.selected_course == "b00f3d1c-e876-4bac-b734-2715110440a0":
+                user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
+                self.global_memory.save_lead_memory(user_id, user_memory)
+            
             # Actualizar datos básicos si están disponibles
             if 'username' in message_data.get('from', {}):
                 user_memory.username = message_data['from']['username']
@@ -135,24 +140,37 @@ class SmartSalesAgent:
                     logger.warning("Agente inteligente no disponible, usando respuesta por defecto")
                     return "Gracias por tu mensaje. Un asesor te contactará pronto.", None
                 
-                # Obtener información del curso
+                # ✅ CRÍTICO: Si hay curso seleccionado del flujo de anuncios, NUNCA cambiarlo  
                 course_info = None
                 if user_memory.selected_course:
+                    logger.info(f"🎯 CURSO FIJO del flujo de anuncios: {user_memory.selected_course}")
                     course_info = await self.course_service.getCourseDetails(user_memory.selected_course)
-                
-                # Buscar referencias a cursos en el mensaje si no hay curso seleccionado
-                if not course_info:
+                    if course_info is None:
+                        logger.warning(f"❌ No se pudo obtener detalles del curso seleccionado: {user_memory.selected_course}")
+                        # Retornar mensaje de curso no seleccionado si falla la consulta
+                        return "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa.", None
+                    # NUNCA buscar otros cursos - el curso está determinado por el flujo de anuncios
+                else:
+                    # Solo buscar referencias a cursos si NO hay curso seleccionado previamente
                     try:
                         course_references = await self.prompt_service.extract_course_references(message_text)
                         if course_references:
                             for reference in course_references:
                                 courses = await self.course_service.searchCourses(reference)
                                 if courses:
-                                    course_info = await self.course_service.getCourseDetails(courses[0]['id'])
-                                    user_memory.selected_course = courses[0]['id']
+                                    # 🛡️ CRÍTICO: NUNCA sobrescribir course_info si ya hay selected_course del flujo de anuncios
+                                    if not user_memory.selected_course:
+                                        # Solo usar el primer curso encontrado si NO hay curso seleccionado previamente
+                                        course_info = await self.course_service.getCourseDetails(courses[0]['id'])
+                                        user_memory.selected_course = courses[0]['id']
                                     break
+                        
+                        # Si aún no hay curso seleccionado, mostrar mensaje de curso no seleccionado
+                        if not user_memory.selected_course and not course_info:
+                            return "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa.", None
                     except Exception as e:
                         logger.warning(f"Error buscando referencias de curso: {e}")
+                        return "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa.", None
                 
                 # Incrementar contador de interacciones
                 user_memory.interaction_count += 1

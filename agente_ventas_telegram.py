@@ -106,6 +106,15 @@ class VentasBot:
             # Obtener memoria del usuario para decidir routing
             user_memory = self.global_memory.get_lead_memory(str(user.id))
             
+            # ✅ FORZAR CURSO CORRECTO cuando hay anuncio (PRIORITY #1)
+            if has_course_hashtag and has_ad_hashtag:
+                # Forzar el curso correcto basado en el hashtag detectado
+                for hashtag in hashtags:
+                    if hashtag == 'CURSO_IA_CHATGPT':
+                        user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
+                        self.global_memory.save_lead_memory(str(user.id), user_memory)
+                        break
+            
             # Verificar si el usuario está en proceso de proporcionar su nombre
             if user_memory.privacy_accepted and user_memory.stage == "waiting_for_name":
                 # El usuario está proporcionando su nombre
@@ -231,8 +240,13 @@ Soy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayu
 
 A continuación te comparto toda la información del curso:"""
             
-            # Obtener información del curso desde Supabase
-            course_id = "a392bf83-4908-4807-89a9-95d0acc807c9"  # ID del curso IA ChatGPT
+            # ✅ GARANTIZAR que el curso esté guardado correctamente
+            if not user_memory.selected_course:
+                user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
+                self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            course_id = user_memory.selected_course
+            logger.info(f"Usando curso de memoria para {user_id}: {course_id}")
             course_info_text = ""
             
             try:
@@ -295,6 +309,15 @@ dato no encontrado
             user_memory = self.global_memory.get_lead_memory(user_id)
             user_memory.name = user_name
             user_memory.stage = "name_collected"
+            
+            # ✅ GARANTIZAR que el curso esté guardado correctamente
+            if not user_memory.selected_course:
+                user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
+            
+            course_id = user_memory.selected_course
+            logger.info(f"Usando curso de memoria para {user_id}: {course_id}")
+            
+            # GUARDAR la memoria actualizada
             self.global_memory.save_lead_memory(user_id, user_memory)
             
             logger.info(f"Nombre almacenado para usuario {user_id}: {user_name}")
@@ -305,9 +328,6 @@ dato no encontrado
 Soy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayudar.
 
 A continuación te comparto toda la información del curso:"""
-            
-            # Obtener información del curso desde Supabase
-            course_id = "a392bf83-4908-4807-89a9-95d0acc807c9"  # ID del curso IA ChatGPT
             course_info_text = ""
             
             try:
@@ -481,6 +501,9 @@ dato no encontrado
             if user_memory:
                 user_memory.privacy_accepted = True
                 user_memory.stage = "waiting_for_name"
+                # ✅ ASEGURAR que el curso esté asignado cuando acepta privacidad
+                if not user_memory.selected_course:
+                    user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
                 self.global_memory.save_lead_memory(user_id, user_memory)
             
             # Pedir el nombre del usuario

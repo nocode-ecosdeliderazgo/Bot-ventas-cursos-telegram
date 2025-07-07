@@ -337,12 +337,14 @@ class IntelligentSalesAgent:
             return "Lo siento, hay un problema con el sistema. Por favor intenta más tarde."
         
         try:
-            # CRÍTICO: Obtener información real del curso de la BD
-            if user_memory.selected_course and not course_info:
+            # CRÍTICO: Solo obtener información del curso si NO se pasó una válida
+            if user_memory.selected_course and course_info is None:
                 logger.info(f"Obteniendo información del curso desde BD: {user_memory.selected_course}")
                 course_info = await self._get_course_info_from_db(user_memory.selected_course)
                 if not course_info:
                     logger.warning(f"No se pudo obtener información del curso {user_memory.selected_course}")
+            elif course_info:
+                logger.info(f"✅ Usando course_info pasado correctamente para curso: {user_memory.selected_course}")
             
             # Analizar intención del usuario
             intent_analysis = await self._analyze_user_intent(user_message, user_memory)
@@ -377,24 +379,40 @@ class IntelligentSalesAgent:
                 user_memory.interests.extend(key_topics)
                 user_memory.interests = list(set(user_memory.interests))
             
-            # Buscar referencias a cursos en el mensaje del usuario
-            course_references = await self.prompt_service.extract_course_references(user_message)
+            # 🛡️ PROTECCIÓN: Nunca permitir curso incorrecto
+            if user_memory.selected_course == "b00f3d1c-e876-4bac-b734-2715110440a0":
+                user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
             
-            # Si hay referencias a cursos pero no tenemos información del curso,
-            # intentar obtener la información del curso
-            if course_references and not course_info:
-                for reference in course_references:
-                    # Buscar cursos que coincidan con la referencia
-                    courses = await self.course_service.searchCourses(reference)
-                    if courses:
-                        # Usar el primer curso encontrado
-                        course_info = await self.course_service.getCourseDetails(courses[0]['id'])
-                        break
-            
-            # Si tenemos un ID de curso seleccionado pero no la información completa,
-            # obtener los detalles
-            if user_memory.selected_course and not course_info:
-                course_info = await self.course_service.getCourseDetails(user_memory.selected_course)
+            # ✅ CRÍTICO: Si hay curso seleccionado del flujo de anuncios, NUNCA cambiarlo
+            if user_memory.selected_course:
+                logger.info(f"🎯 CURSO FIJO del flujo de anuncios: {user_memory.selected_course}")
+                if not course_info:
+                    course_info = await self.course_service.getCourseDetails(user_memory.selected_course)
+                    if not course_info:
+                        logger.warning(f"❌ No se pudo obtener detalles del curso seleccionado: {user_memory.selected_course}")
+                        # Mantener el curso seleccionado aunque falle la consulta
+                        return "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa."
+                # NUNCA buscar otros cursos - el curso está determinado por el flujo de anuncios
+            else:
+                # Solo buscar referencias a cursos si NO hay curso seleccionado previamente
+                course_references = await self.prompt_service.extract_course_references(user_message)
+                
+                # Solo buscar otros cursos si NO hay curso seleccionado del flujo de anuncios
+                if course_references:
+                    for reference in course_references:
+                        # Buscar cursos que coincidan con la referencia
+                        courses = await self.course_service.searchCourses(reference)
+                        if courses:
+                            # 🛡️ CRÍTICO: NUNCA sobrescribir course_info si ya hay selected_course del flujo de anuncios
+                            if not user_memory.selected_course:
+                                # Solo usar el primer curso encontrado si NO hay curso seleccionado previamente
+                                course_info = await self.course_service.getCourseDetails(courses[0]['id'])
+                                user_memory.selected_course = courses[0]['id']
+                            break
+                
+                # Si aún no hay curso seleccionado, mostrar mensaje de curso no seleccionado
+                if not user_memory.selected_course and not course_info:
+                    return "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa."
             
             # Preparar el historial de conversación
             conversation_history: List[Dict[str, str]] = []

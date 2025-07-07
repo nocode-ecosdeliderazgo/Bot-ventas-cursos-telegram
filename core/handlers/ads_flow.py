@@ -69,6 +69,13 @@ class AdsFlowHandler:
             user_memory = self.global_memory.get_lead_memory(user_id)
             if not user_memory:
                 user_memory = LeadMemory(user_id=user_id)
+                # ✅ ASIGNAR CURSO INMEDIATAMENTE al detectar anuncio
+                user_memory.selected_course = course_id
+                self.global_memory.save_lead_memory(user_id, user_memory)
+            
+            # ✅ ASEGURAR que siempre tenga el curso asignado
+            if not user_memory.selected_course:
+                user_memory.selected_course = course_id
                 self.global_memory.save_lead_memory(user_id, user_memory)
             
             if not user_memory.privacy_accepted:
@@ -108,7 +115,8 @@ class AdsFlowHandler:
         """Extrae el ID del curso desde el hashtag."""
         # Normalizar hashtag
         normalized = course_hashtag.upper()
-        return self.course_mapping.get(normalized)
+        course_id = self.course_mapping.get(normalized)
+        return course_id
 
     async def _show_privacy_notice(self, user_data: dict) -> Tuple[str, InlineKeyboardMarkup]:
         """Muestra el aviso de privacidad."""
@@ -193,20 +201,4 @@ Antes de mostrarte toda la información del curso, ¿cómo te gustaría que te l
     def _format_course_info(self, course_details: dict) -> str:
         """Formatea la información del curso usando plantillas centralizadas."""
         return CourseTemplates.format_course_info(course_details)
-        modules_text = ""
-        if modules and isinstance(modules, list):
-            modules_text = "\n\n📚 **Módulos del curso:**\n"
-            for i, module in enumerate(modules[:5], 1):  # Mostrar máximo 5 módulos
-                if isinstance(module, dict):
-                    modules_text += f"{i}. {module.get('name', 'Módulo sin nombre')}\n"
-        
-        return f"""🎓 **{name}**
-
-{description}
-
-⏱️ **Duración:** {duration}
-📊 **Nivel:** {level}
-💰 **Inversión:** ${price} USD
-{modules_text}
-
-¿Qué te gustaría saber más sobre este curso?"""
+       
