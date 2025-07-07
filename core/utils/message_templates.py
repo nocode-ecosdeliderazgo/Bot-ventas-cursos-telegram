@@ -25,7 +25,7 @@ def create_menu_keyboard() -> InlineKeyboardMarkup:
     """Crea el teclado del menú principal."""
     keyboard = [
         [InlineKeyboardButton("🎓 Ver Cursos", callback_data="menu_courses")],
-        [InlineKeyboardButton("📱 Contactar Asesor", callback_data="menu_contact")],
+        [InlineKeyboardButton("📱 Contactar Asesor", callback_data="contact_advisor")],
         [InlineKeyboardButton("❓ FAQ", callback_data="menu_faq")],
         [InlineKeyboardButton("🔒 Privacidad", callback_data="menu_privacy")]
     ]

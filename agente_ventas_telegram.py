@@ -75,6 +75,13 @@ class VentasBot:
                 username=user.username or ''
             )
             
+            # PRIORITARIO: Verificar si es input para flujo de contacto
+            user_memory = self.global_memory.get_lead_memory(str(user.id))
+            if user_memory and user_memory.stage in ["awaiting_email", "awaiting_phone"]:
+                from core.handlers.contact_flow import handle_text_input
+                await handle_text_input(update, context)
+                return
+            
             # NUEVO: Detección de hashtags para flujo de anuncios
             hashtags = extract_hashtags(message.text)
             logger.info(f"Hashtags detectados: {hashtags}")
@@ -113,7 +120,16 @@ class VentasBot:
                     if hashtag == 'CURSO_IA_CHATGPT':
                         user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
                         self.global_memory.save_lead_memory(str(user.id), user_memory)
-                        break
+                    elif hashtag == 'CURSO_PROMPTS':
+                        user_memory.selected_course = "b00f3d1c-e876-4bac-b734-2715110440a0"
+                        self.global_memory.save_lead_memory(str(user.id), user_memory)
+                    elif hashtag == 'CURSO_IMAGENES':
+                        user_memory.selected_course = "2715110440a0-b734-b00f3d1c-e876-4bac"
+                        self.global_memory.save_lead_memory(str(user.id), user_memory)
+                    elif hashtag == 'CURSO_AUTOMATIZACION':
+                        user_memory.selected_course = "4bac-2715110440a0-b734-b00f3d1c-e876"
+                        self.global_memory.save_lead_memory(str(user.id), user_memory)
+                    break
             
             # Verificar si el usuario está en proceso de proporcionar su nombre
             if user_memory.privacy_accepted and user_memory.stage == "waiting_for_name":
@@ -437,6 +453,19 @@ dato no encontrado
                 # NUEVO: Manejar callbacks específicos de privacidad
                 if query.data in ['privacy_accept', 'privacy_decline', 'privacy_full']:
                     response, keyboard = await self._handle_privacy_callback(query.data, user_data)
+                # NUEVO: Manejar callbacks específicos de contacto con asesor
+                elif query.data == 'contact_advisor':
+                    from core.handlers.contact_flow import start_contact_flow
+                    await start_contact_flow(update, context)
+                    return
+                elif query.data.startswith('select_course_'):
+                    from core.handlers.contact_flow import handle_course_selection
+                    await handle_course_selection(update, context)
+                    return
+                elif query.data in ['confirm_contact_yes', 'confirm_contact_no']:
+                    from core.handlers.contact_flow import handle_confirmation
+                    await handle_confirmation(update, context)
+                    return
                 else:
                     # Preparar datos del mensaje para otros callbacks
                     message_data = {

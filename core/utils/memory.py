@@ -32,6 +32,7 @@ class LeadMemory:
     
     # Información del curso
     selected_course: str = ""
+    course_name: str = ""  # Nombre del curso para mostrar al usuario
     course_presented: bool = False
     media_sent: bool = False
     

@@ -25,9 +25,13 @@ async def get_course_from_hashtag(hashtags: List[str], db) -> Optional[str]:
     # Mapeo de hashtags a palabras clave de cursos
     course_keywords = {
         'CURSO_IA_CHATGPT': ['chat', 'gpt', 'dia', 'profesional'],
-        'CURSO_AGENTES_IA': ['agentes', 'autodirigidos', 'optimización'],
-        'CURSO_LIDERAZGO_IA': ['liderazgo', 'estrategia', 'visión'],
-        'CURSO_AUTOMATIZACION': ['automatización', 'inteligente', 'asistentes']
+        'CURSO_PROMPTS': ['prompts', 'ingenieria', 'optimizacion'],
+        'CURSO_IMAGENES': ['imagenes', 'generacion', 'diseño'],
+        'CURSO_AUTOMATIZACION': ['automatización', 'inteligente', 'asistentes'],
+        'curso:ia_chatgpt': ['chat', 'gpt', 'dia', 'profesional'],
+        'curso:prompts': ['prompts', 'ingenieria', 'optimizacion'],
+        'curso:imagenes': ['imagenes', 'generacion', 'diseño'],
+        'curso:automatizacion': ['automatización', 'inteligente', 'asistentes']
     }
 
     # Obtener palabras clave para el hashtag actual

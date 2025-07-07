@@ -1,40 +1,15 @@
-"""Manejadores para el flujo de contacto."""
+
 import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 from core.services.database import DatabaseService
-from core.utils.error_handlers import handle_telegram_errors
 from core.utils.memory import GlobalMemory
-from core.utils.navigation import show_main_menu
 from config.settings import settings
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 logger = logging.getLogger(__name__)
-
-@handle_telegram_errors
-async def show_contact_options(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Muestra las opciones de contacto."""
-    if not update.effective_chat:
-        return
-        
-    message = """¿Cómo prefieres que te contactemos? 📱
-
-Elige la opción que más te convenga:"""
-    
-    keyboard = [
-        [InlineKeyboardButton("📞 Llamada telefónica", callback_data="contact_call")],
-        [InlineKeyboardButton("📱 WhatsApp", callback_data="contact_whatsapp")],
-        [InlineKeyboardButton("📧 Email", callback_data="contact_email")],
-        [InlineKeyboardButton("🔙 Volver al menú", callback_data="menu_main")]
-    ]
-    
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=message,
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
 
 # --- Funciones de Ayuda ---
 
@@ -48,14 +23,12 @@ async def get_all_courses(db: DatabaseService):
         logger.error(f"Error al obtener los cursos: {e}")
         return []
 
-def send_advisor_email(user_data: dict) -> bool:
+def send_advisor_email(user_data: dict):
     """Envía un correo electrónico a un asesor con los datos del lead."""
     try:
-        sender_email = settings.SMTP_USERNAME
-        receiver_email = settings.ADVISOR_EMAIL
-        password = settings.SMTP_PASSWORD
-        
-        logger.info(f"Enviando email desde {sender_email} hacia {receiver_email}")
+        sender_email = settings.EMAIL_HOST_USER
+        receiver_email = "destinatario@example.com"  # Cambiar por el email del asesor
+        password = settings.EMAIL_HOST_PASSWORD
 
         subject = f"Nuevo Lead Interesado: {user_data.get('name', 'N/A')}"
         body = f"""
@@ -76,7 +49,7 @@ def send_advisor_email(user_data: dict) -> bool:
         message["Subject"] = subject
         message.attach(MIMEText(body, "plain"))
 
-        with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
+        with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
             server.starttls()
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_email, message.as_string())
@@ -132,7 +105,7 @@ async def request_course_selection(update: Update, context: ContextTypes.DEFAULT
 
     keyboard = []
     for course in courses:
-        keyboard.append([InlineKeyboardButton(course['name'], callback_data=f"select_course_{course['id']}")])    
+        keyboard.append([InlineKeyboardButton(course['name'], callback_data=f"select_course_{course['id']}")])
     
     await query.edit_message_text(
         "Por favor, selecciona el curso de tu interés:",
@@ -149,10 +122,10 @@ async def handle_course_selection(update: Update, context: ContextTypes.DEFAULT_
     course_id = query.data.split('_')[-1]
     memory.selected_course = course_id
     
-    # Obtener el nombre del curso
+    # Aquí podrías obtener y guardar el nombre del curso también si lo necesitas
     db = DatabaseService(settings.DATABASE_URL)
     await db.connect()
-    course_details = await db.get_course_details(course_id)
+    course_details = await db.get_course_details(course_id) # Suponiendo que tienes esta función
     await db.disconnect()
     if course_details:
         memory.course_name = course_details.get('name')
@@ -171,59 +144,20 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
         memory.email = text
         memory.stage = ""
         GlobalMemory().save_lead_memory(user_id, memory)
-        await update.message.reply_text("Email registrado. Verificando información...")
-        # Continuar el flujo
-        await request_missing_info_after_input(update, context)
+        # Simular un callback para continuar el flujo
+        fake_update = Update(update.update_id, callback_query=update.message)
+        fake_update.callback_query.from_user = update.message.from_user
+        await request_missing_info(fake_update, context)
 
     elif memory.stage == "awaiting_phone":
         memory.phone = text
         memory.stage = ""
         GlobalMemory().save_lead_memory(user_id, memory)
-        await update.message.reply_text("Teléfono registrado. Verificando información...")
-        # Continuar el flujo
-        await confirm_contact_details_after_input(update, context)
+        # Simular un callback para continuar el flujo
+        fake_update = Update(update.update_id, callback_query=update.message)
+        fake_update.callback_query.from_user = update.message.from_user
+        await confirm_contact_details(fake_update, context)
 
-async def request_missing_info_after_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Continúa el flujo después de recibir el email."""
-    user_id = str(update.message.from_user.id)
-    memory = GlobalMemory().get_lead_memory(user_id)
-    
-    if not memory.phone:
-        memory.stage = "awaiting_phone"
-        GlobalMemory().save_lead_memory(user_id, memory)
-        await update.message.reply_text("Por favor, introduce tu número de teléfono:")
-    else:
-        await confirm_contact_details_after_input(update, context)
-
-async def confirm_contact_details_after_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Muestra confirmación después de recibir datos por texto."""
-    user_id = str(update.message.from_user.id)
-    memory = GlobalMemory().get_lead_memory(user_id)
-
-    # Obtener nombre del curso si no está disponible
-    if not hasattr(memory, 'course_name') or not memory.course_name:
-        db = DatabaseService(settings.DATABASE_URL)
-        await db.connect()
-        course_details = await db.get_course_details(memory.selected_course)
-        await db.disconnect()
-        memory.course_name = course_details.get('name') if course_details else "No especificado"
-        GlobalMemory().save_lead_memory(user_id, memory)
-
-    message = f"""Por favor, confirma que tus datos son correctos:
-    
-- Nombre: {memory.name}
-- Email: {memory.email}
-- Teléfono: {memory.phone}
-- Curso: {memory.course_name}
-    
-¿Son correctos estos datos?"""
-    
-    keyboard = [
-        [InlineKeyboardButton("✅ Sí, son correctos", callback_data="confirm_contact_yes")],
-        [InlineKeyboardButton("✏️ No, quiero editarlos", callback_data="confirm_contact_no")]
-    ]
-    
-    await update.message.reply_text(message, reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def confirm_contact_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Muestra al usuario los datos recopilados y pide confirmación."""
@@ -231,7 +165,7 @@ async def confirm_contact_details(update: Update, context: ContextTypes.DEFAULT_
     user_id = str(query.from_user.id)
     memory = GlobalMemory().get_lead_memory(user_id)
 
-    # Obtener nombre del curso si no está disponible
+    # Asumiendo que ya tienes el nombre del curso en memoria
     if not hasattr(memory, 'course_name') or not memory.course_name:
         db = DatabaseService(settings.DATABASE_URL)
         await db.connect()
@@ -240,20 +174,20 @@ async def confirm_contact_details(update: Update, context: ContextTypes.DEFAULT_
         memory.course_name = course_details.get('name') if course_details else "No especificado"
         GlobalMemory().save_lead_memory(user_id, memory)
 
-    message = f"""Por favor, confirma que tus datos son correctos:
+    message = f"""
+    Por favor, confirma que tus datos son correctos:
     
-- Nombre: {memory.name}
-- Email: {memory.email}
-- Teléfono: {memory.phone}
-- Curso: {memory.course_name}
+    - Nombre: {memory.name}
+    - Email: {memory.email}
+    - Teléfono: {memory.phone}
+    - Curso: {memory.course_name}
     
-¿Son correctos estos datos?"""
-    
+    ¿Son correctos estos datos?
+    """
     keyboard = [
         [InlineKeyboardButton("✅ Sí, son correctos", callback_data="confirm_contact_yes")],
         [InlineKeyboardButton("✏️ No, quiero editarlos", callback_data="confirm_contact_no")]
     ]
-    
     await query.edit_message_text(message, reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -284,34 +218,3 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
         GlobalMemory().save_lead_memory(user_id, memory)
         await request_missing_info(update, context)
 
-@handle_telegram_errors
-async def handle_contact_selection(update: Update, context: ContextTypes.DEFAULT_TYPE, callback_data: str) -> None:
-    """Maneja la selección del método de contacto."""
-    if not update.effective_chat or not update.callback_query:
-        return
-        
-    query = update.callback_query
-    
-    if callback_data == "contact_call":
-        message = """Por favor, envíame tu número de teléfono para que podamos llamarte.
-        
-📱 Formato: +XX XXXXXXXXXX"""
-        
-    elif callback_data == "contact_whatsapp":
-        message = """Por favor, envíame tu número de WhatsApp.
-        
-📱 Formato: +XX XXXXXXXXXX"""
-        
-    elif callback_data == "contact_email":
-        message = """Por favor, envíame tu dirección de email.
-        
-📧 Formato: tu@email.com"""
-        
-    else:  # menu_main
-        await show_main_menu(update, context)
-        return
-    
-    await query.edit_message_text(
-        text=message,
-        reply_markup=None
-    ) 

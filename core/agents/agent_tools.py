@@ -301,7 +301,8 @@ Para agendar tu sesión, haz clic en el botón de abajo o escríbeme tu horario 
             "inline_keyboard": [
                 [{"text": "📅 Agendar Ahora", "url": course['demo_request_link']}],
                 [{"text": "💬 Escribir Horario Preferido", "callback_data": f"schedule_manual_{course_id}"}],
-                [{"text": "📚 Ver Más Info del Curso", "callback_data": f"show_syllabus_{course_id}"}]
+                [{"text": "📚 Ver Más Info del Curso", "callback_data": f"show_syllabus_{course_id}"}],
+                [{"text": "🧑‍💼 Contactar Asesor", "callback_data": "contact_advisor"}]
             ]
         }
 
@@ -352,7 +353,8 @@ Como muestra de la calidad de nuestro curso "{course['name']}", te comparto esto
             "inline_keyboard": [
                 [{"text": "📥 Descargar Recursos", "url": course['resources_url']}],
                 [{"text": "📚 Ver Contenido Completo", "callback_data": f"show_syllabus_{course_id}"}],
-                [{"text": "💰 Ver Oferta Especial", "callback_data": f"show_pricing_{course_id}"}]
+                [{"text": "💰 Ver Oferta Especial", "callback_data": f"show_pricing_{course_id}"}],
+                [{"text": "🧑‍💼 Contactar Asesor", "callback_data": "contact_advisor"}]
             ]
         }
 
@@ -504,7 +506,8 @@ Si no estás 100% satisfecho con el curso, te devolvemos tu dinero completo.
                 [{"text": "🏆 Pago Único", "callback_data": f"payment_full_{course_id}"}],
                 [{"text": "💼 2 Pagos", "callback_data": f"payment_2x_{course_id}"}],
                 [{"text": "📈 3 Pagos", "callback_data": f"payment_3x_{course_id}"}],
-                [{"text": "💬 Necesito más info", "callback_data": f"payment_info_{course_id}"}]
+                [{"text": "💬 Necesito más info", "callback_data": f"payment_info_{course_id}"}],
+                [{"text": "🧑‍💼 Contactar Asesor", "callback_data": "contact_advisor"}]
             ]
         }
 
@@ -521,6 +524,28 @@ Si no estás 100% satisfecho con el curso, te devolvemos tu dinero completo.
             "payment_options_shown",
             {}
         )
+
+    async def contactar_asesor_directo(self, user_id: str, course_id: str = None) -> dict:
+        """
+        Inicia directamente el flujo de contacto con asesor sin pregunta previa.
+        Retorna un botón que activa el flujo completo implementado en contact_flow.py
+        """
+        await self._registrar_interaccion(
+            user_id,
+            course_id or "general",
+            "contact_advisor_requested",
+            {"direct_activation": True}
+        )
+        
+        # Retornar respuesta con botón que activa el flujo directo
+        return {
+            "type": "message_with_button",
+            "text": "Te voy a conectar con un asesor especializado. Solo necesito recopilar algunos datos:",
+            "button": {
+                "text": "🧑‍💼 Iniciar Contacto",
+                "callback_data": "contact_advisor"
+            }
+        }
 
     # ========== Funciones de Análisis y Seguimiento ==========
 

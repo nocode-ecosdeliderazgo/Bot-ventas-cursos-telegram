@@ -34,9 +34,9 @@ logger = logging.getLogger(__name__)
 # Mapeo de códigos de curso a IDs
 CURSOS_MAP = {
     "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9",  # ID correcto del curso
-    "CURSO_PROMPTS": "2",
-    "CURSO_IMAGENES": "3",
-    "CURSO_AUTOMATIZACION": "4"
+    "CURSO_PROMPTS": "b00f3d1c-e876-4bac-b734-2715110440a0",
+    "CURSO_IMAGENES": "2715110440a0-b734-b00f3d1c-e876-4bac",
+    "CURSO_AUTOMATIZACION": "4bac-2715110440a0-b734-b00f3d1c-e876"
 }
 
 class SmartSalesAgent:
@@ -127,6 +127,32 @@ class SmartSalesAgent:
             # FLUJO: Si el usuario está en la etapa de 'awaiting_preferred_name', mostrar archivos y mensaje
             if user_memory.stage == "awaiting_preferred_name":
                 return await self._handle_name_and_send_media(message_data, user_data, user_memory)
+            
+            # DETECCIÓN TEMPRANA: Solicitud de contacto con asesor
+            advisor_keywords = [
+                'puedo hablar con un asesor', 'hablar con un asesor', 'contactar asesor',
+                'quiero hablar con alguien', 'necesito hablar con alguien', 'un asesor',
+                'hablar con una persona', 'atención personalizada', 'asesor especializado'
+            ]
+            
+            if any(keyword in message_text.lower() for keyword in advisor_keywords):
+                logger.info(f"🧑‍💼 Usuario solicita contacto con asesor: {message_text}")
+                # Retornar directamente el flujo sin usar LLM
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("🧑‍💼 Conectar con Asesor", callback_data="contact_advisor")]
+                ])
+                
+                message = """¡Por supuesto! Te voy a conectar con un asesor especializado que podrá atender todas tus dudas de manera personalizada. 😊
+
+Un asesor se pondrá en contacto contigo para:
+• Resolver todas tus preguntas específicas
+• Mostrarte opciones personalizadas 
+• Ayudarte a tomar la mejor decisión
+• Brindarte atención 100% personalizada
+
+Solo necesito recopilar algunos datos para que pueda contactarte."""
+                
+                return message, keyboard
             
             # **MEJORADO: Usar el agente inteligente para la mayoría de conversaciones**
             # Usar LLM si: ya se presentó Brenda, hay más de 1 interacción, o es una pregunta general
@@ -642,4 +668,6 @@ class SmartSalesAgent:
         elif strategy == 'discover_needs':
             return 'needs_follow_up'
         else:
-            return None 
+            return None
+
+ 

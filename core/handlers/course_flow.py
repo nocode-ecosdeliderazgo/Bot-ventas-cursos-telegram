@@ -8,27 +8,38 @@ from core.utils.memory import GlobalMemory
 
 logger = logging.getLogger(__name__)
 
-# Datos de ejemplo de cursos
+# Datos de cursos reales
 COURSES = {
-    "ia_basic": {
-        "name": "Fundamentos de IA",
-        "description": "Curso básico para comenzar en el mundo de la IA",
-        "price": 99,
-        "duration": "4 semanas",
-        "level": "Principiante"
-    },
-    "ia_inter": {
-        "name": "IA Intermedia",
-        "description": "Profundiza en algoritmos y aplicaciones de IA",
+    "ia_chatgpt": {
+        "id": "a392bf83-4908-4807-89a9-95d0acc807c9",
+        "name": "ChatGPT para Profesionales",
+        "description": "Domina el uso profesional de ChatGPT y la IA generativa",
         "price": 199,
         "duration": "8 semanas",
         "level": "Intermedio"
     },
-    "ia_adv": {
-        "name": "IA Avanzada",
-        "description": "Domina técnicas avanzadas y proyectos complejos",
-        "price": 299,
-        "duration": "12 semanas",
+    "prompts": {
+        "id": "b00f3d1c-e876-4bac-b734-2715110440a0",
+        "name": "Ingeniería de Prompts",
+        "description": "Optimiza tus prompts para obtener mejores resultados con IA",
+        "price": 149,
+        "duration": "6 semanas",
+        "level": "Intermedio-Avanzado"
+    },
+    "imagenes": {
+        "id": "2715110440a0-b734-b00f3d1c-e876-4bac",
+        "name": "Generación de Imágenes con IA",
+        "description": "Crea imágenes profesionales usando herramientas de IA",
+        "price": 179,
+        "duration": "6 semanas",
+        "level": "Intermedio"
+    },
+    "automatizacion": {
+        "id": "4bac-2715110440a0-b734-b00f3d1c-e876",
+        "name": "Automatización Inteligente",
+        "description": "Automatiza tareas y procesos usando asistentes de IA",
+        "price": 229,
+        "duration": "10 semanas",
         "level": "Avanzado"
     }
 }

@@ -42,9 +42,12 @@ class AdsFlowHandler:
         self.course_mapping = {
             'CURSO_IA_CHATGPT': 'a392bf83-4908-4807-89a9-95d0acc807c9',
             'curso:ia_chatgpt': 'a392bf83-4908-4807-89a9-95d0acc807c9',
-            'CURSO_PROMPTS': '2',
-            'CURSO_IMAGENES': '3',
-            'CURSO_AUTOMATIZACION': '4'
+            'CURSO_PROMPTS': 'b00f3d1c-e876-4bac-b734-2715110440a0',
+            'curso:prompts': 'b00f3d1c-e876-4bac-b734-2715110440a0',
+            'CURSO_IMAGENES': '2715110440a0-b734-b00f3d1c-e876-4bac',
+            'curso:imagenes': '2715110440a0-b734-b00f3d1c-e876-4bac',
+            'CURSO_AUTOMATIZACION': '4bac-2715110440a0-b734-b00f3d1c-e876',
+            'curso:automatizacion': '4bac-2715110440a0-b734-b00f3d1c-e876'
         }
 
     async def process_ad_message(self, message_data: dict, user_data: dict, course_hashtag: str, campaign_hashtag: str) -> Tuple[Union[str, List[Dict[str, Any]]], Optional[InlineKeyboardMarkup]]:
