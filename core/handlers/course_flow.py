@@ -41,6 +41,14 @@ COURSES = {
         "price": 229,
         "duration": "10 semanas",
         "level": "Avanzado"
+    },
+    "nuevo": {
+        "id": "d7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f",
+        "name": "Nombre del Nuevo Curso",
+        "description": "Descripción del nuevo curso",
+        "price": 0,  # Actualizar con el precio correcto
+        "duration": "Por definir",
+        "level": "Por definir"
     }
 }
 

@@ -31,7 +31,10 @@ async def get_course_from_hashtag(hashtags: List[str], db) -> Optional[str]:
         'curso:ia_chatgpt': ['chat', 'gpt', 'dia', 'profesional'],
         'curso:prompts': ['prompts', 'ingenieria', 'optimizacion'],
         'curso:imagenes': ['imagenes', 'generacion', 'diseño'],
-        'curso:automatizacion': ['automatización', 'inteligente', 'asistentes']
+        'curso:automatizacion': ['automatización', 'inteligente', 'asistentes'],
+        # Agregar el nuevo mapeo
+        'CURSO_NUEVO': ['nuevo', 'curso', 'keywords'],
+        'curso:nuevo': ['nuevo', 'curso', 'keywords']
     }
 
     # Obtener palabras clave para el hashtag actual

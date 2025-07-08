@@ -48,7 +48,10 @@ class AdsFlowHandler:
             'CURSO_IMAGENES': '2715110440a0-b734-b00f3d1c-e876-4bac',
             'curso:imagenes': '2715110440a0-b734-b00f3d1c-e876-4bac',
             'CURSO_AUTOMATIZACION': '4bac-2715110440a0-b734-b00f3d1c-e876',
-            'curso:automatizacion': '4bac-2715110440a0-b734-b00f3d1c-e876'
+            'curso:automatizacion': '4bac-2715110440a0-b734-b00f3d1c-e876',
+            # Agregar el nuevo mapeo
+            'CURSO_NUEVO': 'd7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f',
+            'curso:nuevo': 'd7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f'
         }
 
     async def process_ad_message(self, message_data: dict, user_data: dict, course_hashtag: str, campaign_hashtag: str) -> Tuple[Union[str, List[Dict[str, Any]]], Optional[InlineKeyboardMarkup]]:
