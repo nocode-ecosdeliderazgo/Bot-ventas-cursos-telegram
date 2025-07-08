@@ -33,10 +33,12 @@ logger = logging.getLogger(__name__)
 
 # Mapeo de códigos de curso a IDs
 CURSOS_MAP = {
-    "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9",  # ID correcto del curso
+    "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9",
     "CURSO_PROMPTS": "b00f3d1c-e876-4bac-b734-2715110440a0",
     "CURSO_IMAGENES": "2715110440a0-b734-b00f3d1c-e876-4bac",
-    "CURSO_AUTOMATIZACION": "4bac-2715110440a0-b734-b00f3d1c-e876"
+    "CURSO_AUTOMATIZACION": "4bac-2715110440a0-b734-b00f3d1c-e876",
+    # Agregar el nuevo mapeo
+    "CURSO_NUEVO": "d7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f"
 }
 
 class SmartSalesAgent:

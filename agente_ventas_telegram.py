@@ -129,6 +129,9 @@ class VentasBot:
                     elif hashtag == 'CURSO_AUTOMATIZACION':
                         user_memory.selected_course = "4bac-2715110440a0-b734-b00f3d1c-e876"
                         self.global_memory.save_lead_memory(str(user.id), user_memory)
+                    elif hashtag == 'CURSO_NUEVO':
+                        user_memory.selected_course = "d7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f"
+                        self.global_memory.save_lead_memory(str(user.id), user_memory)
                     break
             
             # Verificar si el usuario está en proceso de proporcionar su nombre

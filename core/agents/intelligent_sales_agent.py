@@ -62,7 +62,7 @@ Tienes acceso a herramientas avanzadas que DEBES usar inteligentemente según el
 
 **HERRAMIENTAS DE DEMOSTRACIÓN:**
 - enviar_preview_curso: Video preview del curso
-- mostrar_recursos_gratuitos: Guías y templates de valor
+- enviar_recursos_gratuitos: Guías y templates de valor (PDFs, templates)
 - mostrar_syllabus_interactivo: Contenido detallado del curso
 
 **HERRAMIENTAS DE PERSUASIÓN:**
@@ -93,7 +93,8 @@ Tienes acceso a herramientas avanzadas que DEBES usar inteligentemente según el
 **AL DETECTAR INTERÉS INICIAL (primera conversación):**
 - Si pregunta por contenido → mostrar_syllabus_interactivo
 - Si quiere ver antes de decidir → enviar_preview_curso
-- Si necesita convencerse del valor → mostrar_recursos_gratuitos
+- Si necesita convencerse del valor → enviar_recursos_gratuitos
+- Si pide recursos gratuitos o guías → enviar_recursos_gratuitos
 
 **AL DETECTAR OBJECIONES:**
 - Objeción de precio → mostrar_comparativa_precios + personalizar_oferta_por_budget
@@ -122,7 +123,8 @@ Tienes acceso a herramientas avanzadas que DEBES usar inteligentemente según el
 
 CATEGORÍAS DE RESPUESTA:
 - EXPLORACIÓN: Ayuda a descubrir necesidades + mostrar_syllabus_interactivo
-- EDUCACIÓN: Comparte valor + mostrar_recursos_gratuitos
+- EDUCACIÓN: Comparte valor + enviar_recursos_gratuitos
+- RECURSOS_GRATUITOS: Solicitud directa de recursos + enviar_recursos_gratuitos
 - OBJECIÓN_PRECIO: ROI real + mostrar_comparativa_precios + personalizar_oferta_por_budget
 - OBJECIÓN_TIEMPO: Flexibilidad + mostrar_syllabus_interactivo
 - OBJECIÓN_VALOR: Resultados + mostrar_casos_exito_similares + mostrar_testimonios_relevantes
@@ -247,7 +249,8 @@ class IntelligentSalesAgent:
             6. BUYING_SIGNALS - Señales de interés en comprar
             7. AUTOMATION_NEED - Necesidad específica de automatización
             8. PROFESSION_CHANGE - Cambio de profesión/área de trabajo
-            9. GENERAL_QUESTION - Pregunta general sobre IA/tecnología
+            9. FREE_RESOURCES - Solicitud de recursos gratuitos, guías, templates, prompts
+            10. GENERAL_QUESTION - Pregunta general sobre IA/tecnología
 
             MENSAJE ACTUAL: {user_message}
 
@@ -585,9 +588,9 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
 - Precio (USD): {course_info.get('price_usd', 'No disponible')}
 - Nivel: {course_info.get('level', 'No disponible')}
 - Categoría: {course_info.get('category', 'No disponible')}
-- Herramientas usadas: {', '.join(str(t) for t in course_info.get('tools_used', ['No disponible']))}
-- Prerrequisitos: {', '.join(str(p) for p in course_info.get('prerequisites', ['No disponible']))}
-- Requerimientos: {', '.join(str(r) for r in course_info.get('requirements', ['No disponible']))}
+- Herramientas usadas: {', '.join(str(t) for t in (course_info.get('tools_used') or ['No disponible']))}
+- Prerrequisitos: {', '.join(str(p) for p in (course_info.get('prerequisites') or ['No disponible']))}
+- Requerimientos: {', '.join(str(r) for r in (course_info.get('requirements') or ['No disponible']))}
 - Horario: {course_info.get('schedule', 'No disponible')}
 
 ⚠️ REGLA CRÍTICA: Solo usa la información de arriba. NO menciones módulos específicos a menos que estén listados abajo.

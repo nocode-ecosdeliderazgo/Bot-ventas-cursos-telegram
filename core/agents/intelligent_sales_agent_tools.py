@@ -81,6 +81,10 @@ class IntelligentSalesAgentTools:
                 await self.agent_tools.enviar_preview_curso(user_id, course_info['id'])
                 activated_tools.append('enviar_preview_curso')
                 
+            elif category == 'FREE_RESOURCES' and confidence > 0.5:
+                await self.agent_tools.enviar_recursos_gratuitos(user_id, course_info['id'])
+                activated_tools.append('enviar_recursos_gratuitos')
+                
             # HERRAMIENTAS BASADAS EN COMPORTAMIENTO Y CONTEXTO
             
             # Usuario muy interesado (múltiples interacciones)
