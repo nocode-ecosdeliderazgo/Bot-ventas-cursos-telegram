@@ -102,6 +102,20 @@ CREATE TABLE public.courses (
   resources_url text,
   CONSTRAINT courses_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.free_resources (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  course_id uuid,
+  resource_name text NOT NULL,
+  resource_type text CHECK (resource_type = ANY (ARRAY['pdf'::text, 'template'::text, 'guide'::text])),
+  resource_url text NOT NULL,
+  resource_description text,
+  file_size text,
+  tags ARRAY,
+  created_at timestamp without time zone DEFAULT now(),
+  active boolean DEFAULT true,
+  CONSTRAINT free_resources_pkey PRIMARY KEY (id),
+  CONSTRAINT free_resources_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.courses(id)
+);
 CREATE TABLE public.limited_time_bonuses (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   name text NOT NULL,

@@ -8,11 +8,12 @@ This file provides comprehensive guidance to Claude Code (claude.ai/code) when w
 
 **Business Model**: Automated lead conversion for AI course sales through intelligent conversation flows, hashtag-based ad detection, and personalized sales experiences.
 
-## CURRENT STATUS (2025-07-08 - ANÁLISIS TÉCNICO EXHAUSTIVO COMPLETADO)
+## CURRENT STATUS (2025-07-08 - MIGRACIÓN BASE DE DATOS PLANIFICADA)
 
-**ESTADO ACTUAL**: ✅ **98% FUNCIONAL - PRODUCTION READY**
+**ESTADO ACTUAL**: ⚠️ **MIGRACIÓN CRÍTICA EN PLANIFICACIÓN**
 **ANÁLISIS TÉCNICO**: Verificación exhaustiva del código confirma implementación real superior a la documentación
 **ARQUITECTURA**: Nivel empresarial con componentes modulares y escalables
+**MIGRACIÓN DB**: Plan completo desarrollado para nueva estructura de base de datos
 
 **FUNCIONALIDADES VERIFICADAS Y OPERATIVAS**:
 - ✅ **Motor principal del bot**: Robusto, completo, manejo de errores extensivo
@@ -145,12 +146,26 @@ psql -d your_database -f database/sql/limited_time_bonuses_rows.sql
 
 ### Database Schema
 
-The bot uses PostgreSQL with these key tables:
+⚠️ **MIGRACIÓN EN PROCESO**: El bot está migrando de estructura actual a nueva optimizada.
+
+**ESTRUCTURA ACTUAL (En uso)**:
 - `user_leads`: Lead information and scoring
 - `courses`: Course catalog with pricing
+- `course_modules`: Course modules and lessons
 - `limited_time_bonuses`: Time-sensitive offers
 - `course_interactions`: User interaction tracking
 - `conversations`: Chat history and context
+- `course_sales`: Sales tracking
+- `free_resources`: Free downloadable resources
+- `promotions`: Active promotions
+
+**ESTRUCTURA NUEVA (Planificada)**:
+- `ai_subthemes`: Course categories and themes
+- `ai_courses`: Optimized course catalog
+- `ai_course_sessions`: Individual course sessions
+- `ai_session_practices`: Practice exercises per session
+- `ai_session_deliverables`: Deliverable resources per session
+- **PLUS**: All existing tables maintained for compatibility
 
 ## Configuration
 
@@ -263,9 +278,12 @@ HASHTAG_MAPPING = {
 - Modify lead scoring logic in `lead_scorer.py`
 
 ### Database Changes
-- Update SQL files in `database/sql/`
-- Modify service classes accordingly
-- Test with verification scripts
+⚠️ **MIGRACIÓN CRÍTICA EN CURSO**:
+- **Plan completo**: Ver `PLAN_MIGRACION_BASE_DATOS.md` para detalles exhaustivos
+- **Estructura nueva**: 5 tablas core + tablas existentes mantenidas
+- **Impacto**: Afecta TODAS las funcionalidades del bot
+- **Cronograma**: 7 semanas de migración planificadas
+- **Riesgo**: ALTO - Requiere adaptación de 35+ herramientas y todos los servicios
 
 ## Testing
 
@@ -279,10 +297,11 @@ Use the provided verification scripts to ensure components work correctly:
 
 ### CURRENT PROJECT STATE (2025-07-08)
 - **Bot Name**: "Brenda" from "Aprenda y Aplique IA"
-- **Status**: ✅ **98% PRODUCTION READY** - Enterprise-grade implementation
+- **Status**: ⚠️ **MIGRACIÓN CRÍTICA - BASE DE DATOS**
 - **Architecture**: Sophisticated multi-agent system with OpenAI integration
-- **Only 2% Missing**: Real testimonial data and functional URLs
+- **Migración DB**: Estructura completa en transición a nueva organización
 - **Quality Level**: Professional codebase with extensive error handling
+- **Plan detallado**: Ver `PLAN_MIGRACION_BASE_DATOS.md`
 
 ### WHAT'S ACTUALLY IMPLEMENTED (VERIFIED)
 - ✅ **Complete Telegram Bot**: Full hashtag detection and flow routing
@@ -424,3 +443,14 @@ INTENT_CATEGORIES = {
 ## CONCLUSION
 
 This is a **production-ready, enterprise-grade sales automation system** that significantly exceeds typical bot implementations. The codebase demonstrates advanced software engineering practices and is ready to generate immediate business value.
+
+⚠️ **MIGRACIÓN CRÍTICA EN CURSO**: El sistema está en proceso de migración de base de datos a nueva estructura optimizada. Ver `PLAN_MIGRACION_BASE_DATOS.md` para detalles completos del plan de migración de 7 semanas que afecta todas las funcionalidades del bot.
+
+## ARCHIVOS CRÍTICOS PARA MIGRACIÓN
+
+- `PLAN_MIGRACION_BASE_DATOS.md` - Plan detallado de migración
+- `database/sql/base_estructura.sql` - Estructura actual
+- `database/sql/base_estructura_nueva.sql` - Estructura nueva
+- `database/sql/equivalencias_estructuras.txt` - Mapeo entre estructuras
+
+**PRÓXIMOS PASOS**: Ejecutar plan de migración por fases, priorizando servicios críticos y herramientas del agente.

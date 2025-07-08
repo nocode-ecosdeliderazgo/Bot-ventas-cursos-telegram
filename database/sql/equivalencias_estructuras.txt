@@ -1,0 +1,36 @@
+| **Antiguo**                                                                                          | **Nuevo**                       | **Equivalencia funcional**                                                |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------- |
+| `courses`                                                                                            | `ai_courses`                    | Curso principal                                                           |
+| • id                                                                                                 | • id                            | Identificador único                                                       |
+| • name                                                                                               | • name                          | Nombre del curso                                                          |
+| • (–) subtheme                                                                                       | • subtheme\_id → `ai_subthemes` | Nueva FK para agrupar por subtema                                         |
+| • short\_description                                                                                 | • short\_description            | Resumen breve                                                             |
+| • long\_description                                                                                  | • long\_description             | Descripción completa                                                      |
+| • (–) session\_count                                                                                 | • session\_count                | Número de sesiones                                                        |
+| • (–) total\_duration\_min                                                                           | • total\_duration\_min          | Duración total en minutos                                                 |
+| • (–) price,currency                                                                                 | • price, currency               | Precio y moneda                                                           |
+| • (–) course\_url,purchase\_url                                                                      | • course\_url, purchase\_url    | Enlaces al curso y compra                                                 |
+| (añadidos) level,language,audience\_category,status,start\_date,end\_date,max\_enrollees,created\_at | (nuevos campos)                 | Metadatos extra: nivel, idioma, público, fechas, cupo y fecha de creación |
+
+
+| **Antiguo**                                                                     | **Nuevo**            | **Equivalencia funcional**                       |
+| ------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------ |
+| `course_sessions`                                                               | `ai_course_sessions` | Sesiones del curso                               |
+| • id                                                                            | • id                 | PK                                               |
+| • course\_id                                                                    | • course\_id         | FK → curso                                       |
+| • session\_index                                                                | • session\_index     | Orden de sesión                                  |
+| • title                                                                         | • title              | Título                                           |
+| • objective                                                                     | • objective          | Objetivo                                         |
+| • duration\_minutes                                                             | • duration\_minutes  | Duración por sesión                              |
+| (añadidos) scheduled\_at, display\_order, modality, resources\_url, created\_at | (nuevos campos)      | Programación, orden visual, modalidad y recursos |
+
+
+| Nuevo | | |
+| ai_tematarios | | Temario completo (teoría y práctica) |
+| • id | | PK |
+| • course_id | | FK → curso |
+| • session_id | | FK → sesión |
+| • item_index | | Orden dentro de la sesión |
+| • title | | Punto del temario |
+| • item_type (‘theory’/‘practice’) | | Diferencia teoría vs práctica |
+| • created_at | | Fecha de inserción |
