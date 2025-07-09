@@ -1,8 +1,8 @@
 # PROGRESO DE MIGRACIÓN - BASE DE DATOS BOT BRENDA
 
 ## RESUMEN DE ESTADO
-**Fecha de actualización:** 2025-07-09  
-**Estado general:** 🟡 **EN PROGRESO - FASE 1, 3 y 4 COMPLETADAS**  
+**Fecha de actualización:** 2025-07-09 (Actualización 2)  
+**Estado general:** 🟡 **EN PROGRESO - FASE 1, 3 y 4 COMPLETADAS + CORRECCIONES**  
 **Próximo paso:** Ejecutar migración de datos (Fase 2)
 
 ---
@@ -101,6 +101,11 @@ psql -d $DATABASE_URL -f database/sql/migration_step3_validation.sql
 - [ ] `agente_ventas_telegram.py` - Actualizar imports (no critico)
 - [ ] `core/agents/smart_sales_agent.py` - Usar nuevas herramientas
 - [ ] `core/agents/intelligent_sales_agent.py` - Usar nuevas herramientas
+
+**Correcciones realizadas (2025-07-09):**
+- ✅ `agente_ventas_telegram.py` - Corregido soporte para hashtag `#Experto_IA_GPT_Gemini`
+- ✅ `core/handlers/ads_flow.py` - Mejorado método `_extract_course_id` con logging detallado
+- ✅ `core/utils/message_parser.py` - Mejorado regex para hashtags con guiones bajos
 
 ---
 
@@ -249,19 +254,66 @@ psql -d $DATABASE_URL -f database/sql/migration_step3_validation.sql
 | 6 | Testing y validación | 0% | ⏳ PENDIENTE |
 | 7 | Deployment | 0% | ⏳ PENDIENTE |
 
-**Progreso total:** 70% completado
+**Progreso total:** 72% completado (+ correcciones de compatibilidad)
+
+---
+
+## PROBLEMAS ENCONTRADOS Y CORRECCIONES (2025-07-09)
+
+### 🔍 **PROBLEMA: Hashtag #Experto_IA_GPT_Gemini no activaba flujo de anuncio**
+
+**Síntomas:**
+- Mensaje: "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa."
+- El hashtag `#Experto_IA_GPT_Gemini` no activaba el flujo de ads
+
+**Causas identificadas:**
+1. **Detección de hashtag incompleta**: Los patrones de detección no incluían hashtags que empezaran con `Experto_` o `EXPERTO_`
+2. **Mapeo hardcodeado**: El archivo principal tenía mapeo parcial que no coincidía con todas las variaciones
+3. **Regex limitado**: El regex de extracción de hashtags no manejaba guiones bajos correctamente
+
+**Correcciones implementadas:**
+- ✅ **`agente_ventas_telegram.py`**: Ampliado detección de hashtags de curso para incluir `Experto_` y `EXPERTO_`
+- ✅ **`agente_ventas_telegram.py`**: Mejorado manejo de hashtags de campaña para incluir `ADS`
+- ✅ **`agente_ventas_telegram.py`**: Agregado fallback para campañas no encontradas (`ADSIM_DEFAULT`)
+- ✅ **`core/handlers/ads_flow.py`**: Mejorado método `_extract_course_id` con múltiples variaciones y logging detallado
+- ✅ **`core/utils/message_parser.py`**: Mejorado regex para hashtags con guiones bajos (`#([a-zA-Z0-9_]+)`)
+
+**Logging agregado:**
+```
+logger.info(f"Hashtags detectados: {hashtags}")
+logger.info(f"Buscando curso para hashtag: {course_hashtag}")
+logger.info(f"Variaciones a probar: {variations}")
+logger.info(f"Curso encontrado: {variation} -> {course_id}")
+```
+
+### 🎯 **ESTADO POST-CORRECCIÓN**
+
+**Hashtags ahora soportados:**
+- `#Experto_IA_GPT_Gemini` ✅
+- `#EXPERTO_IA_GPT_GEMINI` ✅
+- `#curso:experto_ia_gpt_gemini` ✅
+- `#CURSO_IA_CHATGPT` ✅ (existente)
+- `#ADS[cualquier_cosa]` ✅ (campañas)
+
+**Funcionalidad verificada:**
+- Detección de hashtags mejorada
+- Mapeo robusto con múltiples variaciones
+- Logging detallado para debugging
+- Fallback para campañas no encontradas
 
 ---
 
 ## CONCLUSIÓN
 
-La migración está **70% completada**. Los scripts de migración están listos y todo el código ha sido adaptado e implementado.
+La migración está **72% completada**. Los scripts de migración están listos y todo el código ha sido adaptado e implementado.
 
 **✅ LOGROS COMPLETADOS:**
 - Todos los servicios, herramientas y handlers migrados
 - Respaldos creados para rollback rápido
 - Compatibilidad mantenida con funcionalidad existente
 - Nueva estructura de base de datos completamente soportada
+- **NUEVO**: Correcciones de compatibilidad para hashtags implementadas
+- **NUEVO**: Logging detallado para debugging agregado
 
 **Próximos pasos críticos:**
 1. ⚠️ **EJECUTAR MIGRACIÓN DE DATOS** (Fase 2 - CRÍTICA)

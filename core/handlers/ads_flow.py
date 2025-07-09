@@ -52,7 +52,9 @@ class AdsFlowHandler:
             'curso:imagenes': '2715110440a0-b734-b00f3d1c-e876-4bac',
             'CURSO_AUTOMATIZACION': '4bac-2715110440a0-b734-b00f3d1c-e876',
             'curso:automatizacion': '4bac-2715110440a0-b734-b00f3d1c-e876',
-            'CURSO_NUEVO': 'd7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f',
+            'Experto_IA_GPT_Gemini': 'c76bc3dd-502a-4b99-8c6c-3f9fce33a14b',
+            'EXPERTO_IA_GPT_GEMINI': 'c76bc3dd-502a-4b99-8c6c-3f9fce33a14b',
+            'curso:experto_ia_gpt_gemini': 'c76bc3dd-502a-4b99-8c6c-3f9fce33a14b',
             'curso:nuevo': 'd7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f'
         }
 
@@ -121,11 +123,34 @@ class AdsFlowHandler:
             logger.error(f"Error registrando interacción: {e}")
 
     def _extract_course_id(self, course_hashtag: str) -> Optional[str]:
-        """Extrae el ID del curso desde el hashtag."""
-        # Normalizar hashtag
-        normalized = course_hashtag.upper()
-        course_id = self.course_mapping.get(normalized)
-        return course_id
+        """
+        Extrae el ID del curso desde el hashtag.
+        MEJORADO: Maneja múltiples variaciones del hashtag y logging detallado.
+        """
+        # Eliminar # si existe
+        clean_hashtag = course_hashtag.lstrip('#')
+        
+        # Intentar múltiples variaciones del hashtag
+        variations = [
+            clean_hashtag,  # Original
+            clean_hashtag.upper(),  # Mayúsculas
+            clean_hashtag.lower(),  # Minúsculas
+            f"curso:{clean_hashtag.lower()}",  # Con prefijo curso:
+            f"CURSO_{clean_hashtag.upper()}"  # Con prefijo CURSO_
+        ]
+        
+        logger.info(f"Buscando curso para hashtag: {course_hashtag}")
+        logger.info(f"Variaciones a probar: {variations}")
+        
+        for variation in variations:
+            course_id = self.course_mapping.get(variation)
+            if course_id:
+                logger.info(f"Curso encontrado: {variation} -> {course_id}")
+                return course_id
+                
+        logger.warning(f"No se encontró mapeo para hashtag: {course_hashtag}")
+        logger.warning(f"Mapeo disponible: {list(self.course_mapping.keys())}")
+        return None
 
     async def _show_privacy_notice(self, user_data: dict) -> Tuple[str, InlineKeyboardMarkup]:
         """Muestra el aviso de privacidad."""

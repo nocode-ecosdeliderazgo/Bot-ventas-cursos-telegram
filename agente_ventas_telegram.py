@@ -87,8 +87,8 @@ class VentasBot:
             logger.info(f"Hashtags detectados: {hashtags}")
             
             # Verificar si es un mensaje de anuncio (#curso: y #anuncio:)
-            has_course_hashtag = any(tag.startswith('curso:') or tag.startswith('CURSO_') for tag in hashtags)
-            has_ad_hashtag = any(tag.startswith('anuncio:') or tag.startswith('ADSIM_') for tag in hashtags)
+            has_course_hashtag = any(tag.startswith('curso:') or tag.startswith('CURSO_') or tag.startswith('Experto_') or tag.startswith('EXPERTO_') for tag in hashtags)
+            has_ad_hashtag = any(tag.startswith('anuncio:') or tag.startswith('ADSIM_') or tag.startswith('ADS') for tag in hashtags)
             
             # Preparar datos del mensaje y usuario
             message_data = {
@@ -132,6 +132,10 @@ class VentasBot:
                     elif hashtag == 'CURSO_NUEVO':
                         user_memory.selected_course = "d7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f"
                         self.global_memory.save_lead_memory(str(user.id), user_memory)
+                    elif hashtag in ['Experto_IA_GPT_Gemini', 'EXPERTO_IA_GPT_GEMINI']:
+                        user_memory.selected_course = "c76bc3dd-502a-4b99-8c6c-3f9fce33a14b"
+                        self.global_memory.save_lead_memory(str(user.id), user_memory)
+                        logger.info(f"Asignado curso Experto_IA_GPT_Gemini: c76bc3dd-502a-4b99-8c6c-3f9fce33a14b")
                     break
             
             # Verificar si el usuario está en proceso de proporcionar su nombre
@@ -408,20 +412,26 @@ dato no encontrado
             campaign_info = ""
             
             for tag in hashtags:
-                if tag.startswith('curso:') or tag.startswith('CURSO_'):
+                if tag.startswith('curso:') or tag.startswith('CURSO_') or tag.startswith('Experto_') or tag.startswith('EXPERTO_'):
                     course_info = tag
-                elif tag.startswith('anuncio:') or tag.startswith('ADSIM_'):
+                elif tag.startswith('anuncio:') or tag.startswith('ADSIM_') or tag.startswith('ADS'):
                     campaign_info = tag
             
             logger.info(f"Procesando anuncio - Curso: {course_info}, Campaña: {campaign_info}")
             
             # Usar el ads_flow_handler para procesar
-            if self.ads_flow_handler and course_info and campaign_info:
+            if self.ads_flow_handler and course_info:
+                # Si no hay campaña, usar una por defecto
+                if not campaign_info:
+                    campaign_info = "ADSIM_DEFAULT"
+                    logger.info(f"No se encontró campaña, usando por defecto: {campaign_info}")
+                    
                 return await self.ads_flow_handler.process_ad_message(
                     message_data, user_data, course_info, campaign_info
                 )
             else:
                 # Fallback si no hay ads_flow_handler o faltan datos
+                logger.warning(f"Fallback a conversación normal. Handler: {self.ads_flow_handler is not None}, Course: {course_info}")
                 if self.ventas_bot:
                     return await self.ventas_bot.handle_conversation(message_data, user_data)
                 else:

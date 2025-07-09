@@ -37,7 +37,8 @@ CURSOS_MAP = {
     "CURSO_PROMPTS": "b00f3d1c-e876-4bac-b734-2715110440a0",
     "CURSO_IMAGENES": "2715110440a0-b734-b00f3d1c-e876-4bac",
     "CURSO_AUTOMATIZACION": "4bac-2715110440a0-b734-b00f3d1c-e876",
-    # Agregar el nuevo mapeo
+    "EXPERTO_IA_GPT_GEMINI": "c76bc3dd-502a-4b99-8c6c-3f9fce33a14b",
+    "Experto_IA_GPT_Gemini": "c76bc3dd-502a-4b99-8c6c-3f9fce33a14b",
     "CURSO_NUEVO": "d7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f"
 }
 

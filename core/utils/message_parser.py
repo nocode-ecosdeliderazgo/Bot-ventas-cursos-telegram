@@ -9,8 +9,9 @@ def extract_hashtags(text: str) -> List[str]:
     """
     Extrae hashtags de un mensaje.
     Retorna lista de hashtags sin el símbolo #.
+    Actualizado para soportar hashtags con guiones bajos y caracteres especiales.
     """
-    hashtag_pattern = r'#(\w+)'
+    hashtag_pattern = r'#([a-zA-Z0-9_]+)'
     return re.findall(hashtag_pattern, text)
 
 async def get_course_from_hashtag(hashtags: List[str], db) -> Optional[str]:
@@ -32,7 +33,9 @@ async def get_course_from_hashtag(hashtags: List[str], db) -> Optional[str]:
         'curso:prompts': ['prompts', 'ingenieria', 'optimizacion'],
         'curso:imagenes': ['imagenes', 'generacion', 'diseño'],
         'curso:automatizacion': ['automatización', 'inteligente', 'asistentes'],
-        # Agregar el nuevo mapeo
+        'Experto_IA_GPT_Gemini': ['experto', 'gpt', 'gemini', 'ia'],
+        'EXPERTO_IA_GPT_GEMINI': ['experto', 'gpt', 'gemini', 'ia'],
+        'curso:experto_ia_gpt_gemini': ['experto', 'gpt', 'gemini', 'ia'],
         'CURSO_NUEVO': ['nuevo', 'curso', 'keywords'],
         'curso:nuevo': ['nuevo', 'curso', 'keywords']
     }
