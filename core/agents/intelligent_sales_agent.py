@@ -391,30 +391,39 @@ class IntelligentSalesAgent:
             if not course_id:
                 return None
             
+            logger.info(f"🔍 _get_course_info_from_db iniciado para curso: {course_id}")
+            
             # Usar CourseService para obtener información básica primero
             course_info = await self.course_service.getCourseBasicInfo(course_id)
             if not course_info:
                 logger.warning(f"No se encontró información básica del curso {course_id}")
                 return None
                 
+            logger.info(f"✅ Información básica obtenida: {course_info.get('name', 'Sin nombre')}")
+                
             # Obtener información detallada si la básica existe
             course_details = await self.course_service.getCourseDetails(course_id)
             if course_details:
                 # Combinar información básica con detalles
                 course_info.update(course_details)
+                logger.info(f"✅ Detalles del curso combinados")
                 
                 # Obtener módulos/sesiones por separado para asegurar compatibilidad
                 modules_sessions = await self.course_service.getCourseModules(course_id)
+                logger.info(f"📋 getCourseModules retornó {len(modules_sessions) if modules_sessions else 0} elementos")
+                
                 if modules_sessions:
                     # Detectar estructura basado en los campos presentes
                     first_item = modules_sessions[0] if modules_sessions else {}
+                    logger.info(f"🔍 Primer elemento para detectar estructura: {first_item}")
                     
                     # Si tiene 'name' y 'description' -> estructura antigua (modules)
                     # Si tiene 'title' y 'objective' -> nueva estructura (sessions)
                     if 'name' in first_item and 'description' in first_item:
                         # Estructura actual: modules
                         course_info['modules'] = modules_sessions
-                        logger.info(f"✅ Detectada estructura ANTIGUA - {len(modules_sessions)} módulos del curso {course_id}")
+                        logger.info(f"✅ Detectada estructura ANTIGUA - {len(modules_sessions)} módulos agregados a course_info")
+                        logger.info(f"📖 Nombres de módulos: {[m.get('name') for m in modules_sessions]}")
                     elif 'title' in first_item and 'objective' in first_item:
                         # Nueva estructura: sessions - mapear a format compatible
                         sessions_mapped = []
@@ -436,7 +445,9 @@ class IntelligentSalesAgent:
                         # Agregar tanto como 'sessions' (nueva) como 'modules' (compatibilidad)
                         course_info['sessions'] = sessions_mapped
                         course_info['modules'] = sessions_mapped  # Para compatibilidad con validación
-                        logger.info(f"✅ Detectada estructura NUEVA - {len(sessions_mapped)} sesiones del curso {course_id}")
+                        logger.info(f"✅ Detectada estructura NUEVA - {len(sessions_mapped)} sesiones mapeadas")
+                        logger.info(f"📖 Nombres de sesiones: {[s.get('name') for s in sessions_mapped]}")
+                        logger.info(f"🔗 course_info ahora tiene 'modules' y 'sessions' para compatibilidad")
                         
                         # Calcular duración total en minutos
                         total_duration = sum(session.get('duration', 0) for session in sessions_mapped)
@@ -460,6 +471,8 @@ class IntelligentSalesAgent:
                     else:
                         logger.warning(f"⚠️ No se pudo detectar estructura de módulos/sesiones para curso {course_id}")
                         course_info['modules'] = modules_sessions  # Fallback
+                else:
+                    logger.warning(f"❌ NO se obtuvieron módulos/sesiones de getCourseModules para curso {course_id}")
                 
                 # Obtener bonos disponibles (funciona en ambas estructuras)
                 bonuses = await self.course_service.getAvailableBonuses(course_id)
@@ -475,11 +488,17 @@ class IntelligentSalesAgent:
                 free_resources = await self.course_service.getFreeResources(course_id)
                 if free_resources:
                     course_info['free_resources'] = free_resources
-                    
+            
+            # LOG FINAL del course_info que se va a retornar
+            logger.info(f"📊 COURSE_INFO FINAL para validación:")
+            logger.info(f"🗂️ Keys en course_info: {list(course_info.keys())}")
+            logger.info(f"📚 Módulos en course_info: {len(course_info.get('modules', []))}")
+            logger.info(f"📚 Sesiones en course_info: {len(course_info.get('sessions', []))}")
+            
             return course_info
             
         except Exception as e:
-            logger.error(f"Error obteniendo información del curso {course_id}: {e}")
+            logger.error(f"❌ Error obteniendo información del curso {course_id}: {e}")
             return None
     
     async def _validate_course_content_mention(self, response_text: str, course_info: Dict) -> bool:
@@ -579,12 +598,21 @@ class IntelligentSalesAgent:
         try:
             # CRÍTICO: Solo obtener información del curso si NO se pasó una válida
             if user_memory.selected_course and course_info is None:
-                logger.info(f"Obteniendo información del curso desde BD: {user_memory.selected_course}")
+                logger.info(f"Obteniendo información completa del curso desde BD: {user_memory.selected_course}")
+                # ✅ USAR _get_course_info_from_db para obtener módulos completos
                 course_info = await self._get_course_info_from_db(user_memory.selected_course)
                 if not course_info:
                     logger.warning(f"No se pudo obtener información del curso {user_memory.selected_course}")
             elif course_info:
                 logger.info(f"✅ Usando course_info pasado correctamente para curso: {user_memory.selected_course}")
+                # VERIFICAR: Si el course_info pasado no tiene módulos, obtenerlos
+                if not course_info.get('modules') and not course_info.get('sessions'):
+                    logger.info(f"🔍 course_info no tiene módulos/sesiones, obteniendo información completa")
+                    complete_course_info = await self._get_course_info_from_db(user_memory.selected_course)
+                    if complete_course_info:
+                        # Combinar la información pasada con la completa
+                        course_info.update(complete_course_info)
+                        logger.info(f"✅ course_info actualizado con módulos/sesiones completos")
             
             # Analizar intención del usuario
             intent_analysis = await self._analyze_user_intent(user_message, user_memory)
@@ -627,8 +655,9 @@ class IntelligentSalesAgent:
             if user_memory.selected_course:
                 logger.info(f"🎯 CURSO FIJO del flujo de anuncios: {user_memory.selected_course}")
                 if not course_info:
-                    logger.info(f"🔍 Obteniendo detalles del curso: {user_memory.selected_course}")
-                    course_info = await self.course_service.getCourseDetails(user_memory.selected_course)
+                    logger.info(f"🔍 Obteniendo detalles completos del curso con módulos: {user_memory.selected_course}")
+                    # ✅ USAR _get_course_info_from_db que mapea correctamente los módulos
+                    course_info = await self._get_course_info_from_db(user_memory.selected_course)
                     if not course_info:
                         logger.error(f"❌ No se pudo obtener detalles del curso seleccionado: {user_memory.selected_course}")
                         logger.error("❌ CURSO NO ENCONTRADO EN BD - Verificar si el curso existe en ai_courses")
@@ -638,7 +667,8 @@ class IntelligentSalesAgent:
                             'name': 'Curso seleccionado',
                             'description': 'Curso de IA para profesionales',
                             'price': 199.99,
-                            'level': 'básico'
+                            'level': 'básico',
+                            'modules': []  # Lista vacía para evitar errores de validación
                         }
                         logger.info("✅ Usando información mínima de curso para continuar conversación")
                 # NUNCA buscar otros cursos - el curso está determinado por el flujo de anuncios
@@ -654,8 +684,8 @@ class IntelligentSalesAgent:
                         if courses:
                             # 🛡️ CRÍTICO: NUNCA sobrescribir course_info si ya hay selected_course del flujo de anuncios
                             if not user_memory.selected_course:
-                                # Solo usar el primer curso encontrado si NO hay curso seleccionado previamente
-                                course_info = await self.course_service.getCourseDetails(courses[0]['id'])
+                                # ✅ USAR _get_course_info_from_db para obtener módulos completos
+                                course_info = await self._get_course_info_from_db(courses[0]['id'])
                                 user_memory.selected_course = courses[0]['id']
                             break
                 
@@ -667,7 +697,8 @@ class IntelligentSalesAgent:
                         'name': 'Cursos de IA',
                         'description': 'Cursos de Inteligencia Artificial',
                         'price': 'Consultar',
-                        'level': 'Todos los niveles'
+                        'level': 'Todos los niveles',
+                        'modules': []  # Lista vacía para evitar errores
                     }
             
             # Preparar el historial de conversación
@@ -813,10 +844,21 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
             
             # CRÍTICO: Validar que no se inventó contenido del curso
             if course_info:
-                content_valid = await self._validate_course_content_mention(response_text, course_info)
-                if not content_valid:
-                    logger.warning(f"Respuesta menciona contenido inventado para curso {course_info.get('id')}")
-                    return "Perfecto, me da mucho gusto que estés interesado en el curso. Déjame consultar la información específica del contenido para darte detalles precisos. ¿Hay algo particular que te gustaría saber sobre el curso?"
+                # Validar respuesta para prevenir contenido inventado
+                is_valid = await self._validate_course_content_mention(response_text, course_info)
+                
+                if not is_valid:
+                    logger.warning(f"❌ RESPUESTA DE LA IA RECHAZADA POR CONTENIDO INVENTADO:")
+                    logger.warning(f"📝 Respuesta completa: {response_text}")
+                    logger.warning(f"🎯 Curso ID: {user_memory.selected_course}")
+                    logger.warning(f"📚 Course_info keys: {list(course_info.keys()) if course_info else 'None'}")
+                    logger.warning(f"Respuesta menciona contenido inventado para curso {user_memory.selected_course}")
+                    
+                    # Usar respuesta genérica en lugar de contenido potencialmente inventado
+                    response_text = "Perfecto, me da mucho gusto que estés interesado en el curso. Déjame consultar la información específica del contenido para darte detalles precisos. ¿Hay algo particular que te gustaría saber sobre el curso?"
+                else:
+                    logger.info(f"✅ RESPUESTA DE LA IA APROBADA:")
+                    logger.info(f"📝 Respuesta: {response_text[:200]}...")  # Solo primeros 200 caracteres
                 
                 # Validar respuesta con datos reales de BD
                 bonuses = course_info.get('bonuses', [])
