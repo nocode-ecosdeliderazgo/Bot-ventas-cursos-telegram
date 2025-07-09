@@ -558,14 +558,251 @@ Para el curso: *{course['name']}*
     async def contactar_asesor_directo(self, user_id: str, course_id: str = None) -> None:
         """
         Inicia flujo directo de contacto con asesor.
-        MANTENIDO: Funcionalidad sin cambios.
+        VERSIÓN SIMPLIFICADA: Activa el flujo directamente sin mocks complejos
         """
-        # Importar y activar el flujo de contacto
-        from core.handlers.contact_flow import ContactFlowHandler
+        import logging
+        logger = logging.getLogger(__name__)
         
-        # Esta función activará el flujo de contacto que recogerá datos del usuario
-        contact_handler = ContactFlowHandler(self.db, self.telegram)
-        await contact_handler.start_contact_flow(user_id, course_id)
+        try:
+            from core.utils.memory import GlobalMemory
+            
+            logger.info(f"🛠️ Activando flujo de contacto para usuario: {user_id}")
+            
+            # Obtener memoria del usuario
+            memory = GlobalMemory().get_lead_memory(user_id)
+            
+            # Si hay un course_id específico, guardarlo en memoria
+            if course_id:
+                memory.selected_course = course_id
+                GlobalMemory().save_lead_memory(user_id, memory)
+                logger.info(f"📚 Curso seleccionado: {course_id}")
+            
+            # Verificar qué información falta
+            missing_info = []
+            if not memory.email:
+                missing_info.append("email")
+            if not memory.phone:
+                missing_info.append("teléfono")
+            if not memory.selected_course:
+                missing_info.append("curso de interés")
+            
+            if missing_info:
+                # Solicitar información faltante
+                await self._request_missing_contact_info(user_id, missing_info)
+            else:
+                # Toda la información está disponible, proceder con confirmación
+                await self._send_contact_confirmation(user_id)
+            
+            logger.info("✅ Flujo de contacto activado exitosamente")
+            
+        except Exception as e:
+            logger.error(f"❌ Error activando flujo de contacto: {e}")
+            # Fallback: enviar mensaje directo
+            await self._send_contact_fallback_message(user_id)
+
+    async def _request_missing_contact_info(self, user_id: str, missing_info: list):
+        """Solicita información faltante para el contacto con asesor."""
+        try:
+            from core.utils.memory import GlobalMemory
+            
+            # Determinar qué pedir primero
+            if "email" in missing_info:
+                message = """¡Perfecto! Te voy a conectar con un asesor especializado.
+                
+Para que pueda ayudarte de la mejor manera, necesito tu información de contacto.
+
+📧 **Por favor, envíame tu email:**"""
+                
+                # Configurar el stage para esperar email
+                memory = GlobalMemory().get_lead_memory(user_id)
+                memory.stage = "awaiting_email"
+                GlobalMemory().save_lead_memory(user_id, memory)
+                
+            elif "teléfono" in missing_info:
+                message = """📱 **Ahora necesito tu número de teléfono:**
+
+Por favor, envíamelo en formato: +XX XXXXXXXXXX"""
+                
+                # Configurar el stage para esperar teléfono
+                memory = GlobalMemory().get_lead_memory(user_id)
+                memory.stage = "awaiting_phone"
+                GlobalMemory().save_lead_memory(user_id, memory)
+                
+            elif "curso de interés" in missing_info:
+                message = """📚 **Finalmente, necesito saber qué curso te interesa:**
+
+¿Podrías decirme cuál es tu principal área de interés?"""
+                
+                # Mostrar cursos disponibles
+                await self._show_available_courses(user_id)
+                return
+                
+            else:
+                message = """¡Perfecto! Ya tengo toda tu información.
+                
+Un asesor se pondrá en contacto contigo muy pronto."""
+                await self._send_contact_confirmation(user_id)
+                return
+            
+            await self.telegram.send_message(
+                chat_id=user_id,
+                text=message,
+                parse_mode='Markdown'
+            )
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error solicitando información faltante: {e}")
+    
+    async def _show_available_courses(self, user_id: str):
+        """Muestra los cursos disponibles para selección."""
+        try:
+            # Obtener cursos desde la base de datos
+            from core.services.courseService import CourseService
+            course_service = CourseService(self.db)
+            
+            # Obtener cursos disponibles
+            courses = await course_service.getAllCourses()
+            
+            if not courses:
+                await self.telegram.send_message(
+                    chat_id=user_id,
+                    text="Actualmente tenemos cursos de Inteligencia Artificial disponibles. Un asesor te dará todos los detalles."
+                )
+                return
+            
+            # Crear lista de cursos
+            course_list = "📚 **Cursos disponibles:**\n\n"
+            for i, course in enumerate(courses[:3], 1):  # Mostrar máximo 3 cursos
+                course_list += f"{i}. {course.get('name', 'Curso de IA')}\n"
+            
+            course_list += "\n¿Cuál te interesa más?"
+            
+            await self.telegram.send_message(
+                chat_id=user_id,
+                text=course_list,
+                parse_mode='Markdown'
+            )
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error mostrando cursos disponibles: {e}")
+            # Fallback
+            await self.telegram.send_message(
+                chat_id=user_id,
+                text="Un asesor te ayudará a elegir el curso perfecto para ti."
+            )
+    
+    async def _send_contact_confirmation(self, user_id: str):
+        """Envía confirmación y ejecuta el envío de correo al asesor."""
+        try:
+            from core.utils.memory import GlobalMemory
+            from core.handlers.contact_flow import send_advisor_email
+            
+            # Obtener datos del usuario
+            memory = GlobalMemory().get_lead_memory(user_id)
+            
+            # Obtener nombre del curso si está disponible
+            course_name = "Curso de IA para Profesionales"  # Default
+            if memory.selected_course:
+                try:
+                    from core.services.courseService import CourseService
+                    course_service = CourseService(self.db)
+                    course_details = await course_service.getCourseDetails(memory.selected_course)
+                    if course_details:
+                        course_name = course_details.get('name', course_name)
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error obteniendo detalles del curso: {e}")
+            
+            # Preparar datos para el asesor
+            user_data = {
+                "name": memory.name or "Usuario",
+                "email": memory.email,
+                "phone": memory.phone,
+                "course_name": course_name
+            }
+            
+            # Enviar email al asesor
+            email_sent = send_advisor_email(user_data)
+            
+            if email_sent:
+                confirmation_message = f"""✅ **¡Listo!** Tu información ha sido enviada correctamente.
+                
+📋 **Resumen de tus datos:**
+• Nombre: {user_data['name']}
+• Email: {user_data['email']}
+• Teléfono: {user_data['phone']}
+• Curso de interés: {user_data['course_name']}
+
+📞 **Un asesor especializado se pondrá en contacto contigo muy pronto.**
+
+¡Gracias por tu interés en nuestros cursos!"""
+            else:
+                confirmation_message = """⚠️ **Información recibida** pero hubo un problema técnico.
+                
+No te preocupes, hemos registrado tu interés y nos pondremos en contacto contigo a la brevedad.
+
+Si tienes alguna urgencia, puedes contactarnos directamente."""
+            
+            await self.telegram.send_message(
+                chat_id=user_id,
+                text=confirmation_message,
+                parse_mode='Markdown'
+            )
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error enviando confirmación de contacto: {e}")
+            await self._send_contact_fallback_message(user_id)
+    
+    async def _send_contact_fallback_message(self, user_id: str):
+        """Envía mensaje de fallback cuando falla el flujo de contacto."""
+        try:
+            fallback_message = """¡Perfecto! Quiero conectarte con un asesor especializado.
+            
+Para que pueda ayudarte de la mejor manera, necesito algunos datos:
+
+📧 **Envíame tu email**
+📱 **Envíame tu número de teléfono**
+
+Una vez que tengas estos datos, un asesor se pondrá en contacto contigo a la brevedad."""
+            
+            await self.telegram.send_message(
+                chat_id=user_id,
+                text=fallback_message,
+                parse_mode='Markdown'
+            )
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error enviando mensaje fallback: {e}")
+
+    async def activar_flujo_contacto_asesor(self, user_id: str, course_id: str = None) -> str:
+        """
+        Función wrapper para activar el flujo de contacto desde el agente inteligente.
+        Retorna un mensaje de confirmación para el usuario.
+        """
+        try:
+            # Activar el flujo de contacto
+            await self.contactar_asesor_directo(user_id, course_id)
+            
+            # Retornar mensaje de confirmación
+            return """¡Perfecto! He iniciado el proceso para conectarte con un asesor especializado.
+            
+Por favor, sigue las instrucciones que te voy a enviar para recopilar tus datos de contacto."""
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error activando flujo de contacto desde agente: {e}")
+            
+            return """Te entiendo perfectamente. Déjame obtener la información más actualizada sobre el curso para responderte con precisión. ¿Qué aspecto específico te interesa más?"""
 
     async def _registrar_interaccion(self, user_id: str, course_id: str, action: str, metadata: dict) -> None:
         """
