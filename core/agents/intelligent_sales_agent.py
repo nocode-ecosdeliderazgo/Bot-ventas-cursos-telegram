@@ -391,20 +391,92 @@ class IntelligentSalesAgent:
             if not course_id:
                 return None
             
-            # Usar CourseService para obtener información real
+            # Usar CourseService para obtener información básica primero
+            course_info = await self.course_service.getCourseBasicInfo(course_id)
+            if not course_info:
+                logger.warning(f"No se encontró información básica del curso {course_id}")
+                return None
+                
+            # Obtener información detallada si la básica existe
             course_details = await self.course_service.getCourseDetails(course_id)
             if course_details:
-                # Obtener módulos también
-                modules = await self.course_service.getCourseModules(course_id)
-                if modules:
-                    course_details['modules'] = modules
+                # Combinar información básica con detalles
+                course_info.update(course_details)
                 
-                # Obtener bonos disponibles
+                # Obtener módulos/sesiones por separado para asegurar compatibilidad
+                modules_sessions = await self.course_service.getCourseModules(course_id)
+                if modules_sessions:
+                    # Detectar estructura basado en los campos presentes
+                    first_item = modules_sessions[0] if modules_sessions else {}
+                    
+                    # Si tiene 'name' y 'description' -> estructura antigua (modules)
+                    # Si tiene 'title' y 'objective' -> nueva estructura (sessions)
+                    if 'name' in first_item and 'description' in first_item:
+                        # Estructura actual: modules
+                        course_info['modules'] = modules_sessions
+                        logger.info(f"✅ Detectada estructura ANTIGUA - {len(modules_sessions)} módulos del curso {course_id}")
+                    elif 'title' in first_item and 'objective' in first_item:
+                        # Nueva estructura: sessions - mapear a format compatible
+                        sessions_mapped = []
+                        for session in modules_sessions:
+                            mapped_session = {
+                                'id': session.get('id'),
+                                'name': session.get('name'),  # Ya mapeado en CourseService
+                                'description': session.get('description'),  # Ya mapeado en CourseService
+                                'duration': session.get('duration'),
+                                'module_index': session.get('module_index'),
+                                # Mantener también los campos originales para compatibilidad
+                                'title': session.get('name'),
+                                'objective': session.get('description'),
+                                'duration_minutes': session.get('duration'),
+                                'session_index': session.get('module_index')
+                            }
+                            sessions_mapped.append(mapped_session)
+                        
+                        # Agregar tanto como 'sessions' (nueva) como 'modules' (compatibilidad)
+                        course_info['sessions'] = sessions_mapped
+                        course_info['modules'] = sessions_mapped  # Para compatibilidad con validación
+                        logger.info(f"✅ Detectada estructura NUEVA - {len(sessions_mapped)} sesiones del curso {course_id}")
+                        
+                        # Calcular duración total en minutos
+                        total_duration = sum(session.get('duration', 0) for session in sessions_mapped)
+                        course_info['total_duration_min'] = total_duration
+                        
+                        # Obtener prácticas por sesión (solo nueva estructura)
+                        for session in sessions_mapped:
+                            session_id = session.get('id')
+                            if session_id:
+                                practices = await self.course_service.getModuleExercises(session_id)
+                                if practices:
+                                    session['practices'] = practices
+                        
+                        # Obtener entregables por sesión (solo nueva estructura)
+                        for session in sessions_mapped:
+                            session_id = session.get('id')
+                            if session_id:
+                                deliverables = await self.course_service.getSessionDeliverables(session_id)
+                                if deliverables:
+                                    session['deliverables'] = deliverables
+                    else:
+                        logger.warning(f"⚠️ No se pudo detectar estructura de módulos/sesiones para curso {course_id}")
+                        course_info['modules'] = modules_sessions  # Fallback
+                
+                # Obtener bonos disponibles (funciona en ambas estructuras)
                 bonuses = await self.course_service.getAvailableBonuses(course_id)
                 if bonuses:
-                    course_details['bonuses'] = bonuses
+                    course_info['bonuses'] = bonuses
                     
-            return course_details
+                # Obtener subtema del curso (solo nueva estructura)
+                subtheme = await self.course_service.getCourseSubtheme(course_id)
+                if subtheme:
+                    course_info['subtheme'] = subtheme
+                    
+                # Obtener recursos gratuitos (funciona en ambas estructuras)
+                free_resources = await self.course_service.getFreeResources(course_id)
+                if free_resources:
+                    course_info['free_resources'] = free_resources
+                    
+            return course_info
             
         except Exception as e:
             logger.error(f"Error obteniendo información del curso {course_id}: {e}")
@@ -414,30 +486,89 @@ class IntelligentSalesAgent:
         """Valida que no se mencione contenido inventado del curso."""
         try:
             if not course_info:
+                logger.warning("🚫 No hay course_info para validar")
                 return True
                 
             # Lista de palabras que indican contenido específico del curso
             content_indicators = [
                 'módulo', 'módulos', 'capítulo', 'capítulos', 'lección', 'lecciones',
-                'temario', 'contenido', 'syllabus', 'programa', 'plan de estudios'
+                'temario', 'contenido', 'syllabus', 'programa', 'plan de estudios',
+                'sesión', 'sesiones', 'práctica', 'prácticas', 'entregable', 'entregables'
             ]
             
             response_lower = response_text.lower()
             mentions_content = any(indicator in response_lower for indicator in content_indicators)
             
+            # 🔍 LOGGING DETALLADO PARA DEBUG
+            logger.info(f"🔍 VALIDANDO RESPUESTA:")
+            logger.info(f"📝 Respuesta generada: {response_text}")
+            logger.info(f"🎯 Menciona contenido específico: {mentions_content}")
+            
             if not mentions_content:
+                logger.info("✅ Respuesta NO menciona contenido específico - APROBADA")
                 return True  # No menciona contenido específico, está bien
                 
-            # Si menciona contenido, verificar que tengamos módulos reales
+            # Verificar si tenemos módulos/sesiones reales (estructura híbrida)
             real_modules = course_info.get('modules', [])
-            if not real_modules:
-                logger.warning("Respuesta menciona contenido pero no hay módulos reales en BD")
-                return False
-                
-            return True
+            real_sessions = course_info.get('sessions', [])
             
+            logger.info(f"🗂️ Módulos en course_info: {len(real_modules)} - {[m.get('name', 'Sin nombre') for m in real_modules[:3]]}")
+            logger.info(f"🗂️ Sesiones en course_info: {len(real_sessions)} - {[s.get('title', s.get('name', 'Sin nombre')) for s in real_sessions[:3]]}")
+            
+            # Si tenemos cualquiera de las dos estructuras, validar
+            if real_modules:
+                # Estructura actual - validar módulos
+                logger.info(f"📚 Validando contra {len(real_modules)} módulos reales")
+                for i, module in enumerate(real_modules[:3]):  # Solo primeros 3 para logging
+                    logger.info(f"📖 Módulo {i+1}: {module}")
+                    if not all(key in module for key in ['name', 'description']):
+                        logger.warning(f"❌ Módulo {module.get('id')} no tiene toda la información requerida")
+                        return False
+                logger.info(f"✅ Validación exitosa: curso tiene {len(real_modules)} módulos reales")
+                return True
+                
+            elif real_sessions:
+                # Nueva estructura - validar sesiones
+                logger.info(f"📚 Validando contra {len(real_sessions)} sesiones reales")
+                for i, session in enumerate(real_sessions[:3]):  # Solo primeros 3 para logging
+                    logger.info(f"📖 Sesión {i+1}: {session}")
+                    if not all(key in session for key in ['title', 'objective', 'duration_minutes']):
+                        logger.warning(f"❌ Sesión {session.get('id')} no tiene toda la información requerida")
+                        return False
+                        
+                # Si menciona prácticas, verificar que existan
+                if 'práctica' in response_lower or 'prácticas' in response_lower:
+                    has_practices = any(
+                        session.get('practices', []) 
+                        for session in real_sessions
+                    )
+                    if not has_practices:
+                        logger.warning("❌ Respuesta menciona prácticas pero no hay prácticas en BD")
+                        return False
+                        
+                # Si menciona entregables, verificar que existan
+                if 'entregable' in response_lower or 'entregables' in response_lower:
+                    has_deliverables = any(
+                        session.get('deliverables', []) 
+                        for session in real_sessions
+                    )
+                    if not has_deliverables:
+                        logger.warning("❌ Respuesta menciona entregables pero no hay entregables en BD")
+                        return False
+                        
+                logger.info(f"✅ Validación exitosa: curso tiene {len(real_sessions)} sesiones reales")
+                return True
+            else:
+                # No hay módulos ni sesiones - permitir solo si es información general
+                logger.warning(f"❌ NO HAY módulos ni sesiones en course_info")
+                logger.warning(f"🔍 Keys disponibles en course_info: {list(course_info.keys())}")
+                if any(word in response_lower for word in ['módulo', 'módulos', 'lección', 'lecciones', 'temario', 'syllabus']):
+                    logger.warning("❌ Respuesta menciona contenido específico pero no hay módulos/sesiones reales en BD")
+                    return False
+                return True
+                
         except Exception as e:
-            logger.error(f"Error validando contenido del curso: {e}")
+            logger.error(f"❌ Error validando contenido del curso: {e}")
             return True  # En caso de error, permitir la respuesta
 
     async def generate_response(self, user_message: str, user_memory: LeadMemory, course_info: Optional[Dict]) -> Union[str, List[Dict[str, str]]]:
