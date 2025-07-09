@@ -102,6 +102,11 @@ class SmartSalesAgent:
                 user_memory = LeadMemory(user_id=user_id)
                 self.global_memory.save_lead_memory(user_id, user_memory)
             
+            # 🔄 VERIFICAR SI ESTÁ EN FLUJO PREDEFINIDO - NO PROCESAR SI ES ASÍ
+            if user_memory.stage in ["awaiting_email", "awaiting_phone", "awaiting_course_selection"]:
+                logger.info(f"🔄 Usuario {user_id} en flujo predefinido ({user_memory.stage}) - agente no procesa")
+                return "En proceso de recopilación de información. Por favor, sigue las instrucciones anteriores.", None
+            
             # 🛡️ ÚLTIMA LÍNEA DE DEFENSA: Verificar y corregir curso si es necesario
             if user_memory.selected_course:
                 # Verificar que el curso existe en la nueva estructura
@@ -166,6 +171,8 @@ Un asesor se pondrá en contacto contigo para:
 • Brindarte atención 100% personalizada
 
 Solo necesito recopilar algunos datos para que pueda contactarte."""
+                
+                logger.info(f"🔄 Mostrando botón de contacto - esperando activación del flujo predefinido")
                 
                 return message, keyboard
             

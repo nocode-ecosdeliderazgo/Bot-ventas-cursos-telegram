@@ -890,6 +890,19 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
             # Si se activaron herramientas, incluir información en la respuesta
             if activated_tools:
                 logger.info(f"Herramientas activadas: {activated_tools}")
+                
+                # Si se activó contactar_asesor_directo, usar la función wrapper
+                if 'contactar_asesor_directo' in activated_tools and self.agent_tools:
+                    try:
+                        contact_response = await self.agent_tools.activar_flujo_contacto_asesor(
+                            user_memory.user_id, course_info.get('id') if course_info else None
+                        )
+                        logger.info(f"🔄 Flujo de contacto activado, agente se desactiva temporalmente")
+                        # Retornar la respuesta del flujo de contacto
+                        return contact_response
+                    except Exception as e:
+                        logger.error(f"Error ejecutando flujo de contacto: {e}")
+                        return "¡Perfecto! Te voy a conectar con un asesor especializado que podrá ayudarte con todas tus preguntas."
             
             return final_response
                 

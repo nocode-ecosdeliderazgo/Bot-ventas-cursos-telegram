@@ -294,6 +294,10 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
             "course_name": memory.course_name
         }
         if send_advisor_email(user_data):
+            # 🔄 LIMPIAR STAGE PARA REACTIVAR EL AGENTE
+            memory.stage = ""
+            GlobalMemory().save_lead_memory(user_id, memory)
+            logger.info(f"✅ Flujo de contacto completado - agente reactivado para usuario {user_id}")
             await query.edit_message_text("¡Gracias! Un asesor se pondrá en contacto contigo a la brevedad.")
         else:
             await query.edit_message_text("Lo siento, hubo un error al enviar tu solicitud. Por favor, inténtalo de nuevo más tarde.")
@@ -304,7 +308,10 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
         memory.phone = None
         memory.selected_course = None
         memory.course_name = None
+        # 🔄 LIMPIAR STAGE PARA REACTIVAR EL AGENTE
+        memory.stage = ""
         GlobalMemory().save_lead_memory(user_id, memory)
+        logger.info(f"🔄 Flujo de contacto cancelado - agente reactivado para usuario {user_id}")
         await request_missing_info(update, context)
 
 @handle_telegram_errors

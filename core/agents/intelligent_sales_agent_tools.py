@@ -68,14 +68,14 @@ class IntelligentSalesAgentTools:
                 
             elif category == 'BUYING_SIGNALS' and confidence > 0.6:
                 if 'precio' in user_message.lower() or 'cuánto' in user_message.lower():
-                    await self.agent_tools.presentar_oferta_limitada(user_id, course_info['id'])
-                    activated_tools.append('presentar_oferta_limitada')
-                elif 'hablar' in user_message.lower() or 'asesor' in user_message.lower():
-                    await self.agent_tools.agendar_demo_personalizada(user_id, course_info['id'])
-                    activated_tools.append('agendar_demo_personalizada')
+                    await self.agent_tools.mostrar_ofertas_limitadas(user_id, course_info['id'])
+                    activated_tools.append('mostrar_ofertas_limitadas')
+                elif 'hablar' in user_message.lower() or 'asesor' in user_message.lower() or 'contactar' in user_message.lower():
+                    await self.agent_tools.contactar_asesor_directo(user_id, course_info['id'])
+                    activated_tools.append('contactar_asesor_directo')
                 else:
-                    await self.agent_tools.mostrar_bonos_exclusivos(user_id, course_info['id'])
-                    activated_tools.append('mostrar_bonos_exclusivos')
+                    await self.agent_tools.mostrar_ofertas_limitadas(user_id, course_info['id'])
+                    activated_tools.append('mostrar_ofertas_limitadas')
                     
             elif category == 'AUTOMATION_NEED' and confidence > 0.6:
                 await self.agent_tools.enviar_preview_curso(user_id, course_info['id'])
@@ -85,13 +85,19 @@ class IntelligentSalesAgentTools:
                 await self.agent_tools.enviar_recursos_gratuitos(user_id, course_info['id'])
                 activated_tools.append('enviar_recursos_gratuitos')
                 
+            # DETECCIÓN ESPECÍFICA PARA CONTACTO CON ASESOR
+            contact_keywords = ['asesor', 'contactar', 'hablar', 'ayuda', 'consulta', 'especialista', 'soporte']
+            if any(keyword in user_message.lower() for keyword in contact_keywords):
+                await self.agent_tools.contactar_asesor_directo(user_id, course_info['id'])
+                activated_tools.append('contactar_asesor_directo')
+                
             # HERRAMIENTAS BASADAS EN COMPORTAMIENTO Y CONTEXTO
             
             # Usuario muy interesado (múltiples interacciones)
             if user_memory.interaction_count >= 3 and interest_score > 70:
                 if 'mostrar_bonos_exclusivos' not in activated_tools:
-                    await self.agent_tools.generar_urgencia_dinamica(user_id, course_info['id'])
-                    activated_tools.append('generar_urgencia_dinamica')
+                    await self.agent_tools.mostrar_ofertas_limitadas(user_id, course_info['id'])
+                    activated_tools.append('mostrar_ofertas_limitadas')
                     
             # Usuario indeciso con múltiples preguntas
             if user_memory.interaction_count >= 2 and interest_score < 60:
