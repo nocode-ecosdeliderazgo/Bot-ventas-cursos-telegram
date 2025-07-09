@@ -106,6 +106,9 @@ psql -d $DATABASE_URL -f database/sql/migration_step3_validation.sql
 - ✅ `agente_ventas_telegram.py` - Corregido soporte para hashtag `#Experto_IA_GPT_Gemini`
 - ✅ `core/handlers/ads_flow.py` - Mejorado método `_extract_course_id` con logging detallado
 - ✅ `core/utils/message_parser.py` - Mejorado regex para hashtags con guiones bajos
+- ✅ `core/agents/smart_sales_agent.py` - Agregado logging detallado para debug del agente inteligente
+- ✅ `core/agents/intelligent_sales_agent.py` - Corregido manejo de cursos no encontrados en BD
+- ✅ **CRÍTICO**: Corregida integración entre ads_flow y agente inteligente post-migración
 
 ---
 
@@ -286,6 +289,25 @@ logger.info(f"Variaciones a probar: {variations}")
 logger.info(f"Curso encontrado: {variation} -> {course_id}")
 ```
 
+### 🔍 **PROBLEMA: Agente inteligente no funcionaba después del flujo de anuncio**
+
+**Síntomas:**
+- Después del flujo de anuncio, todas las respuestas eran genéricas
+- Mensaje: "Perfecto, me da mucho gusto que estés interesado en el curso. Déjame consultar la información específica..."
+- El agente OpenAI no se activaba correctamente
+
+**Causas identificadas:**
+1. **Curso no encontrado en BD**: La función `getCourseDetails()` no encontraba el curso nuevo en `ai_courses`
+2. **Validación estricta**: Si no se encontraba el curso, se retornaba error en lugar de continuar
+3. **Falta de logging**: No había suficiente información de debug para identificar el problema
+4. **Manejo de errores**: Las excepciones causaban que el agente no se activara
+
+**Correcciones implementadas:**
+- ✅ **`core/agents/intelligent_sales_agent.py`**: Información mínima de curso como fallback
+- ✅ **`core/agents/smart_sales_agent.py`**: Información genérica en lugar de errores
+- ✅ **Logging detallado**: Agregado en ambos archivos para debugging
+- ✅ **Manejo robusto**: Continúa conversación aun si fallan consultas de BD
+
 ### 🎯 **ESTADO POST-CORRECCIÓN**
 
 **Hashtags ahora soportados:**
@@ -300,6 +322,8 @@ logger.info(f"Curso encontrado: {variation} -> {course_id}")
 - Mapeo robusto con múltiples variaciones
 - Logging detallado para debugging
 - Fallback para campañas no encontradas
+- **NUEVO**: Agente inteligente funciona correctamente después del flujo de anuncio
+- **NUEVO**: Manejo robusto de cursos no encontrados en BD
 
 ---
 

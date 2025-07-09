@@ -36,8 +36,9 @@ async def get_course_from_hashtag(hashtags: List[str], db) -> Optional[str]:
         'Experto_IA_GPT_Gemini': ['experto', 'gpt', 'gemini', 'ia'],
         'EXPERTO_IA_GPT_GEMINI': ['experto', 'gpt', 'gemini', 'ia'],
         'curso:experto_ia_gpt_gemini': ['experto', 'gpt', 'gemini', 'ia'],
-        'CURSO_NUEVO': ['nuevo', 'curso', 'keywords'],
-        'curso:nuevo': ['nuevo', 'curso', 'keywords']
+        'curso_nuevo': ['curso', 'nuevo', 'especial'],
+        'CURSO_NUEVO': ['curso', 'nuevo', 'especial'],
+        'curso:nuevo': ['curso', 'nuevo', 'especial']
     }
 
     # Obtener palabras clave para el hashtag actual

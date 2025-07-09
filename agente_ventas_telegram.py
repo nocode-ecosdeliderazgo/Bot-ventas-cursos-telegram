@@ -129,13 +129,12 @@ class VentasBot:
                     elif hashtag == 'CURSO_AUTOMATIZACION':
                         user_memory.selected_course = "4bac-2715110440a0-b734-b00f3d1c-e876"
                         self.global_memory.save_lead_memory(str(user.id), user_memory)
-                    elif hashtag == 'CURSO_NUEVO':
-                        user_memory.selected_course = "d7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f"
+                    elif hashtag in ['curso_nuevo', 'CURSO_NUEVO']:
+                        user_memory.selected_course = "db747b9e-2872-47a4-a75e-6d6280b1829e"
                         self.global_memory.save_lead_memory(str(user.id), user_memory)
                     elif hashtag in ['Experto_IA_GPT_Gemini', 'EXPERTO_IA_GPT_GEMINI']:
                         user_memory.selected_course = "c76bc3dd-502a-4b99-8c6c-3f9fce33a14b"
                         self.global_memory.save_lead_memory(str(user.id), user_memory)
-                        logger.info(f"Asignado curso Experto_IA_GPT_Gemini: c76bc3dd-502a-4b99-8c6c-3f9fce33a14b")
                     break
             
             # Verificar si el usuario está en proceso de proporcionar su nombre
@@ -153,8 +152,8 @@ class VentasBot:
                     logger.info(f"Usuario {user.id} viene de anuncio, procesando con ads_flow")
                     response, keyboard = await self.handle_ad_flow(message_data, user_data, hashtags)
             else:
-                # Flujo conversacional normal
-                logger.info(f"Usuario {user.id} en conversación normal")
+                # Flujo conversacional normal - SIEMPRE usar agente inteligente
+                logger.info(f"Usuario {user.id} en conversación normal - usando agente inteligente")
                 if self.ventas_bot:
                     response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
                 else:

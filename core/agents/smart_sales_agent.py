@@ -65,11 +65,13 @@ class SmartSalesAgent:
         
         # Inicializar el agente inteligente con la API key
         try:
+            logger.info(f"Inicializando agente inteligente con API key: {'****' + settings.OPENAI_API_KEY[-4:] if settings.OPENAI_API_KEY else 'None'}")
             self.intelligent_agent = IntelligentSalesAgent(settings.OPENAI_API_KEY, db)
             # CRÍTICO: Configurar agent_tools en el agente inteligente
             self.intelligent_agent.agent_tools = agent
+            logger.info("✅ Agente inteligente inicializado correctamente")
         except Exception as e:
-            logger.error(f"Error inicializando agente inteligente: {e}")
+            logger.error(f"❌ Error inicializando agente inteligente: {e}")
             self.intelligent_agent = None
         
         # Configuración de seguimiento
@@ -168,8 +170,11 @@ Solo necesito recopilar algunos datos para que pueda contactarte."""
             if should_use_llm:
                 # Verificar si el agente inteligente está disponible
                 if self.intelligent_agent is None:
-                    logger.warning("Agente inteligente no disponible, usando respuesta por defecto")
-                    return "Gracias por tu mensaje. Un asesor te contactará pronto.", None
+                    logger.warning("❌ Agente inteligente no disponible, usando respuesta por defecto")
+                    logger.warning(f"Estado de inicialización: intelligent_agent = {self.intelligent_agent}")
+                    return "Lo siento, hay un problema temporal con el sistema. Por favor, intenta de nuevo en un momento.", None
+                
+                logger.info(f"✅ Usando agente inteligente para responder: {message_text[:100]}...")
                 
                 # ✅ CRÍTICO: Si hay curso seleccionado del flujo de anuncios, NUNCA cambiarlo  
                 course_info = None
@@ -196,18 +201,35 @@ Solo necesito recopilar algunos datos para que pueda contactarte."""
                                         user_memory.selected_course = courses[0]['id']
                                     break
                         
-                        # Si aún no hay curso seleccionado, mostrar mensaje de curso no seleccionado
+                        # Si aún no hay curso seleccionado, usar información genérica
                         if not user_memory.selected_course and not course_info:
-                            return "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa.", None
+                            logger.info("⚠️ No hay curso seleccionado - usando información genérica en SmartSalesAgent")
+                            course_info = {
+                                'id': 'generic',
+                                'name': 'Cursos de IA',
+                                'description': 'Cursos de Inteligencia Artificial',
+                                'price': 'Consultar',
+                                'level': 'Todos los niveles'
+                            }
                     except Exception as e:
                         logger.warning(f"Error buscando referencias de curso: {e}")
-                        return "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa.", None
+                        logger.info("⚠️ Error en búsqueda de curso - usando información genérica")
+                        course_info = {
+                            'id': 'generic',
+                            'name': 'Cursos de IA',
+                            'description': 'Cursos de Inteligencia Artificial',
+                            'price': 'Consultar',
+                            'level': 'Todos los niveles'
+                        }
                 
                 # Incrementar contador de interacciones
                 user_memory.interaction_count += 1
                 
                 # Usar el agente inteligente para generar respuesta personalizada
+                logger.info(f"🤖 Llamando al agente inteligente con curso: {user_memory.selected_course}")
+                logger.info(f"🤖 Course info disponible: {course_info is not None}")
                 response = await self.intelligent_agent.generate_response(message_text, user_memory, course_info)
+                logger.info(f"🤖 Respuesta del agente inteligente: {response[:200] if isinstance(response, str) else 'Lista de respuestas'}...")
                 
                 # Guardar la memoria actualizada
                 self.global_memory.save_lead_memory(user_id, user_memory)

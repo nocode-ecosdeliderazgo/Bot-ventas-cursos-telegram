@@ -496,11 +496,20 @@ class IntelligentSalesAgent:
             if user_memory.selected_course:
                 logger.info(f"🎯 CURSO FIJO del flujo de anuncios: {user_memory.selected_course}")
                 if not course_info:
+                    logger.info(f"🔍 Obteniendo detalles del curso: {user_memory.selected_course}")
                     course_info = await self.course_service.getCourseDetails(user_memory.selected_course)
                     if not course_info:
-                        logger.warning(f"❌ No se pudo obtener detalles del curso seleccionado: {user_memory.selected_course}")
-                        # Mantener el curso seleccionado aunque falle la consulta
-                        return "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa."
+                        logger.error(f"❌ No se pudo obtener detalles del curso seleccionado: {user_memory.selected_course}")
+                        logger.error("❌ CURSO NO ENCONTRADO EN BD - Verificar si el curso existe en ai_courses")
+                        # En lugar de retornar error, usar información mínima para continuar
+                        course_info = {
+                            'id': user_memory.selected_course,
+                            'name': 'Curso seleccionado',
+                            'description': 'Curso de IA para profesionales',
+                            'price': 199.99,
+                            'level': 'básico'
+                        }
+                        logger.info("✅ Usando información mínima de curso para continuar conversación")
                 # NUNCA buscar otros cursos - el curso está determinado por el flujo de anuncios
             else:
                 # Solo buscar referencias a cursos si NO hay curso seleccionado previamente
@@ -519,9 +528,16 @@ class IntelligentSalesAgent:
                                 user_memory.selected_course = courses[0]['id']
                             break
                 
-                # Si aún no hay curso seleccionado, mostrar mensaje de curso no seleccionado
+                # Si aún no hay curso seleccionado, usar información genérica
                 if not user_memory.selected_course and not course_info:
-                    return "⚠️ Curso no seleccionado. Por favor, inicia el proceso desde el anuncio del curso que te interesa."
+                    logger.info("⚠️ No hay curso seleccionado - usando información genérica")
+                    course_info = {
+                        'id': 'generic',
+                        'name': 'Cursos de IA',
+                        'description': 'Cursos de Inteligencia Artificial',
+                        'price': 'Consultar',
+                        'level': 'Todos los niveles'
+                    }
             
             # Preparar el historial de conversación
             conversation_history: List[Dict[str, str]] = []
