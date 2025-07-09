@@ -1,4 +1,4 @@
-"""Manejadores para el flujo de contacto - VERSIÓN MIGRADA."""
+"""Manejadores para el flujo de contacto."""
 import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
@@ -39,14 +39,10 @@ Elige la opción que más te convenga:"""
 # --- Funciones de Ayuda ---
 
 async def get_all_courses(db: DatabaseService):
-    """
-    Obtiene todos los cursos de la base de datos.
-    MIGRADO: Usa ai_courses en lugar de courses
-    """
+    """Obtiene todos los cursos de la base de datos."""
     try:
         async with db.pool.acquire() as connection:
-            # Cambio: courses → ai_courses
-            rows = await connection.fetch("SELECT id, name FROM ai_courses WHERE status = 'publicado'")
+            rows = await connection.fetch("SELECT id, name FROM courses")
             return [{"id": row['id'], "name": row['name']} for row in rows]
     except Exception as e:
         logger.error(f"Error al obtener los cursos: {e}")
@@ -144,10 +140,7 @@ async def request_course_selection(update: Update, context: ContextTypes.DEFAULT
     )
 
 async def handle_course_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja la selección de un curso por parte del usuario.
-    MIGRADO: Usa courseService migrado
-    """
+    """Maneja la selección de un curso por parte del usuario."""
     query = update.callback_query
     await query.answer()
     user_id = str(query.from_user.id)
@@ -156,15 +149,11 @@ async def handle_course_selection(update: Update, context: ContextTypes.DEFAULT_
     course_id = query.data.split('_')[-1]
     memory.selected_course = course_id
     
-    # Obtener el nombre del curso usando el servicio migrado
+    # Obtener el nombre del curso
     db = DatabaseService(settings.DATABASE_URL)
     await db.connect()
-    # Usar el servicio migrado
-    from core.services.courseService import CourseService
-    course_service = CourseService(db)
-    course_details = await course_service.getCourseDetails(course_id)
+    course_details = await db.get_course_details(course_id)
     await db.disconnect()
-    
     if course_details:
         memory.course_name = course_details.get('name')
 
@@ -207,10 +196,7 @@ async def request_missing_info_after_input(update: Update, context: ContextTypes
         await confirm_contact_details_after_input(update, context)
 
 async def confirm_contact_details_after_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Muestra confirmación después de recibir datos por texto.
-    MIGRADO: Usa courseService migrado
-    """
+    """Muestra confirmación después de recibir datos por texto."""
     user_id = str(update.message.from_user.id)
     memory = GlobalMemory().get_lead_memory(user_id)
 
@@ -218,10 +204,7 @@ async def confirm_contact_details_after_input(update: Update, context: ContextTy
     if not hasattr(memory, 'course_name') or not memory.course_name:
         db = DatabaseService(settings.DATABASE_URL)
         await db.connect()
-        # Usar el servicio migrado
-        from core.services.courseService import CourseService
-        course_service = CourseService(db)
-        course_details = await course_service.getCourseDetails(memory.selected_course)
+        course_details = await db.get_course_details(memory.selected_course)
         await db.disconnect()
         memory.course_name = course_details.get('name') if course_details else "No especificado"
         GlobalMemory().save_lead_memory(user_id, memory)
@@ -243,10 +226,7 @@ async def confirm_contact_details_after_input(update: Update, context: ContextTy
     await update.message.reply_text(message, reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def confirm_contact_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Muestra al usuario los datos recopilados y pide confirmación.
-    MIGRADO: Usa courseService migrado
-    """
+    """Muestra al usuario los datos recopilados y pide confirmación."""
     query = update.callback_query
     user_id = str(query.from_user.id)
     memory = GlobalMemory().get_lead_memory(user_id)
@@ -255,10 +235,7 @@ async def confirm_contact_details(update: Update, context: ContextTypes.DEFAULT_
     if not hasattr(memory, 'course_name') or not memory.course_name:
         db = DatabaseService(settings.DATABASE_URL)
         await db.connect()
-        # Usar el servicio migrado
-        from core.services.courseService import CourseService
-        course_service = CourseService(db)
-        course_details = await course_service.getCourseDetails(memory.selected_course)
+        course_details = await db.get_course_details(memory.selected_course)
         await db.disconnect()
         memory.course_name = course_details.get('name') if course_details else "No especificado"
         GlobalMemory().save_lead_memory(user_id, memory)

@@ -1,7 +1,7 @@
 """
-Servicio para consultas específicas de cursos.
-Implementa funciones que consultan directamente la base de datos
-sin transformaciones ni interpretaciones, retornando datos exactos.
+Servicio para consultas específicas de cursos - VERSIÓN MIGRADA
+Implementa funciones que consultan la nueva estructura de base de datos
+con ai_courses, ai_course_sessions, ai_session_practices, ai_session_deliverables.
 """
 
 # Protección temprana contra ejecución directa
@@ -28,9 +28,9 @@ logger = logging.getLogger(__name__)
 
 class CourseService:
     """
-    Servicio para consultas específicas de cursos.
+    Servicio para consultas específicas de cursos - VERSIÓN MIGRADA.
     Proporciona métodos para obtener información detallada de cursos
-    directamente desde la base de datos.
+    desde la nueva estructura de base de datos.
     """
     
     def __init__(self, db_service: "DatabaseService"):
@@ -39,23 +39,37 @@ class CourseService:
     
     async def getCourseDetails(self, courseId: str) -> Optional[Dict[str, Any]]:
         """
-        Obtiene todos los detalles de un curso específico, incluyendo sus módulos.
+        Obtiene todos los detalles de un curso específico, incluyendo sus sesiones.
+        MIGRADO: Usa ai_courses y ai_course_sessions
         
         Args:
             courseId: ID único del curso
             
         Returns:
-            Diccionario con todos los campos del curso y sus módulos
+            Diccionario con todos los campos del curso y sus sesiones
         """
         try:
             query = """
             SELECT 
                 c.*,
-                json_agg(DISTINCT cm.*) as modules
-            FROM courses c
-            LEFT JOIN course_modules cm ON cm.course_id = c.id
+                st.name as subtheme_name,
+                st.description as subtheme_description,
+                json_agg(
+                    DISTINCT jsonb_build_object(
+                        'id', s.id,
+                        'session_index', s.session_index,
+                        'title', s.title,
+                        'objective', s.objective,
+                        'duration_minutes', s.duration_minutes,
+                        'modality', s.modality,
+                        'display_order', s.display_order
+                    )
+                ) as sessions
+            FROM ai_courses c
+            LEFT JOIN ai_subthemes st ON c.subtheme_id = st.id
+            LEFT JOIN ai_course_sessions s ON s.course_id = c.id
             WHERE c.id = $1
-            GROUP BY c.id;
+            GROUP BY c.id, st.name, st.description;
             """
             
             result = await self.db.fetch_one(query, courseId)
@@ -66,7 +80,8 @@ class CourseService:
     
     async def searchCourses(self, search_query: str) -> List[Dict[str, Any]]:
         """
-        Busca cursos por nombre, descripción, categoría o herramientas.
+        Busca cursos por nombre, descripción, categoría o audiencia.
+        MIGRADO: Usa ai_courses y ai_subthemes
         
         Args:
             search_query: Texto para buscar en los campos del curso
@@ -76,17 +91,22 @@ class CourseService:
         """
         try:
             query = """
-            SELECT * FROM courses
+            SELECT 
+                c.*,
+                st.name as subtheme_name
+            FROM ai_courses c
+            LEFT JOIN ai_subthemes st ON c.subtheme_id = st.id
             WHERE 
-                published = true AND
+                c.status = 'publicado' AND
                 (
-                    name ILIKE $1 OR
-                    short_description ILIKE $1 OR
-                    long_description ILIKE $1 OR
-                    category ILIKE $1 OR
-                    $1 = ANY(tools_used)
+                    c.name ILIKE $1 OR
+                    c.short_description ILIKE $1 OR
+                    c.long_description ILIKE $1 OR
+                    c.audience_category ILIKE $1 OR
+                    st.name ILIKE $1 OR
+                    st.description ILIKE $1
                 )
-            ORDER BY created_at DESC;
+            ORDER BY c.created_at DESC;
             """
             
             search_pattern = f"%{search_query}%"
@@ -98,56 +118,52 @@ class CourseService:
     
     async def getCourseModules(self, courseId: str) -> List[Dict[str, Any]]:
         """
-        Obtiene todos los módulos de un curso específico.
+        Obtiene todas las sesiones de un curso específico.
+        MIGRADO: Usa ai_course_sessions (equivalente a course_modules)
         
         Args:
             courseId: ID único del curso
             
         Returns:
-            Lista de módulos del curso con nombre, descripción y duración
+            Lista de sesiones del curso con título, objetivo y duración
         """
         try:
             query = """
             SELECT 
-                id, name, description, duration, module_index
-            FROM course_modules
+                id, 
+                title as name,  -- Mapear title a name para compatibilidad
+                objective as description,  -- Mapear objective a description
+                duration_minutes as duration,
+                session_index as module_index  -- Mapear para compatibilidad
+            FROM ai_course_sessions
             WHERE course_id = $1
-            ORDER BY module_index;
+            ORDER BY session_index;
             """
             
             results = await self.db.fetch_all(query, courseId)
             return results or []
         except Exception as e:
-            logger.error(f"Error obteniendo módulos del curso {courseId}: {e}")
+            logger.error(f"Error obteniendo sesiones del curso {courseId}: {e}")
             return []
     
     async def getCoursePrompts(self, courseId: str) -> List[Dict[str, Any]]:
         """
-        Obtiene ejemplos de prompts para un curso específico.
+        ELIMINADO: Esta función ya no está disponible en la nueva estructura.
+        La tabla course_prompts no existe en la nueva estructura.
         
         Args:
             courseId: ID único del curso
             
         Returns:
-            Lista de prompts de ejemplo para el curso
+            Lista vacía (funcionalidad eliminada)
         """
-        try:
-            query = """
-            SELECT 
-                id, usage, prompt
-            FROM course_prompts
-            WHERE course_id = $1;
-            """
-            
-            results = await self.db.fetch_all(query, courseId)
-            return results or []
-        except Exception as e:
-            logger.error(f"Error obteniendo prompts del curso {courseId}: {e}")
-            return []
+        logger.warning(f"getCoursePrompts() eliminado en migración - no hay equivalente para curso {courseId}")
+        return []
     
     async def getCourseSales(self, courseId: str) -> int:
         """
         Obtiene el número de ventas de un curso específico.
+        MANTENIDO: Tabla course_sales se mantiene sin cambios
         
         Args:
             courseId: ID único del curso
@@ -171,6 +187,7 @@ class CourseService:
     async def getCourseInteractions(self, courseId: str) -> List[Dict[str, Any]]:
         """
         Obtiene todas las interacciones con un curso específico.
+        MANTENIDO: Tabla course_interactions se mantiene sin cambios
         
         Args:
             courseId: ID único del curso
@@ -196,28 +213,40 @@ class CourseService:
 
     async def getModuleExercises(self, moduleId: str) -> List[Dict[str, Any]]:
         """
-        Obtiene todos los ejercicios prácticos de un módulo específico.
+        Obtiene todas las prácticas de una sesión específica.
+        MIGRADO: Usa ai_session_practices (equivalente a module_exercises)
+        
         Args:
-            moduleId: ID único del módulo
+            moduleId: ID único de la sesión (anteriormente módulo)
+            
         Returns:
-            Lista de ejercicios prácticos del módulo
+            Lista de prácticas de la sesión
         """
         try:
             query = """
-            SELECT id, description, order_idx
-            FROM module_exercises
-            WHERE module_id = $1
-            ORDER BY order_idx;
+            SELECT 
+                id, 
+                description, 
+                practice_index as order_idx,  -- Mapear para compatibilidad
+                title,
+                notes,
+                estimated_duration_min,
+                resource_type,
+                is_mandatory
+            FROM ai_session_practices
+            WHERE session_id = $1
+            ORDER BY practice_index;
             """
             results = await self.db.fetch_all(query, moduleId)
             return results or []
         except Exception as e:
-            logger.error(f"Error obteniendo ejercicios del módulo {moduleId}: {e}")
+            logger.error(f"Error obteniendo prácticas de la sesión {moduleId}: {e}")
             return [] 
 
     async def getAvailableBonuses(self, courseId: str) -> List[Dict[str, Any]]:
         """
         Obtiene todos los bonos por tiempo limitado disponibles para un curso.
+        MANTENIDO: Tabla limited_time_bonuses se mantiene sin cambios
         
         Args:
             courseId: ID único del curso
@@ -246,13 +275,13 @@ class CourseService:
     async def getCourseBasicInfo(self, courseId: str) -> Optional[Dict[str, Any]]:
         """
         Obtiene información básica específica del curso para mostrar en mensajes.
-        Optimizada para obtener solo los campos necesarios.
+        MIGRADO: Usa ai_courses con campos actualizados
         
         Args:
             courseId: ID único del curso
             
         Returns:
-            Diccionario con campos básicos: name, short_description, total_duration, level, price_usd
+            Diccionario con campos básicos: name, short_description, total_duration_min, level, price
         """
         try:
             query = """
@@ -260,12 +289,15 @@ class CourseService:
                 id,
                 name,
                 short_description,
-                total_duration,
+                total_duration_min as total_duration,  -- Mapear para compatibilidad
                 level,
-                price_usd,
-                published
-            FROM courses 
-            WHERE id = $1 AND published = true;
+                price as price_usd,  -- Mapear para compatibilidad
+                status,
+                currency,
+                session_count,
+                audience_category
+            FROM ai_courses 
+            WHERE id = $1 AND status = 'publicado';
             """
             
             result = await self.db.fetch_one(query, courseId)
@@ -274,10 +306,103 @@ class CourseService:
             logger.error(f"Error obteniendo información básica del curso {courseId}: {e}")
             return None
 
+    async def getSessionDeliverables(self, sessionId: str) -> List[Dict[str, Any]]:
+        """
+        Obtiene todos los entregables de una sesión específica.
+        NUEVO: Funcionalidad agregada para la nueva estructura
+        
+        Args:
+            sessionId: ID único de la sesión
+            
+        Returns:
+            Lista de entregables de la sesión
+        """
+        try:
+            query = """
+            SELECT 
+                id,
+                name,
+                type,
+                resource_url,
+                estimated_duration_min,
+                resource_type,
+                is_mandatory
+            FROM ai_session_deliverables
+            WHERE session_id = $1
+            ORDER BY name;
+            """
+            
+            results = await self.db.fetch_all(query, sessionId)
+            return results or []
+        except Exception as e:
+            logger.error(f"Error obteniendo entregables de la sesión {sessionId}: {e}")
+            return []
+
+    async def getCourseSubtheme(self, courseId: str) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene información del subtema asociado a un curso.
+        NUEVO: Funcionalidad agregada para la nueva estructura
+        
+        Args:
+            courseId: ID único del curso
+            
+        Returns:
+            Diccionario con información del subtema
+        """
+        try:
+            query = """
+            SELECT 
+                st.id,
+                st.name,
+                st.description
+            FROM ai_subthemes st
+            JOIN ai_courses c ON c.subtheme_id = st.id
+            WHERE c.id = $1;
+            """
+            
+            result = await self.db.fetch_one(query, courseId)
+            return result
+        except Exception as e:
+            logger.error(f"Error obteniendo subtema del curso {courseId}: {e}")
+            return None
+
+    async def getFreeResources(self, courseId: str) -> List[Dict[str, Any]]:
+        """
+        Obtiene recursos gratuitos para un curso específico.
+        MIGRADO: Usa ai_session_deliverables en lugar de free_resources
+        
+        Args:
+            courseId: ID único del curso
+            
+        Returns:
+            Lista de recursos gratuitos disponibles
+        """
+        try:
+            query = """
+            SELECT 
+                d.id,
+                d.name as resource_name,  -- Mapear para compatibilidad
+                d.type as resource_type,
+                d.resource_url,
+                d.estimated_duration_min,
+                d.is_mandatory,
+                s.title as session_title
+            FROM ai_session_deliverables d
+            JOIN ai_course_sessions s ON d.session_id = s.id
+            WHERE s.course_id = $1 AND d.is_mandatory = false
+            ORDER BY s.session_index, d.name;
+            """
+            
+            results = await self.db.fetch_all(query, courseId)
+            return results or []
+        except Exception as e:
+            logger.error(f"Error obteniendo recursos gratuitos del curso {courseId}: {e}")
+            return []
+
 # Protección para evitar ejecución directa del módulo
 if __name__ == "__main__":
     print("❌ Este archivo es un módulo y no debe ejecutarse directamente.")
     print("💡 Úsalo importándolo desde el bot principal: agente_ventas_telegram.py")
     print("✅ Las importaciones están correctas para uso como módulo.")
     import sys
-    sys.exit(0)  # Exit 0 para indicar que no es un error, solo prevención 
+    sys.exit(0)  # Exit 0 para indicar que no es un error, solo prevención

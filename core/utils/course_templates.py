@@ -1,29 +1,45 @@
 """
-Plantillas centralizadas para mostrar información de cursos.
-Todas las plantillas construyen la información dinámicamente desde la base de datos.
+Plantillas centralizadas para mostrar información de cursos - VERSIÓN MIGRADA.
+Todas las plantillas construyen la información dinámicamente desde la nueva estructura de base de datos.
+Compatibles con ai_courses, ai_course_sessions, ai_session_practices, ai_session_deliverables.
 """
 
 class CourseTemplates:
-    """Plantillas para mostrar información de cursos de manera consistente."""
+    """Plantillas para mostrar información de cursos de manera consistente - VERSIÓN MIGRADA."""
     
     @staticmethod
     def format_course_info(course_details: dict) -> str:
-        """Formatea la información completa del curso para mostrar al usuario."""
+        """
+        Formatea la información completa del curso para mostrar al usuario.
+        MIGRADO: Usa campos de ai_courses
+        """
         name = course_details.get('name', 'Dato no encontrado en la base de datos')
         description = course_details.get('short_description', 'Dato no encontrado en la base de datos')
-        duration = course_details.get('total_duration', 'Dato no encontrado en la base de datos')
-        level = course_details.get('level', 'Dato no encontrado en la base de datos')
-        price = course_details.get('price_usd', 'Dato no encontrado en la base de datos')
         
-        # Extraer módulos de la descripción larga si existe
-        modules_text = ""
-        long_desc = course_details.get('long_description', '')
-        if long_desc:
-            modules = CourseTemplates._extract_modules_from_description(long_desc)
-            if modules:
-                modules_text = "\n\n📚 **Módulos del curso:**\n"
-                for i, module in enumerate(modules[:5], 1):  # Mostrar máximo 5 módulos
-                    modules_text += f"{i}. {module}\n"
+        # Cambios en nueva estructura: total_duration_min en lugar de total_duration
+        duration_min = course_details.get('total_duration_min', 0)
+        if duration_min > 0:
+            hours = duration_min // 60
+            minutes = duration_min % 60
+            duration = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
+        else:
+            duration = "Dato no encontrado en la base de datos"
+        
+        level = course_details.get('level', 'Dato no encontrado en la base de datos')
+        
+        # Cambios en nueva estructura: price en lugar de price_usd
+        price = course_details.get('price', 0)
+        currency = course_details.get('currency', 'USD')
+        price_str = f"{price} {currency}" if price > 0 else "Dato no encontrado en la base de datos"
+        
+        # Extraer sesiones de la nueva estructura
+        sessions_text = ""
+        sessions = course_details.get('sessions', [])
+        if sessions and isinstance(sessions, list):
+            sessions_text = "\n\n📚 **Sesiones del curso:**\n"
+            for i, session in enumerate(sessions[:5], 1):  # Mostrar máximo 5 sesiones
+                session_title = session.get('title', f'Sesión {i}')
+                sessions_text += f"{i}. {session_title}\n"
         
         return f"""🎓 **{name}**
 
@@ -31,27 +47,37 @@ class CourseTemplates:
 
 ⏱️ **Duración:** {duration}
 📊 **Nivel:** {level}
-💰 **Inversión:** ${price} USD
-{modules_text}
+💰 **Inversión:** ${price_str}
+{sessions_text}
 
 ¿Qué te gustaría saber más sobre este curso?"""
 
     @staticmethod
     def format_course_summary(course_details: dict) -> str:
-        """Formatea un resumen básico del curso."""
+        """
+        Formatea un resumen básico del curso.
+        MIGRADO: Usa campos de ai_courses
+        """
         name = course_details.get('name', 'Dato no encontrado en la base de datos')
         description = course_details.get('short_description', 'Dato no encontrado en la base de datos')
-        price = course_details.get('price_usd', 'Dato no encontrado en la base de datos')
+        
+        # Cambios en nueva estructura
+        price = course_details.get('price', 0)
+        currency = course_details.get('currency', 'USD')
+        price_str = f"{price} {currency}" if price > 0 else "Dato no encontrado en la base de datos"
         
         return f"""🎯 **{name}**
 
 {description}
 
-💰 **Inversión:** ${price} USD"""
+💰 **Inversión:** ${price_str}"""
 
     @staticmethod
     def format_course_welcome(course_details: dict, user_name: str) -> str:
-        """Formatea el mensaje de bienvenida personalizado con información del curso."""
+        """
+        Formatea el mensaje de bienvenida personalizado con información del curso.
+        MIGRADO: Usa campos de ai_courses
+        """
         name = course_details.get('name', 'Dato no encontrado en la base de datos')
         description = course_details.get('short_description', 'Dato no encontrado en la base de datos')
         
@@ -69,28 +95,44 @@ Te voy a compartir el programa completo del curso y algunos materiales para que 
 
     @staticmethod
     def format_course_details_with_benefits(course_details: dict) -> str:
-        """Formatea información detallada del curso con beneficios."""
+        """
+        Formatea información detallada del curso con beneficios.
+        MIGRADO: Usa campos de ai_courses y ai_subthemes
+        """
         name = course_details.get('name', 'Dato no encontrado en la base de datos')
         description = course_details.get('short_description', 'Dato no encontrado en la base de datos')
-        duration = course_details.get('total_duration', 'Dato no encontrado en la base de datos')
-        level = course_details.get('level', 'Dato no encontrado en la base de datos')
-        price = course_details.get('price_usd', 'Dato no encontrado en la base de datos')
-        tools = course_details.get('tools_used', [])
         
-        tools_text = ""
-        if tools and isinstance(tools, list):
-            tools_text = "\n\n🛠️ **Herramientas que usarás:**\n"
-            for tool in tools[:5]:  # Mostrar máximo 5 herramientas
-                tools_text += f"• {tool}\n"
+        # Cambios en nueva estructura
+        duration_min = course_details.get('total_duration_min', 0)
+        if duration_min > 0:
+            hours = duration_min // 60
+            minutes = duration_min % 60
+            duration = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
+        else:
+            duration = "Dato no encontrado en la base de datos"
+        
+        level = course_details.get('level', 'Dato no encontrado en la base de datos')
+        
+        price = course_details.get('price', 0)
+        currency = course_details.get('currency', 'USD')
+        price_str = f"{price} {currency}" if price > 0 else "Dato no encontrado en la base de datos"
+        
+        # Información del subtema (nueva funcionalidad)
+        subtheme_text = ""
+        if course_details.get('subtheme_name'):
+            subtheme_text = f"🎯 **Categoría:** {course_details['subtheme_name']}\n"
+        
+        # Conteo de sesiones (nueva funcionalidad)
+        session_count = course_details.get('session_count', 0)
+        session_text = f"📚 **Sesiones:** {session_count}\n" if session_count > 0 else ""
         
         return f"""🎓 **{name}**
 
 {description}
 
-⏱️ **Duración:** {duration}
+{subtheme_text}{session_text}⏱️ **Duración:** {duration}
 📊 **Nivel:** {level}
-💰 **Inversión:** ${price} USD
-{tools_text}
+💰 **Inversión:** ${price_str}
 
 ✨ **¿Por qué este curso te va a cambiar la vida?**
 • Aprenderás habilidades que están transformando el mundo laboral
@@ -102,48 +144,59 @@ Te voy a compartir el programa completo del curso y algunos materiales para que 
 
     @staticmethod
     def format_course_modules_detailed(course_details: dict) -> str:
-        """Formatea los módulos del curso de manera detallada."""
+        """
+        Formatea las sesiones del curso de manera detallada.
+        MIGRADO: Usa ai_course_sessions en lugar de course_modules
+        """
         name = course_details.get('name', 'Dato no encontrado en la base de datos')
-        long_desc = course_details.get('long_description', '')
+        sessions = course_details.get('sessions', [])
         
-        modules_text = "📚 **Módulos del curso:**\n\n"
+        sessions_text = "📚 **Sesiones del curso:**\n\n"
         
-        if long_desc:
-            modules = CourseTemplates._extract_modules_from_description(long_desc)
-            if modules:
-                for i, module in enumerate(modules, 1):
-                    modules_text += f"**{i}. {module}**\n\n"
-            else:
-                modules_text = "Dato no encontrado en la base de datos"
+        if sessions and isinstance(sessions, list):
+            for i, session in enumerate(sessions, 1):
+                session_title = session.get('title', f'Sesión {i}')
+                session_objective = session.get('objective', 'Objetivo no especificado')
+                session_duration = session.get('duration_minutes', 0)
+                
+                duration_text = f" ({session_duration} min)" if session_duration > 0 else ""
+                
+                sessions_text += f"**{i}. {session_title}**{duration_text}\n"
+                sessions_text += f"   {session_objective}\n\n"
         else:
-            modules_text = "Dato no encontrado en la base de datos"
+            sessions_text = "Dato no encontrado en la base de datos"
         
         return f"""🎓 **{name}**
 
-{modules_text}
+{sessions_text}
 
-¿Cuál de estos módulos te emociona más? 🚀"""
+¿Cuál de estas sesiones te emociona más? 🚀"""
 
     @staticmethod
     def format_course_pricing(course_details: dict) -> str:
-        """Formatea información de precios y ofertas."""
+        """
+        Formatea información de precios.
+        MIGRADO: Campos de descuento eliminados en nueva estructura
+        """
         name = course_details.get('name', 'Dato no encontrado en la base de datos')
-        price = course_details.get('price_usd', 'Dato no encontrado en la base de datos')
-        original_price = course_details.get('original_price_usd', price)
-        discount = course_details.get('discount_percentage', 0)
         
-        pricing_text = f"💰 **Inversión:** ${price} USD"
+        price = course_details.get('price', 0)
+        currency = course_details.get('currency', 'USD')
+        price_str = f"{price} {currency}" if price > 0 else "Dato no encontrado en la base de datos"
         
-        if original_price != price and discount > 0:
-            pricing_text = f"""💰 **Precio regular:** ~~${original_price} USD~~
-🎯 **Precio especial:** ${price} USD ({discount}% de descuento)"""
+        # Información adicional de la nueva estructura
+        session_count = course_details.get('session_count', 0)
+        duration_min = course_details.get('total_duration_min', 0)
+        
+        session_text = f"• {session_count} sesiones completas\n" if session_count > 0 else ""
+        duration_text = f"• {duration_min} minutos de contenido\n" if duration_min > 0 else ""
         
         return f"""🎓 **{name}**
 
-{pricing_text}
+💰 **Inversión:** ${price_str}
 
 ✨ **¿Qué incluye tu inversión?**
-• Acceso completo al curso por tiempo ilimitado
+{session_text}{duration_text}• Acceso completo al curso por tiempo ilimitado
 • Certificado al completar el programa
 • Soporte directo con instructores
 • Comunidad privada de estudiantes
@@ -152,28 +205,48 @@ Te voy a compartir el programa completo del curso y algunos materiales para que 
 ¿Te gustaría conocer las opciones de pago disponibles?"""
 
     @staticmethod
-    def _extract_modules_from_description(long_description: str) -> list:
-        """Extrae módulos específicos de la descripción larga del curso."""
-        modules = []
+    def format_session_detail(session_details: dict) -> str:
+        """
+        Formatea información detallada de una sesión específica.
+        NUEVO: Funcionalidad agregada para nueva estructura
+        """
+        title = session_details.get('title', 'Sesión sin título')
+        objective = session_details.get('objective', 'Objetivo no especificado')
+        duration_minutes = session_details.get('duration_minutes', 0)
+        modality = session_details.get('modality', 'online')
         
-        # Buscar patrones específicos del curso de IA
-        lines = long_description.split('\n')
-        for line in lines:
-            line = line.strip()
-            # Buscar líneas que contengan módulos específicos
-            if ':' in line and any(keyword in line.lower() for keyword in [
-                'chatgpt', 'documento', 'imagen', 'proyecto', 'creación', 'generación'
-            ]):
-                # Limpiar la línea y extraer el módulo
-                module = line.split(':')[0].strip()
-                if module and len(module) > 5:  # Evitar módulos muy cortos
-                    modules.append(module)
+        duration_text = f"{duration_minutes} minutos" if duration_minutes > 0 else "Duración no especificada"
         
-        return modules[:5]  # Máximo 5 módulos
+        return f"""📖 **{title}**
+
+🎯 **Objetivo:** {objective}
+
+⏱️ **Duración:** {duration_text}
+📱 **Modalidad:** {modality}
+
+¿Te gustaría ver las prácticas y entregables de esta sesión?"""
+
+    @staticmethod
+    def format_subtheme_info(subtheme_details: dict) -> str:
+        """
+        Formatea información de un subtema.
+        NUEVO: Funcionalidad agregada para nueva estructura
+        """
+        name = subtheme_details.get('name', 'Subtema sin nombre')
+        description = subtheme_details.get('description', 'Descripción no disponible')
+        
+        return f"""🎯 **Categoría: {name}**
+
+{description}
+
+¿Te gustaría ver todos los cursos de esta categoría?"""
 
     @staticmethod
     def format_error_message(course_id: str) -> str:
-        """Formatea mensaje de error cuando no se puede obtener información del curso."""
+        """
+        Formatea mensaje de error cuando no se puede obtener información del curso.
+        MANTENIDO: Sin cambios
+        """
         return f"""❌ **Error al obtener información del curso**
 
 Lo siento, no pude obtener los detalles del curso desde la base de datos.
@@ -182,3 +255,26 @@ ID del curso: {course_id}
 Por favor, intenta nuevamente o contacta a nuestro equipo de soporte.
 
 ¿Te gustaría que te ayude con algo más?"""
+
+    @staticmethod
+    def _extract_sessions_from_data(course_data: dict) -> list:
+        """
+        Extrae sesiones de los datos del curso.
+        MIGRADO: Usa sessions en lugar de modules
+        """
+        sessions = course_data.get('sessions', [])
+        if not sessions:
+            return []
+        
+        session_list = []
+        for session in sessions:
+            if isinstance(session, dict):
+                session_title = session.get('title', 'Sesión sin título')
+                session_objective = session.get('objective', '')
+                if session_title and len(session_title) > 5:
+                    session_list.append({
+                        'title': session_title,
+                        'objective': session_objective
+                    })
+        
+        return session_list[:10]  # Máximo 10 sesiones

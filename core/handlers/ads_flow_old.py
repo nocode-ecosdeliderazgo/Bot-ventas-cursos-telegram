@@ -1,13 +1,11 @@
 """
-Manejo del flujo de anuncios - VERSIÓN MIGRADA.
+Manejo del flujo de anuncios.
 Implementa el flujo completo según el system prompt:
 1. Detección de hashtags
 2. Aviso de privacidad
 3. Bienvenida de Brenda
 4. Presentación del curso
 5. Registro de métricas
-
-MIGRADO: Usa nueva estructura de base de datos (ai_courses, ai_course_sessions)
 """
 
 import logging
@@ -29,7 +27,6 @@ class AdsFlowHandler:
     """
     Maneja el flujo completo de usuarios que llegan desde anuncios.
     Implementa el system prompt completo para usuarios de publicidad.
-    MIGRADO: Compatible con nueva estructura de base de datos.
     """
     
     def __init__(self, db: DatabaseService, agent: AgentTools) -> None:
@@ -52,6 +49,7 @@ class AdsFlowHandler:
             'curso:imagenes': '2715110440a0-b734-b00f3d1c-e876-4bac',
             'CURSO_AUTOMATIZACION': '4bac-2715110440a0-b734-b00f3d1c-e876',
             'curso:automatizacion': '4bac-2715110440a0-b734-b00f3d1c-e876',
+            # Agregar el nuevo mapeo
             'CURSO_NUEVO': 'd7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f',
             'curso:nuevo': 'd7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f'
         }
@@ -60,7 +58,6 @@ class AdsFlowHandler:
         """
         Procesa un mensaje de usuario que viene de anuncio.
         Implementa el flujo completo del system prompt.
-        MIGRADO: Compatible con nueva estructura de base de datos.
         """
         try:
             user_id = str(user_data['id'])
@@ -160,12 +157,9 @@ Antes de mostrarte toda la información del curso, ¿cómo te gustaría que te l
         return message, None
 
     async def _present_course(self, user_data: dict, course_id: str) -> Tuple[List[Dict[str, Any]], Optional[InlineKeyboardMarkup]]:
-        """
-        Presenta el curso con PDF, imagen y datos.
-        MIGRADO: Usa nueva estructura de base de datos con ai_courses.
-        """
+        """Presenta el curso con PDF, imagen y datos."""
         try:
-            # Obtener detalles del curso desde nueva estructura
+            # Obtener detalles del curso
             course_details = await self.course_service.getCourseDetails(course_id)
             if not course_details:
                 return [{"type": "text", "content": "Lo siento, no pude obtener los detalles del curso."}], None
@@ -181,17 +175,16 @@ Antes de mostrarte toda la información del curso, ¿cómo te gustaría que te l
                     "caption": "📚 Aquí tienes el PDF descriptivo del curso"
                 })
             
-            # 2. Enviar imagen si está disponible (thumbnail_url eliminado en nueva estructura)
-            # Usar course_url como alternativa o imagen por defecto
-            image_url = course_details.get('course_url')  # Usar course_url en lugar de thumbnail_url
-            if image_url:
+            # 2. Enviar imagen si está disponible
+            thumbnail_url = course_details.get('thumbnail_url')
+            if thumbnail_url:
                 response_items.append({
                     "type": "image",
-                    "url": image_url,
+                    "url": thumbnail_url,
                     "caption": "🎯 Imagen del curso"
                 })
             
-            # 3. Enviar datos del curso usando plantillas migradas
+            # 3. Enviar datos del curso
             course_info = CourseTemplates.format_course_info(course_details)
             response_items.append({
                 "type": "text",
@@ -214,3 +207,4 @@ Antes de mostrarte toda la información del curso, ¿cómo te gustaría que te l
     def _format_course_info(self, course_details: dict) -> str:
         """Formatea la información del curso usando plantillas centralizadas."""
         return CourseTemplates.format_course_info(course_details)
+       
