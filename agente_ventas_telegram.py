@@ -303,7 +303,7 @@ dato no encontrado
             response = [
                 {"type": "text", "content": welcome_message},
                 {"type": "document", "path": "data/pdf_prueba.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
-                {"type": "image", "path": "data/imagen_prueba.jpg", "caption": "🎯 Imagen del curso"},
+                {"type": "image", "path": "data/imagen_pruebaa.jpg", "caption": "🎯 Imagen del curso"},
                 {"type": "text", "content": course_info_text}
             ]
             
@@ -384,7 +384,7 @@ dato no encontrado
             response = [
                 {"type": "text", "content": welcome_message},
                 {"type": "document", "path": "data/pdf_prueba.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
-                {"type": "image", "path": "data/imagen_prueba.jpg", "caption": "🎯 Imagen del curso"},
+                {"type": "image", "path": "data/imagen_pruebaa.jpg", "caption": "🎯 Imagen del curso"},
                 {"type": "text", "content": course_info_text}
             ]
             
