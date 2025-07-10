@@ -1,6 +1,6 @@
 """
 Versión corregida de agent_tools.py - ENVÍA RECURSOS REALES
-Removidos todos los filtros de URLs para permitir envío de recursos desde BD
+Integración completa con PaymentService, BonusService y GitHub URLs
 """
 
 import json
@@ -16,94 +16,123 @@ class AgentTools:
         self.db = db_service
         self.telegram = telegram_api
         
-        # Inicializar ResourceService
+        # Inicializar servicios
         if self.db:
             try:
                 from core.services.resourceService import ResourceService
+                from core.services.payment_service import PaymentService
+                from core.services.bonus_service import BonusService
+                
                 self.resource_service = ResourceService(self.db)
-            except ImportError:
-                logger.warning("ResourceService no disponible, usando fallbacks")
+                self.payment_service = PaymentService(self.db)
+                self.bonus_service = BonusService(self.db)
+                logger.info("✅ Servicios inicializados: ResourceService, PaymentService, BonusService")
+            except ImportError as e:
+                logger.warning(f"Algunos servicios no disponibles: {e}")
                 self.resource_service = None
+                self.payment_service = None
+                self.bonus_service = None
         else:
             self.resource_service = None
+            self.payment_service = None
+            self.bonus_service = None
+
+    def _convert_github_url_to_raw(self, github_url: str) -> str:
+        """
+        Convierte URL de GitHub a formato RAW para que Telegram pueda enviarla.
+        
+        Args:
+            github_url: URL original de GitHub
+            
+        Returns:
+            URL en formato RAW
+        """
+        if not github_url or 'github.com' not in github_url:
+            return github_url
+            
+        try:
+            # Convertir de formato blob a raw
+            if '/blob/' in github_url:
+                raw_url = github_url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
+                logger.info(f"🔗 URL convertida: {github_url} → {raw_url}")
+                return raw_url
+            return github_url
+        except Exception as e:
+            logger.error(f"❌ Error convirtiendo URL: {e}")
+            return github_url
 
     async def enviar_recursos_gratuitos(self, user_id: str, course_id: str) -> Dict[str, Union[str, List[Dict]]]:
         """
-        CORREGIDO: Envía recursos gratuitos reales desde la BD sin filtros.
+        NUEVO: Envía recursos gratuitos desde tabla free_resources con URLs de GitHub.
         """
         try:
             # Obtener información del curso
             course = await self.db.get_course_details(course_id)
             course_name = course['name'] if course else "Curso de IA"
 
-            mensaje = f"""🎁 **Recursos gratuitos - {course_name}**
+            mensaje = f"""🎁 **Recursos Gratuitos - {course_name}**
 
-Te comparto estos materiales de valor:
+Te comparto estos materiales de valor exclusivos:
 
 """
             resources = []
 
-            # CORREGIDO: Obtener recursos desde BD - sin filtros de URL
-            if self.resource_service:
-                try:
-                    # Obtener recursos específicos del curso
-                    course_resources = await self.resource_service.get_course_resources(course_id)
-                    free_resources = [r for r in course_resources if r['resource_type'] in ['recursos', 'pdf', 'templates']]
-                    
-                    # Si no hay específicos, usar generales
-                    if not free_resources:
-                        general_resources = await self.resource_service.get_resources_by_type('pdf')
-                        free_resources.extend(general_resources[:3])  # Máximo 3 recursos
-
-                    if free_resources:
-                        for resource in free_resources:
-                            mensaje += f"📄 {resource['resource_title']}\n"
+            # NUEVO: Obtener recursos desde tabla free_resources
+            try:
+                query = """
+                SELECT 
+                    resource_name,
+                    resource_type,
+                    resource_url,
+                    resource_description
+                FROM free_resources 
+                WHERE course_id = $1 AND active = true
+                ORDER BY created_at DESC
+                """
+                
+                free_resources_data = await self.db.fetch_all(query, course_id)
+                
+                if free_resources_data:
+                    for resource in free_resources_data:
+                        resource_name = resource['resource_name']
+                        resource_url = resource['resource_url']
+                        resource_desc = resource['resource_description'] or resource_name
+                        resource_type = resource['resource_type']
+                        
+                        # Convertir URL de GitHub a formato RAW
+                        raw_url = self._convert_github_url_to_raw(resource_url)
+                        
+                        mensaje += f"📄 {resource_name}\n"
+                        
+                        # Determinar tipo de recurso para Telegram
+                        if resource_type.upper() in ['VIDEO', 'MP4', 'MOV']:
+                            resources.append({
+                                "type": "video",
+                                "url": raw_url,
+                                "caption": f"🎥 {resource_name}"
+                            })
+                        else:  # PDF, DOCUMENT, etc.
                             resources.append({
                                 "type": "document",
-                                "url": resource['resource_url'],
-                                "caption": resource['resource_title']
+                                "url": raw_url,
+                                "caption": f"📄 {resource_name}"
                             })
-                    else:
-                        # Fallback con recursos hardcodeados de la BD
-                        fallback_resources = [
-                            ("https://recursos.aprenda-ia.com/gratuitos", "📖 Recursos Gratuitos"),
-                            ("https://materiales.aprenda-ia.com/ia-profesionales.pdf", "📝 Material del Curso IA"),
-                            ("https://drive.google.com/file/d/ejemplo-guia-prompting/view", "✅ Guía Completa de Prompting")
-                        ]
-                        
-                        for url, title in fallback_resources:
-                            mensaje += f"{title}\n"
-                            resources.append({
-                                "type": "document", 
-                                "url": url,
-                                "caption": title
-                            })
-                except Exception as e:
-                    logger.error(f"Error obteniendo recursos: {e}")
-                    # Fallback básico
-                    resources.append({
-                        "type": "document",
-                        "url": "https://recursos.aprenda-ia.com/gratuitos",
-                        "caption": "📖 Recursos Gratuitos"
-                    })
+                    
+                    logger.info(f"✅ Enviando {len(resources)} recursos gratuitos para curso {course_id}")
+                else:
+                    # Si no hay recursos específicos del curso, usar mensaje informativo
+                    mensaje += "📚 Recursos disponibles próximamente\n"
+                    logger.info(f"📋 No se encontraron recursos gratuitos para curso {course_id}")
+                    
+            except Exception as e:
+                logger.error(f"❌ Error obteniendo recursos de free_resources: {e}")
+                mensaje += "📚 Recursos disponibles - contacta a tu asesor\n"
 
-            # Si no hay ResourceService, usar recursos hardcodeados
+            # Si no se encontraron recursos en BD, agregar mensaje de contacto
             if not resources:
-                hardcoded_resources = [
-                    ("https://recursos.aprenda-ia.com/gratuitos", "📖 Recursos Gratuitos"),
-                    ("https://materiales.aprenda-ia.com/ia-profesionales.pdf", "📝 Material del Curso IA"),
-                    ("https://drive.google.com/file/d/ejemplo-guia-prompting/view", "✅ Guía Completa de Prompting")
-                ]
-                
-                for url, title in hardcoded_resources:
-                    mensaje += f"{title}\n"
-                    resources.append({
-                        "type": "document",
-                        "url": url,
-                        "caption": title
-                    })
-
-            mensaje += "\n💡 **¡Estos recursos son completamente gratuitos!**"
+                mensaje += "\n💬 **Contacta a tu asesor para obtener los recursos exclusivos**"
+            else:
+                mensaje += f"\n💡 **¡{len(resources)} recursos completamente gratuitos para ti!**"
 
             await self._registrar_interaccion(user_id, course_id, "free_resources_sent", {"resources_count": len(resources)})
 
@@ -114,17 +143,54 @@ Te comparto estos materiales de valor:
             }
 
         except Exception as e:
-            logger.error(f"Error en enviar_recursos_gratuitos: {e}")
+            logger.error(f"❌ Error en enviar_recursos_gratuitos: {e}")
             return {
-                "type": "multimedia",
-                "content": "🎁 **Recursos gratuitos disponibles**\n\nTenemos excelentes materiales para ti.",
-                "resources": [
-                    {
-                        "type": "document",
-                        "url": "https://recursos.aprenda-ia.com/gratuitos",
-                        "caption": "📖 Recursos Gratuitos"
-                    }
-                ]
+                "type": "text",
+                "content": "🎁 **Recursos gratuitos disponibles**\n\nContacta a tu asesor para obtener los materiales exclusivos del curso."
+            }
+
+    async def enviar_datos_pago(self, user_id: str, course_id: str = None) -> Dict[str, str]:
+        """
+        NUEVA: Envía datos bancarios para realizar el pago del curso.
+        """
+        try:
+            if self.payment_service:
+                # Obtener datos de pago desde la base de datos
+                payment_message = await self.payment_service.get_formatted_payment_info()
+                
+                # Registrar interacción
+                await self._registrar_interaccion(user_id, course_id or "unknown", "payment_info_sent", {"payment_data_sent": True})
+                
+                logger.info(f"✅ Datos de pago enviados a usuario {user_id}")
+                
+                return {
+                    "type": "text",
+                    "content": payment_message
+                }
+            else:
+                # Fallback si no hay PaymentService
+                fallback_message = """💳 **DATOS PARA REALIZAR TU PAGO**
+
+🏢 **Razón Social:** Aprende y Aplica Al S.A.de CV.
+🏦 **Banco:** BBVA
+💳 **Cuenta CLABE:** `012345678901234567`
+📄 **RFC:** AAI210307DEF
+📋 **Uso de CFDI:** G03 - Gastos en general
+
+📲 *Envía tu comprobante de pago al asesor para confirmar tu inscripción inmediatamente.*
+
+🚀 **¡Te conectaré con un asesor ahora mismo!**"""
+
+                return {
+                    "type": "text",
+                    "content": fallback_message
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ Error en enviar_datos_pago: {e}")
+            return {
+                "type": "text",
+                "content": "💳 **Datos de pago disponibles**\n\nContacta a tu asesor para obtener la información bancaria."
             }
 
     async def mostrar_syllabus_interactivo(self, user_id: str, course_id: str) -> Dict[str, Union[str, List[Dict]]]:
@@ -165,7 +231,7 @@ Te comparto estos materiales de valor:
             if not resources:
                 resources.append({
                     "type": "document",
-                    "url": "https://cursos.aprenda-ia.com/ia-profesionales/syllabus",
+                    "url": "https://github.com/nocode-ecosdeliderazgo/bot-recursos-publicos/blob/f1e643cb17e2d5e6607d1b40dbe1201416431582/pdfs/guia-prompts-chatgpt-marketing.pdf",
                     "caption": f"📋 Syllabus completo - {course['name']}"
                 })
 
@@ -205,7 +271,7 @@ Te comparto estos materiales de valor:
                 "resources": [
                     {
                         "type": "document",
-                        "url": "https://cursos.aprenda-ia.com/ia-profesionales/syllabus",
+                        "url": "https://github.com/nocode-ecosdeliderazgo/bot-recursos-publicos/blob/f1e643cb17e2d5e6607d1b40dbe1201416431582/pdfs/guia-prompts-chatgpt-marketing.pdf",
                         "caption": "📋 Syllabus completo"
                     }
                 ]
@@ -369,8 +435,33 @@ En este video verás:
         return {"type": "text", "content": mensaje}
 
     async def mostrar_bonos_exclusivos(self, user_id: str, course_id: str) -> Dict[str, str]:
-        """Muestra bonos por tiempo limitado."""
-        mensaje = """🎁 **Bonos Exclusivos por Tiempo Limitado**
+        """
+        NUEVO: Muestra bonos exclusivos desde tabla course_bonuses (solo menciona, NO envía).
+        """
+        try:
+            if self.bonus_service:
+                # Obtener bonos desde la base de datos
+                bonuses_message = await self.bonus_service.get_formatted_bonuses_for_course(course_id)
+                
+                if bonuses_message:
+                    # Registrar interacción (opcional, comentado porque la tabla no existe)
+                    # await self._registrar_interaccion(user_id, course_id, "bonuses_shown", {"bonuses_mentioned": True})
+                    
+                    logger.info(f"✅ Bonos exclusivos mostrados para curso {course_id}")
+                    
+                    return {
+                        "type": "text",
+                        "content": bonuses_message
+                    }
+                else:
+                    # No hay bonos configurados para este curso
+                    return {
+                        "type": "text", 
+                        "content": "🎁 **Bonos exclusivos disponibles**\n\nContacta a tu asesor para conocer las ofertas especiales del curso."
+                    }
+            else:
+                # Fallback si no hay BonusService
+                fallback_message = """🎁 **Bonos Exclusivos por Tiempo Limitado**
 
 ✨ **Bono 1: Sesión 1:1 con Experto ($200 USD)**
 • 60 minutos de consultoría personalizada
@@ -390,8 +481,15 @@ En este video verás:
 **Valor total: $400 USD - ¡INCLUIDOS GRATIS!**
 
 ⏰ **Solo disponible durante la inscripción**"""
-        
-        return {"type": "text", "content": mensaje}
+
+                return {"type": "text", "content": fallback_message}
+                
+        except Exception as e:
+            logger.error(f"❌ Error en mostrar_bonos_exclusivos: {e}")
+            return {
+                "type": "text",
+                "content": "🎁 **Bonos exclusivos disponibles**\n\nContacta a tu asesor para conocer las ofertas especiales."
+            }
 
     async def mostrar_testimonios_relevantes(self, user_id: str, course_id: str) -> Dict[str, str]:
         """Muestra testimonios de estudiantes."""
@@ -632,27 +730,88 @@ En este video verás:
         return {"type": "text", "content": mensaje}
 
     async def calcular_roi_personalizado(self, user_id: str, course_id: str) -> Dict[str, str]:
-        """Calcula ROI personalizado."""
-        mensaje = """📊 **Tu ROI Personalizado**
+        """
+        ACTUALIZADA: Calcula ROI usando la nueva columna roi de ai_courses.
+        """
+        try:
+            # Obtener información del curso incluyendo ROI
+            course = await self.db.get_course_details(course_id)
+            
+            if course:
+                course_name = course.get('name', 'Curso de IA')
+                price = course.get('price', '199')
+                roi_info = course.get('roi', None)
+                
+                # Intentar convertir precio a número
+                try:
+                    precio_num = float(str(price).replace('$', '').replace(',', '').replace(' USD', ''))
+                except:
+                    precio_num = 199.0
+                
+                # Si hay información de ROI en la BD, usarla
+                if roi_info and roi_info.strip():
+                    mensaje = f"""📊 **Tu ROI Personalizado - {course_name}**
 
-**Inversión:** $199 USD
+**💰 Tu inversión:** ${precio_num} USD
 
-**Ahorro mensual estimado:**
+**📈 ROI del curso:**
+{roi_info}
+
+**🚀 El curso se paga solo en las primeras semanas de aplicación**
+
+¿Te parece un ROI atractivo para tu inversión?"""
+                else:
+                    # ROI calculado genérico si no hay info específica
+                    ahorro_mensual = precio_num * 10  # Estimación conservadora
+                    roi_3_meses = ((ahorro_mensual * 3 - precio_num) / precio_num) * 100
+                    
+                    mensaje = f"""📊 **Tu ROI Personalizado - {course_name}**
+
+**💰 Tu inversión:** ${precio_num} USD
+
+**💵 Ahorro mensual estimado:**
 ⏰ 20 horas/semana automatizadas
-💰 Valor hora: $25 USD
-💰 Ahorro mensual: $2,000 USD
+💰 Valor hora promedio: $25 USD
+💰 Ahorro mensual: ${ahorro_mensual:,.0f} USD
 
-**ROI en 3 meses:**
-• Mes 1: $1,801 ganancia
-• Mes 2: $2,000 adicionales  
-• Mes 3: $2,000 adicionales
-• **Total: $5,801 USD**
+**📈 ROI en 3 meses:**
+• Mes 1: ${ahorro_mensual - precio_num:,.0f} USD ganancia
+• Mes 2: ${ahorro_mensual:,.0f} USD adicionales  
+• Mes 3: ${ahorro_mensual:,.0f} USD adicionales
+• **Total ganancia: ${ahorro_mensual * 3 - precio_num:,.0f} USD**
 
-**ROI: 2,915% en 3 meses**
+**📊 ROI: {roi_3_meses:.0f}% en 3 meses**
 
-**El curso se paga solo en la primera semana**"""
-        
-        return {"type": "text", "content": mensaje}
+**🚀 El curso se paga solo en la primera semana**"""
+                
+                # await self._registrar_interaccion(user_id, course_id, "roi_calculated", {"price": precio_num, "has_custom_roi": bool(roi_info)})
+                
+                return {
+                    "type": "text",
+                    "content": mensaje
+                }
+            else:
+                # Fallback si no se encuentra el curso
+                return {
+                    "type": "text",
+                    "content": """📊 **Tu ROI Personalizado**
+
+**💰 Inversión:** $199 USD
+
+**💵 Retorno estimado:**
+⏰ 20+ horas semanales automatizadas
+💰 Ahorro: $2,000+ USD mensuales
+📈 ROI: 1,000%+ en 3 meses
+
+**🚀 El curso se paga solo en la primera semana**"""
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ Error en calcular_roi_personalizado: {e}")
+            return {
+                "type": "text",
+                "content": "📊 **ROI Personalizado disponible**\n\nContacta a tu asesor para un análisis detallado de retorno de inversión."
+            }
 
     async def generar_link_pago_personalizado(self, user_id: str, course_id: str) -> Dict[str, Union[str, List[Dict]]]:
         """Genera link de pago."""

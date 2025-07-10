@@ -7,7 +7,7 @@ CREATE TABLE public.ai_course_sessions (
   session_index integer NOT NULL,
   title text NOT NULL,
   objective text,
-  duration_minutes integer,
+  duration_minutes text,
   created_at timestamp without time zone DEFAULT now(),
   scheduled_at timestamp without time zone,
   display_order integer,
@@ -24,8 +24,8 @@ CREATE TABLE public.ai_courses (
   created_at timestamp without time zone DEFAULT now(),
   subtheme_id uuid NOT NULL,
   session_count integer NOT NULL DEFAULT 0,
-  total_duration_min integer NOT NULL DEFAULT 0,
-  price numeric DEFAULT 0.00,
+  total_duration_min text NOT NULL,
+  price text,
   currency character varying DEFAULT 'USD'::character varying,
   course_url text,
   purchase_url text,
@@ -36,6 +36,7 @@ CREATE TABLE public.ai_courses (
   start_date date,
   end_date date,
   max_enrollees integer DEFAULT 0,
+  roi text,
   CONSTRAINT ai_courses_pkey PRIMARY KEY (id),
   CONSTRAINT ai_courses_subtheme_id_fkey FOREIGN KEY (subtheme_id) REFERENCES public.ai_subthemes(id)
 );
@@ -105,11 +106,26 @@ CREATE TABLE public.bot_session_resources (
   CONSTRAINT bot_session_resources_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.ai_course_sessions(id),
   CONSTRAINT bot_session_resources_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES public.bot_resources(id)
 );
+CREATE TABLE public.course_bonuses (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  course_id uuid,
+  bonus_name text NOT NULL,
+  bonus_description text NOT NULL,
+  bonus_type text,
+  resource_url text,
+  value_usd numeric,
+  condition_type text,
+  condition_detail text,
+  is_active boolean DEFAULT true,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT course_bonuses_pkey PRIMARY KEY (id),
+  CONSTRAINT course_bonuses_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.ai_courses(id)
+);
 CREATE TABLE public.free_resources (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   course_id uuid,
   resource_name text NOT NULL,
-  resource_type text CHECK (resource_type = ANY (ARRAY['pdf'::text, 'template'::text, 'guide'::text])),
+  resource_type text CHECK (resource_type = ANY (ARRAY['video'::text, 'document'::text, 'pdf'::text, 'PDF'::text, 'link'::text, 'image'::text])),
   resource_url text NOT NULL,
   resource_description text,
   file_size text,
@@ -117,4 +133,17 @@ CREATE TABLE public.free_resources (
   created_at timestamp without time zone DEFAULT now(),
   active boolean DEFAULT true,
   CONSTRAINT free_resources_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.payment_info (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  company_name character varying NOT NULL,
+  bank_name character varying NOT NULL,
+  clabe_account character varying NOT NULL,
+  rfc character varying NOT NULL,
+  cfdi_usage character varying NOT NULL,
+  cfdi_description character varying,
+  is_active boolean DEFAULT true,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT payment_info_pkey PRIMARY KEY (id)
 );

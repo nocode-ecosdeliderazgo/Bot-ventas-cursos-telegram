@@ -202,25 +202,30 @@ class VentasBot:
                         # Manejar tanto URLs como archivos locales
                         if item.get('url'):
                             try:
+                                # NUEVO: Convertir URLs de GitHub a formato RAW
+                                document_url = self.convert_github_url_to_raw(item['url'])
+                                
                                 await message.reply_document(
-                                    document=item['url'],
+                                    document=document_url,
                                     caption=item.get('caption', '')
                                 )
                             except Exception as e:
-                                logger.error(f"Error enviando documento desde URL: {e}")
-                                await message.reply_text(f"❌ Error enviando documento: {item.get('caption', 'Documento')}")
+                                logger.error(f"❌ Error enviando documento desde URL {item.get('url')}: {e}")
+                                # Fallback: enviar como mensaje de texto con enlace
+                                fallback_message = f"📄 {item.get('caption', 'Documento')}\n🔗 {item.get('url')}"
+                                await message.reply_text(fallback_message)
                         elif item.get('path'):
                             try:
                                 # Verificar que el archivo existe
                                 if not os.path.exists(item['path']):
-                                    logger.warning(f"Archivo no encontrado: {item['path']}")
-                                    await message.reply_text(f"❌ Archivo no encontrado: {item.get('caption', 'Documento')}")
+                                    logger.warning(f"❌ Archivo no encontrado: {item['path']}")
+                                    await message.reply_text(f"📄 {item.get('caption', 'Documento')}\n❌ Archivo no disponible temporalmente")
                                 else:
                                     # Verificar el tamaño del archivo
                                     file_size = os.path.getsize(item['path'])
                                     if file_size > 50 * 1024 * 1024:  # 50MB limit for Telegram
-                                        logger.warning(f"Archivo muy grande: {item['path']} ({file_size} bytes)")
-                                        await message.reply_text(f"❌ Archivo muy grande para enviar: {item.get('caption', 'Documento')}")
+                                        logger.warning(f"⚠️ Archivo muy grande: {item['path']} ({file_size} bytes)")
+                                        await message.reply_text(f"📄 {item.get('caption', 'Documento')}\n⚠️ Archivo muy grande para enviar por Telegram")
                                     else:
                                         with open(item['path'], 'rb') as doc_file:
                                             await message.reply_document(
@@ -229,11 +234,11 @@ class VentasBot:
                                                 filename=os.path.basename(item['path'])
                                             )
                             except FileNotFoundError:
-                                logger.warning(f"Archivo PDF no encontrado: {item['path']}")
-                                await message.reply_text(f"❌ Archivo no encontrado: {item.get('caption', 'Documento')}")
+                                logger.warning(f"❌ Archivo no encontrado: {item['path']}")
+                                await message.reply_text(f"�� {item.get('caption', 'Documento')}\n❌ Archivo no disponible temporalmente")
                             except Exception as e:
-                                logger.error(f"Error enviando documento {item['path']}: {e}")
-                                await message.reply_text(f"❌ Error enviando documento: {item.get('caption', 'Documento')}")
+                                logger.error(f"❌ Error enviando documento {item['path']}: {e}")
+                                await message.reply_text(f"📄 {item.get('caption', 'Documento')}\n❌ Error enviando archivo")
 
         except Exception as e:
             logger.error(f"Error handling message: {str(e)}", exc_info=True)
@@ -309,8 +314,8 @@ dato no encontrado
             # Preparar respuesta con archivos de data + información del curso
             response = [
                 {"type": "text", "content": welcome_message},
-                {"type": "document", "path": "data/pdf_prueba.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
-                {"type": "image", "path": "data/imagen_prueba.jpg", "caption": "🎯 Imagen del curso"},
+                {"type": "document", "path": "data/Experto-en-IA.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
+                {"type": "image", "path": "data/imagen_prueba.png", "caption": "🎯 Imagen del curso"},
                 {"type": "text", "content": course_info_text}
             ]
             
@@ -390,8 +395,8 @@ dato no encontrado
             # Preparar respuesta con archivos de data + información del curso
             response = [
                 {"type": "text", "content": welcome_message},
-                {"type": "document", "path": "data/pdf_prueba.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
-                {"type": "image", "path": "data/imagen_prueba.jpg", "caption": "🎯 Imagen del curso"},
+                {"type": "document", "path": "data/Experto-en-IA.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
+                {"type": "image", "path": "data/imagen_prueba.png", "caption": "🎯 Imagen del curso"},
                 {"type": "text", "content": course_info_text}
             ]
             
@@ -632,6 +637,22 @@ dato no encontrado
 
 
 ¿Qué te gustaría saber más sobre este curso?"""
+
+    def convert_github_url_to_raw(self, github_url):
+        """Convierte URL de GitHub a formato RAW para Telegram"""
+        if not github_url or 'github.com' not in github_url:
+            return github_url
+            
+        try:
+            # Convertir de formato blob a raw
+            if '/blob/' in github_url:
+                raw_url = github_url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
+                logger.info(f"🔗 URL convertida: {github_url} → {raw_url}")
+                return raw_url
+            return github_url
+        except Exception as e:
+            logger.error(f"❌ Error convirtiendo URL: {e}")
+            return github_url
 
 def main_telegram_bot():
     """Función principal del bot de Telegram con manejo mejorado de errores."""

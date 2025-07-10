@@ -25,6 +25,7 @@ class IntelligentSalesAgentTools:
     ) -> List[Dict[str, Any]]:
         """
         REDISEÑADO: Activa herramientas y retorna el contenido para que el agente lo procese.
+        NUEVO: Incluye detección automática de intención de compra.
         """
         activated_tools = []
         tool_contents = []
@@ -40,7 +41,62 @@ class IntelligentSalesAgentTools:
             
             # Variables para control de activación
             course_id = course_info['id']
-            max_tools = 1  # Máximo 1 herramienta por mensaje para ser directo
+            max_tools = 2  # Permitir 2 herramientas para intención de compra
+            
+            # 🚨 PRIORIDAD MÁXIMA: DETECCIÓN DE INTENCIÓN DE COMPRA DIRECTA
+            purchase_intent_keywords = [
+                'inscribirme', 'inscribir', 'registrarme', 'registrar',
+                'comprar', 'adquirir', 'pagar', 'depositar', 'deposito',
+                'donde deposito', 'como puedo pagar', 'forma de pago',
+                'datos bancarios', 'cuenta bancaria', 'transferencia',
+                'estoy convencida', 'estoy convencido', 'estoy lista', 'estoy listo',
+                'quiero empezar', 'quiero comenzar', 'vamos a hacerlo',
+                'acepto', 'me apunto', 'cuenta conmigo'
+            ]
+            
+            # Detectar intención de compra directa
+            purchase_intent_detected = any(keyword in user_message.lower() for keyword in purchase_intent_keywords)
+            
+            if purchase_intent_detected:
+                logger.info(f"🎯 INTENCIÓN DE COMPRA DETECTADA para usuario {user_id}: {user_message}")
+                
+                # 1. ENVIAR DATOS DE PAGO AUTOMÁTICAMENTE
+                try:
+                    payment_content = await self.agent_tools.enviar_datos_pago(user_id, course_id)
+                    if self._is_valid_content(payment_content):
+                        tool_contents.append(payment_content)
+                        activated_tools.append('enviar_datos_pago')
+                        logger.info(f"✅ Datos de pago enviados automáticamente a usuario {user_id}")
+                except Exception as e:
+                    logger.error(f"❌ Error enviando datos de pago: {e}")
+                
+                # 2. CONTACTAR ASESOR AUTOMÁTICAMENTE
+                try:
+                    contact_response = await self.agent_tools.contactar_asesor_directo(user_id, course_id)
+                    if contact_response and isinstance(contact_response, str):
+                        tool_contents.append({
+                            "type": "contact_flow_activated",
+                            "content": contact_response
+                        })
+                        activated_tools.append('contactar_asesor_directo')
+                        logger.info(f"✅ Contacto con asesor activado automáticamente para usuario {user_id}")
+                except Exception as e:
+                    logger.error(f"❌ Error activando contacto con asesor: {e}")
+                
+                # 3. MOSTRAR BONOS PARA URGENCIA (opcional)
+                if len(tool_contents) < max_tools:
+                    try:
+                        bonus_content = await self.agent_tools.mostrar_bonos_exclusivos(user_id, course_id)
+                        if self._is_valid_content(bonus_content):
+                            tool_contents.append(bonus_content)
+                            activated_tools.append('mostrar_bonos_exclusivos')
+                    except Exception as e:
+                        logger.error(f"❌ Error mostrando bonos: {e}")
+                
+                # Si se detectó intención de compra, no procesar otras lógicas
+                if tool_contents:
+                    logger.info(f"🎯 Herramientas de COMPRA activadas: {activated_tools}")
+                    return tool_contents
             
             # ACTIVACIÓN DIRECTA BASADA EN CATEGORÍA DE INTENCIÓN
             
@@ -184,7 +240,7 @@ class IntelligentSalesAgentTools:
                         tool_contents.append(content)
                         activated_tools.append('mostrar_syllabus_interactivo')
                     
-            # Limitar a máximo 1 herramienta por mensaje para ser directo
+            # Limitar a máximo de herramientas por mensaje
             if len(tool_contents) > max_tools:
                 tool_contents = tool_contents[:max_tools]
                 activated_tools = activated_tools[:max_tools]

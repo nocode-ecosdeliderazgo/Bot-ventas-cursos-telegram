@@ -373,8 +373,8 @@ Solo necesito recopilar algunos datos para que pueda contactarte."""
             messages = [
                 {"type": "text", "content": confirmation_message},
                 {"type": "text", "content": aviso},
-                {"type": "image", "path": "data/imagen_prueba.jpg"},
-                {"type": "document", "path": "data/pdf_prueba.pdf"},
+                {"type": "image", "path": "data/imagen_prueba.png"},
+                {"type": "document", "path": "data/Experto-en-IA.pdf"},
                 {"type": "text", "content": detalles}
             ]
             return messages, None
@@ -402,8 +402,8 @@ Solo necesito recopilar algunos datos para que pueda contactarte."""
             # En el próximo mensaje del usuario, el bot principal debería manejar esto
             
             # Verificar archivos
-            image_path = "data/imagen_prueba.jpg"
-            pdf_path = "data/pdf_prueba.pdf"
+            image_path = "data/imagen_prueba.png"
+            pdf_path = "data/Experto-en-IA.pdf"
             
             if os.path.exists(image_path):
                 logger.info(f"Archivo de imagen encontrado: {image_path}")

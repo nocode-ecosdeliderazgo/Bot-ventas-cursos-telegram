@@ -90,7 +90,8 @@ class CourseService:
                     status,
                     currency,
                     session_count,
-                    audience_category
+                    audience_category,
+                    roi
                 FROM ai_courses 
                 WHERE id = $1 AND status = 'publicado';
                 """
@@ -337,19 +338,25 @@ class CourseService:
 
     async def getAvailableBonuses(self, courseId: str) -> List[Dict[str, Any]]:
         """
-        Obtiene todos los bonos por tiempo limitado disponibles para un curso.
-        MANTENIDO: Esta tabla no cambia en la migración
+        Obtiene todos los bonos disponibles para un curso desde course_bonuses.
+        ACTUALIZADO: Ahora usa la tabla course_bonuses
         """
         try:
             query = """
-            SELECT *
-            FROM limited_time_bonuses
+            SELECT 
+                id,
+                bonus_name,
+                bonus_description,
+                bonus_type,
+                resource_url,
+                bonus_value,
+                conditions,
+                active
+            FROM course_bonuses
             WHERE 
                 course_id = $1 AND
-                active = true AND
-                expires_at > NOW() AND
-                (current_claims < max_claims OR max_claims = 0)
-            ORDER BY expires_at ASC;
+                active = true
+            ORDER BY created_at ASC;
             """
             
             results = await self.db.fetch_all(query, courseId)

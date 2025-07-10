@@ -187,8 +187,8 @@ Antes de mostrarte toda la información del curso, ¿cómo te gustaría que te l
             if image_url:
                 response_items.append({
                     "type": "image",
-                    "url": image_url,
-                    "caption": "🎯 Imagen del curso"
+                    "url": image_url
+                    #"caption": "🎯 Imagen del curso"
                 })
             
             # 3. Enviar datos del curso usando plantillas migradas

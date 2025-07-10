@@ -165,7 +165,8 @@ Te comparto estos materiales de valor:
             if not resources:
                 resources.append({
                     "type": "document",
-                    "url": "https://cursos.aprenda-ia.com/ia-profesionales/syllabus",
+                    "url": "https://github.com/nocode-ecosdeliderazgo/bot-recursos-publicos/blob/f1e643cb17e2d5e6607d1b40dbe1201416431582/pdfs/guia-prompts-chatgpt-marketing.pdf"
+#syllabus completo",
                     "caption": f"📋 Syllabus completo - {course['name']}"
                 })
 
@@ -205,7 +206,8 @@ Te comparto estos materiales de valor:
                 "resources": [
                     {
                         "type": "document",
-                        "url": "https://cursos.aprenda-ia.com/ia-profesionales/syllabus",
+                        "url": "https://github.com/nocode-ecosdeliderazgo/bot-recursos-publicos/blob/f1e643cb17e2d5e6607d1b40dbe1201416431582/pdfs/guia-prompts-chatgpt-marketing.pdf"
+#syllabus completo",
                         "caption": "📋 Syllabus completo"
                     }
                 ]
