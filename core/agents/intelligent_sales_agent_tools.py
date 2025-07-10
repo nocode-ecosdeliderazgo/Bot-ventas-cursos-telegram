@@ -333,3 +333,32 @@ class IntelligentSalesAgentTools:
                 continue
                 
         return formatted_content if formatted_content != "\n\n## CONTENIDO DE HERRAMIENTAS ACTIVADAS:\n\n" else ""
+
+    def extract_raw_tool_content(self, tool_contents: List[Dict[str, Any]]) -> str:
+        """
+        NUEVO: Extrae solo el contenido crudo de las herramientas sin formato adicional.
+        Para usar cuando se quiere reemplazar completamente la respuesta de GPT.
+        """
+        if not tool_contents:
+            return ""
+            
+        raw_content = ""
+        
+        for content in tool_contents:
+            content_type = content.get('type', 'text')
+            content_text = content.get('content', '')
+            
+            if content_type == 'contact_flow_activated':
+                # Para contacto con asesor, retornar directamente
+                return content_text
+                
+            elif content_type in ['text', 'multimedia']:
+                # Agregar solo el contenido, sin headers
+                if content_text and content_text.strip():
+                    raw_content += content_text.strip() + "\n\n"
+                    
+            elif content_type == 'error':
+                logger.warning(f"Error en herramienta: {content_text}")
+                continue
+                
+        return raw_content.strip() if raw_content else ""

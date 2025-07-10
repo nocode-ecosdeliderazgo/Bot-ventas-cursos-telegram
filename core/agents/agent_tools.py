@@ -439,11 +439,14 @@ En este video verás:
         NUEVO: Muestra bonos exclusivos desde tabla course_bonuses (solo menciona, NO envía).
         """
         try:
+            logger.info(f"🎁 Iniciando mostrar_bonos_exclusivos para usuario {user_id}, curso {course_id}")
+            
             if self.bonus_service:
                 # Obtener bonos desde la base de datos
                 bonuses_message = await self.bonus_service.get_formatted_bonuses_for_course(course_id)
+                logger.info(f"🔍 BonusService retornó: {bonuses_message[:100] if bonuses_message else 'None'}...")
                 
-                if bonuses_message:
+                if bonuses_message and bonuses_message.strip():
                     # Registrar interacción (opcional, comentado porque la tabla no existe)
                     # await self._registrar_interaccion(user_id, course_id, "bonuses_shown", {"bonuses_mentioned": True})
                     
@@ -455,12 +458,14 @@ En este video verás:
                     }
                 else:
                     # No hay bonos configurados para este curso
+                    logger.info(f"📋 No hay bonos para curso {course_id}, usando mensaje genérico")
                     return {
                         "type": "text", 
                         "content": "🎁 **Bonos exclusivos disponibles**\n\nContacta a tu asesor para conocer las ofertas especiales del curso."
                     }
             else:
                 # Fallback si no hay BonusService
+                logger.warning("❌ BonusService no disponible, usando fallback")
                 fallback_message = """🎁 **Bonos Exclusivos por Tiempo Limitado**
 
 ✨ **Bono 1: Sesión 1:1 con Experto ($200 USD)**

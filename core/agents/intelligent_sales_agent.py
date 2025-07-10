@@ -917,6 +917,40 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
                     logger.info(f"🔄 Flujo de contacto activado, agente se desactiva temporalmente")
                     return tools_content_text
                 
+                # NUEVO: Si se activaron herramientas específicas que deben reemplazar la respuesta de GPT
+                tools_that_replace_response = ['mostrar_bonos_exclusivos', 'enviar_recursos_gratuitos', 
+                                              'mostrar_syllabus_interactivo', 'enviar_preview_curso']
+                
+                # Verificar si alguna herramienta de reemplazo se activó revisando el tipo de contenido
+                replace_gpt_response = False
+                detected_keywords = [
+                    'bonos exclusivos', 'bonos incluidos', 'plantilla de calendario', 'valor total de bonos',
+                    'recursos gratuitos', 'syllabus', 'preview', 'temario completo'
+                ]
+                
+                for content in tool_contents:
+                    if content.get('type') == 'text':
+                        content_text = content.get('content', '').lower()
+                        for keyword in detected_keywords:
+                            if keyword in content_text:
+                                replace_gpt_response = True
+                                logger.info(f"🔧 Detectado contenido de herramienta específica: '{keyword}' - activando reemplazo")
+                                break
+                        if replace_gpt_response:
+                            break
+                
+                if replace_gpt_response:
+                    logger.info(f"🔄 Herramientas de contenido específico activadas - usando solo contenido de herramientas")
+                    # Usar SOLO el contenido crudo de las herramientas, sin headers ni respuesta de GPT
+                    raw_tools_content = tools_handler.extract_raw_tool_content(tool_contents)
+                    
+                    if raw_tools_content and raw_tools_content.strip():
+                        final_response = await self._process_response_with_tools(raw_tools_content, user_memory, tool_contents)
+                        return final_response
+                    else:
+                        logger.warning(f"⚠️ Contenido de herramientas vacío, usando respuesta de GPT como fallback")
+                        # Fallback: usar respuesta de GPT si las herramientas no tienen contenido
+                
                 logger.info(f"✅ Contenido de herramientas procesado para incorporar en respuesta")
             
             # Incorporar contenido de herramientas en la respuesta del agente si existe

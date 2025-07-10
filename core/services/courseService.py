@@ -349,13 +349,14 @@ class CourseService:
                 bonus_description,
                 bonus_type,
                 resource_url,
-                bonus_value,
-                conditions,
-                active
+                value_usd,
+                condition_type,
+                condition_detail,
+                is_active
             FROM course_bonuses
             WHERE 
                 course_id = $1 AND
-                active = true
+                is_active = true
             ORDER BY created_at ASC;
             """
             
