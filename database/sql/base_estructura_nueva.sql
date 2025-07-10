@@ -1,81 +1,120 @@
--- 1. Subtemas
-CREATE TABLE ai_subthemes (
-  id            UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
-  name          TEXT      NOT NULL,
-  description   TEXT,
-  created_at    TIMESTAMP DEFAULT NOW()
-);
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
 
--- 2. Cursos
-CREATE TABLE ai_courses (
-  id                  UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
-  subtheme_id         UUID      NOT NULL REFERENCES ai_subthemes(id) ON DELETE RESTRICT,
-  name                TEXT      NOT NULL,
-  short_description   TEXT      NOT NULL,
-  long_description    TEXT      NOT NULL,
-  session_count       INTEGER   NOT NULL DEFAULT 0,
-  total_duration_min  INTEGER   NOT NULL DEFAULT 0,
-  price               NUMERIC(10,2) DEFAULT 0.00,
-  currency            VARCHAR(3)     DEFAULT 'USD',
-  course_url          TEXT,
-  purchase_url        TEXT,
-  level               TEXT      DEFAULT 'básico',
-  language            TEXT      DEFAULT 'es',
-  audience_category   TEXT,
-  status              TEXT      DEFAULT 'borrador',
-  start_date          DATE,
-  end_date            DATE,
-  max_enrollees       INTEGER   DEFAULT 0,
-  created_at          TIMESTAMP DEFAULT NOW()
+CREATE TABLE public.ai_course_sessions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  course_id uuid NOT NULL,
+  session_index integer NOT NULL,
+  title text NOT NULL,
+  objective text,
+  duration_minutes integer,
+  created_at timestamp without time zone DEFAULT now(),
+  scheduled_at timestamp without time zone,
+  display_order integer,
+  modality text DEFAULT 'online'::text,
+  resources_url text,
+  CONSTRAINT ai_course_sessions_pkey PRIMARY KEY (id),
+  CONSTRAINT ai_course_sessions_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.ai_courses(id)
 );
-
--- 3. Sesiones de curso
-CREATE TABLE ai_course_sessions (
-  id               UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
-  course_id        UUID      NOT NULL REFERENCES ai_courses(id) ON DELETE CASCADE,
-  session_index    INTEGER   NOT NULL,
-  title            TEXT      NOT NULL,
-  objective        TEXT,
-  duration_minutes INTEGER,
-  scheduled_at     TIMESTAMP,
-  display_order    INTEGER,
-  modality         TEXT      DEFAULT 'online',
-  resources_url    TEXT,
-  created_at       TIMESTAMP DEFAULT NOW(),
-  UNIQUE(course_id, session_index)
+CREATE TABLE public.ai_courses (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  short_description text NOT NULL,
+  long_description text NOT NULL,
+  created_at timestamp without time zone DEFAULT now(),
+  subtheme_id uuid NOT NULL,
+  session_count integer NOT NULL DEFAULT 0,
+  total_duration_min integer NOT NULL DEFAULT 0,
+  price numeric DEFAULT 0.00,
+  currency character varying DEFAULT 'USD'::character varying,
+  course_url text,
+  purchase_url text,
+  level text DEFAULT 'básico'::text,
+  language text DEFAULT 'es'::text,
+  audience_category text,
+  status text DEFAULT 'borrador'::text,
+  start_date date,
+  end_date date,
+  max_enrollees integer DEFAULT 0,
+  CONSTRAINT ai_courses_pkey PRIMARY KEY (id),
+  CONSTRAINT ai_courses_subtheme_id_fkey FOREIGN KEY (subtheme_id) REFERENCES public.ai_subthemes(id)
 );
-
--- 4. Prácticas por sesión
-CREATE TABLE ai_session_practices (
-  id                    UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id            UUID      NOT NULL REFERENCES ai_course_sessions(id) ON DELETE CASCADE,
-  practice_index        INTEGER   NOT NULL,
-  title                 TEXT      NOT NULL,
-  description           TEXT      NOT NULL,
-  notes                 TEXT,
-  estimated_duration_min INTEGER   DEFAULT 0,
-  resource_type         TEXT,
-  is_mandatory          BOOLEAN   DEFAULT TRUE,
-  created_at            TIMESTAMP DEFAULT NOW(),
-  UNIQUE(session_id, practice_index)
+CREATE TABLE public.ai_session_deliverables (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_id uuid NOT NULL,
+  name text NOT NULL,
+  type text NOT NULL,
+  resource_url text,
+  created_at timestamp without time zone DEFAULT now(),
+  estimated_duration_min integer DEFAULT 0,
+  resource_type text,
+  is_mandatory boolean DEFAULT true,
+  CONSTRAINT ai_session_deliverables_pkey PRIMARY KEY (id),
+  CONSTRAINT ai_session_deliverables_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.ai_course_sessions(id)
 );
-
--- 5. Entregables por sesión
-CREATE TABLE ai_session_deliverables (
-  id                    UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id            UUID      NOT NULL REFERENCES ai_course_sessions(id) ON DELETE CASCADE,
-  name                  TEXT      NOT NULL,
-  type                  TEXT      NOT NULL,
-  resource_url          TEXT,
-  estimated_duration_min INTEGER   DEFAULT 0,
-  resource_type         TEXT,
-  is_mandatory          BOOLEAN   DEFAULT TRUE,
-  created_at            TIMESTAMP DEFAULT NOW(),
-  UNIQUE(session_id, name)
+CREATE TABLE public.ai_subthemes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  description text,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT ai_subthemes_pkey PRIMARY KEY (id)
 );
-
--- 6. Índices para acelerar consultas
-CREATE INDEX idx_ai_courses_subtheme   ON ai_courses(subtheme_id);
-CREATE INDEX idx_ai_sessions_course    ON ai_course_sessions(course_id);
-CREATE INDEX idx_ai_practices_session  ON ai_session_practices(session_id);
-CREATE INDEX idx_ai_deliverables_sess  ON ai_session_deliverables(session_id);
+CREATE TABLE public.ai_tematarios (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  course_id uuid NOT NULL,
+  session_id uuid NOT NULL,
+  item_index integer NOT NULL,
+  title text NOT NULL,
+  item_type text NOT NULL,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT ai_tematarios_pkey PRIMARY KEY (id),
+  CONSTRAINT ai_tematarios_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.ai_courses(id),
+  CONSTRAINT ai_tematarios_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.ai_course_sessions(id)
+);
+CREATE TABLE public.bot_course_resources (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  course_id uuid NOT NULL,
+  resource_id uuid NOT NULL,
+  context_description text,
+  priority integer DEFAULT 1,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT bot_course_resources_pkey PRIMARY KEY (id),
+  CONSTRAINT bot_course_resources_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.ai_courses(id),
+  CONSTRAINT bot_course_resources_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES public.bot_resources(id)
+);
+CREATE TABLE public.bot_resources (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  resource_type character varying NOT NULL,
+  resource_key character varying NOT NULL UNIQUE,
+  resource_url text NOT NULL,
+  resource_title text NOT NULL,
+  resource_description text,
+  is_active boolean DEFAULT true,
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT bot_resources_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.bot_session_resources (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_id uuid NOT NULL,
+  resource_id uuid NOT NULL,
+  context_description text,
+  priority integer DEFAULT 1,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT bot_session_resources_pkey PRIMARY KEY (id),
+  CONSTRAINT bot_session_resources_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.ai_course_sessions(id),
+  CONSTRAINT bot_session_resources_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES public.bot_resources(id)
+);
+CREATE TABLE public.free_resources (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  course_id uuid,
+  resource_name text NOT NULL,
+  resource_type text CHECK (resource_type = ANY (ARRAY['pdf'::text, 'template'::text, 'guide'::text])),
+  resource_url text NOT NULL,
+  resource_description text,
+  file_size text,
+  tags ARRAY,
+  created_at timestamp without time zone DEFAULT now(),
+  active boolean DEFAULT true,
+  CONSTRAINT free_resources_pkey PRIMARY KEY (id)
+);

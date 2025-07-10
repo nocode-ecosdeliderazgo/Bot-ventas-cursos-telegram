@@ -178,19 +178,20 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     memory = GlobalMemory().get_lead_memory(user_id)
     text = update.message.text
 
+    logger.info(f"🔄 Procesando input de texto para usuario {user_id}, stage: {memory.stage}")
+
     if memory.stage == "awaiting_email":
         memory.email = text
-        memory.stage = ""
+        memory.stage = "awaiting_phone"  # Cambiar a siguiente etapa
         GlobalMemory().save_lead_memory(user_id, memory)
-        await update.message.reply_text("Email registrado. Verificando información...")
-        # Continuar el flujo
-        await request_missing_info_after_input(update, context)
+        logger.info(f"📧 Email almacenado para usuario {user_id}: {text}")
+        await update.message.reply_text("📧 Email registrado correctamente.\n\n📱 Ahora necesito tu número de teléfono:")
 
     elif memory.stage == "awaiting_phone":
         memory.phone = text
-        memory.stage = ""
+        memory.stage = "awaiting_confirmation"  # Cambiar a confirmación
         GlobalMemory().save_lead_memory(user_id, memory)
-        await update.message.reply_text("Teléfono registrado. Verificando información...")
+        logger.info(f"📱 Teléfono almacenado para usuario {user_id}: {text}")
         # Continuar el flujo
         await confirm_contact_details_after_input(update, context)
 

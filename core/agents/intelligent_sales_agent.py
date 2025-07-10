@@ -860,17 +860,38 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
                     logger.info(f"✅ RESPUESTA DE LA IA APROBADA:")
                     logger.info(f"📝 Respuesta: {response_text[:200]}...")  # Solo primeros 200 caracteres
                 
-                # Validar respuesta con datos reales de BD
+                # Validar respuesta con datos COMPLETOS de BD (incluir TODO)
                 bonuses = course_info.get('bonuses', [])
                 if not bonuses:
                     bonuses = await self.course_service.getAvailableBonuses(course_info['id'])
                 
-                # Validar respuesta incluyendo bonos
+                # Obtener recursos gratuitos para el validador
+                free_resources = course_info.get('free_resources', [])
+                if not free_resources:
+                    free_resources = await self.course_service.getFreeResources(course_info['id'])
+                
+                # Enriquecer course_data con TODA la información disponible
+                complete_course_data = course_info.copy()
+                complete_course_data['bonuses'] = bonuses
+                complete_course_data['free_resources'] = free_resources
+                
+                # Agregar información de la base de datos para el validador
+                logger.info(f"🔍 Enviando al validador course_data con {len(complete_course_data.keys())} claves")
+                logger.info(f"📊 Keys disponibles: {list(complete_course_data.keys())}")
+                
+                # Validar respuesta incluyendo TODOS los datos disponibles
                 validation = await self.prompt_service.validate_response(
                     response=response_text,
-                    course_data=course_info,
-                    bonuses_data=bonuses
+                    course_data=complete_course_data,
+                    bonuses_data=bonuses,
+                    all_courses_data=None  # Se puede expandir para incluir otros cursos si es necesario
                 )
+                
+                logger.info(f"🔍 Validador ejecutado - Resultado: {validation.get('is_valid', True)}")
+                if validation.get('warnings'):
+                    logger.info(f"⚠️ Warnings del validador: {validation.get('warnings')}")
+                if validation.get('errors'):
+                    logger.warning(f"❌ Errores del validador: {validation.get('errors')}")
                 
                 if not validation.get('is_valid', True):
                     errors = validation.get('errors', [])

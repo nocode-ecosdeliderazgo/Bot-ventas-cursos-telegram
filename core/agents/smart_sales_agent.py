@@ -103,7 +103,7 @@ class SmartSalesAgent:
                 self.global_memory.save_lead_memory(user_id, user_memory)
             
             # 🔄 VERIFICAR SI ESTÁ EN FLUJO PREDEFINIDO - NO PROCESAR SI ES ASÍ
-            if user_memory.stage in ["awaiting_email", "awaiting_phone", "awaiting_course_selection"]:
+            if user_memory.stage in ["awaiting_email", "awaiting_phone", "awaiting_course_selection", "awaiting_confirmation"]:
                 logger.info(f"🔄 Usuario {user_id} en flujo predefinido ({user_memory.stage}) - agente no procesa")
                 return "En proceso de recopilación de información. Por favor, sigue las instrucciones anteriores.", None
             

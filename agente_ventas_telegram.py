@@ -77,7 +77,7 @@ class VentasBot:
             
             # PRIORITARIO: Verificar si está en flujo predefinido (contacto, etc.)
             user_memory = self.global_memory.get_lead_memory(str(user.id))
-            if user_memory and user_memory.stage in ["awaiting_email", "awaiting_phone", "awaiting_course_selection"]:
+            if user_memory and user_memory.stage in ["awaiting_email", "awaiting_phone", "awaiting_course_selection", "awaiting_confirmation"]:
                 logger.info(f"Usuario {user.id} en flujo predefinido: {user_memory.stage} - usando handler específico")
                 from core.handlers.contact_flow import handle_text_input
                 await handle_text_input(update, context)

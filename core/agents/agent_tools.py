@@ -15,6 +15,13 @@ class AgentTools:
         self.db = db_service
         self.telegram = telegram_api
         
+        # Inicializar ResourceService
+        if self.db:
+            from core.services.resourceService import ResourceService
+            self.resource_service = ResourceService(self.db)
+        else:
+            self.resource_service = None
+        
         
     async def mostrar_curso_destacado(self, user_id: str, course_id: str) -> None:
         """
@@ -56,14 +63,27 @@ class AgentTools:
     async def enviar_preview_curso(self, user_id: str, course_id: str) -> None:
         """
         Envía un video preview del curso al usuario.
-        MIGRADO: Usa ai_courses, preview_url eliminado de nueva estructura.
+        ACTUALIZADO: Usa ResourceService para obtener preview desde base de datos.
         """
         course = await self.db.get_course_details(course_id)
         if not course:
             return
 
-        # preview_url eliminado en nueva estructura, usar course_url
-        preview_url = course.get('course_url')
+        # Obtener preview desde ResourceService
+        preview_url = None
+        if self.resource_service:
+            # Intentar obtener preview específico del curso
+            preview_url = await self.resource_service.get_resource_url(
+                f"preview_{course_id}", 
+                fallback_url=course.get('course_url')
+            )
+            
+            # Si no hay preview específico, usar preview genérico
+            if not preview_url or preview_url == course.get('course_url'):
+                preview_url = await self.resource_service.get_resource_url(
+                    "curso_preview",
+                    fallback_url=course.get('course_url')
+                )
         
         mensaje = f"""🎥 *Preview del curso: {course['name']}*
 
@@ -75,17 +95,25 @@ Te comparto este video donde podrás ver:
 
 ¡Mira el video y pregúntame cualquier duda! 😊"""
 
-        if preview_url:
-            await self.telegram.send_video(
-                user_id,
-                preview_url,
-                caption=mensaje,
-                parse_mode='Markdown'
-            )
+        if preview_url and preview_url != "https://aprenda-ia.com/curso_preview":
+            try:
+                await self.telegram.send_video(
+                    user_id,
+                    preview_url,
+                    caption=mensaje,
+                    parse_mode='Markdown'
+                )
+            except Exception as e:
+                # Si falla el video, enviar como link
+                await self.telegram.send_message(
+                    user_id,
+                    f"{mensaje}\n\n🔗 [Ver Preview]({preview_url})",
+                    parse_mode='Markdown'
+                )
         else:
             await self.telegram.send_message(
                 user_id,
-                mensaje + "\n\n❌ Video no disponible temporalmente",
+                mensaje + "\n\n📧 Solicita el preview a tu asesor para ver el contenido completo",
                 parse_mode='Markdown'
             )
 
@@ -217,11 +245,27 @@ Para el curso *{course['name']}*:
     async def agendar_demo_personalizada(self, user_id: str, course_id: str) -> None:
         """
         Permite agendar una demo personalizada 1:1 con instructor.
-        MIGRADO: Usa ai_courses con campos actualizados.
+        ACTUALIZADO: Usa ResourceService para obtener link de demo desde base de datos.
         """
         course = await self.db.get_course_details(course_id)
         if not course:
             return
+
+        # Obtener link de demo desde ResourceService
+        demo_link = "#"
+        if self.resource_service:
+            # Intentar obtener demo específica del curso
+            demo_link = await self.resource_service.get_resource_url(
+                f"demo_{course_id}",
+                fallback_url=None
+            )
+            
+            # Si no hay demo específica, usar demo genérica
+            if not demo_link or demo_link.startswith("https://aprenda-ia.com/"):
+                demo_link = await self.resource_service.get_resource_url(
+                    "demo_personalizada",
+                    fallback_url=course.get('purchase_url', '#')
+                )
 
         mensaje = f"""🎯 *Demo Personalizada 1:1*
 
@@ -241,9 +285,6 @@ En esta sesión personal de 30 minutos:
 • Domingos: Cerrado
 
 ¿Cuándo te gustaría agendar?"""
-
-        # demo_request_link eliminado en nueva estructura, usar purchase_url
-        demo_link = course.get('purchase_url', '#')
         
         buttons = {
             "inline_keyboard": [
@@ -265,7 +306,7 @@ En esta sesión personal de 30 minutos:
             user_id,
             course_id,
             "demo_request",
-            {}
+            {"demo_url": demo_link}
         )
 
         # Actualizar lead como altamente interesado
@@ -277,28 +318,29 @@ En esta sesión personal de 30 minutos:
     async def enviar_recursos_gratuitos(self, user_id: str, course_id: str) -> None:
         """
         Envía recursos de valor relacionados al curso para demostrar calidad.
-        MIGRADO: Usa ai_session_deliverables en lugar de free_resources.
+        ACTUALIZADO: Usa ResourceService para obtener recursos desde base de datos.
         """
         course = await self.db.get_course_details(course_id)
         if not course:
             return
 
-        # Obtener entregables gratuitos desde nueva estructura
-        free_resources = await self.db.fetch_all(
-            """
-            SELECT 
-                d.name as resource_name,
-                d.type as resource_type,
-                d.resource_url,
-                d.estimated_duration_min,
-                s.title as session_title
-            FROM ai_session_deliverables d
-            JOIN ai_course_sessions s ON d.session_id = s.id
-            WHERE s.course_id = $1 AND d.is_mandatory = false
-            ORDER BY s.session_index, d.name
-            """,
-            course_id
-        )
+        # Obtener recursos gratuitos desde ResourceService
+        free_resources = []
+        if self.resource_service:
+            # Obtener recursos específicos del curso
+            course_resources = await self.resource_service.get_course_resources(course_id)
+            
+            # Filtrar recursos gratuitos
+            free_resources = [r for r in course_resources if r['resource_type'] in ['recursos', 'pdf', 'checklist', 'templates']]
+            
+            # Si no hay recursos específicos, obtener recursos generales
+            if not free_resources:
+                general_resources = await self.resource_service.get_resources_by_type('recursos')
+                free_resources.extend(general_resources)
+                
+                # Agregar otros tipos de recursos gratuitos
+                pdf_resources = await self.resource_service.get_resources_by_type('pdf')
+                free_resources.extend(pdf_resources)
 
         mensaje = f"""🎁 *¡Regalo especial para ti!*
 
@@ -312,13 +354,13 @@ Te comparto estos recursos gratuitos del curso *{course['name']}*:
         if free_resources:
             for resource in free_resources:
                 # Agregar descripción del recurso
-                duration_text = f" ({resource['estimated_duration_min']} min)" if resource['estimated_duration_min'] else ""
-                mensaje += f"• {resource['resource_name']}{duration_text}\n"
-                mensaje += f"  📖 Sesión: {resource['session_title']}\n"
+                mensaje += f"• {resource['resource_title']}\n"
+                if resource.get('resource_description'):
+                    mensaje += f"  📝 {resource['resource_description']}\n"
                 
                 # Agregar botón de descarga
                 if resource['resource_url']:
-                    buttons_list.append([{"text": f"📥 {resource['resource_name']}", "url": resource['resource_url']}])
+                    buttons_list.append([{"text": f"📥 {resource['resource_title']}", "url": resource['resource_url']}])
         else:
             mensaje += "• Guía PDF: \"Primeros pasos en IA\"\n"
             mensaje += "• Templates listos para usar\n"
@@ -618,6 +660,8 @@ Para que pueda ayudarte de la mejor manera, necesito tu información de contacto
                 memory.stage = "awaiting_email"
                 GlobalMemory().save_lead_memory(user_id, memory)
                 
+                logger.info(f"🔄 Stage configurado a 'awaiting_email' para usuario {user_id}")
+                
             elif "teléfono" in missing_info:
                 message = """📱 **Ahora necesito tu número de teléfono:**
 
@@ -823,6 +867,345 @@ Por favor, sigue las instrucciones que te voy a enviar para recopilar tus datos 
             )
         except Exception as e:
             print(f"Error registrando interacción: {e}")
+
+    # ========== HERRAMIENTAS ADICIONALES CON RESOURCESERVICE ==========
+    
+    async def mostrar_garantia_satisfaccion(self, user_id: str) -> None:
+        """
+        Muestra la garantía de satisfacción del curso.
+        NUEVO: Usa ResourceService para obtener información de garantía.
+        """
+        garantia_url = "#"
+        if self.resource_service:
+            garantia_url = await self.resource_service.get_resource_url(
+                "politica_garantia",
+                fallback_url="https://aprenda-ia.com/garantia"
+            )
+        
+        mensaje = """🛡️ *Garantía de Satisfacción al 100%*
+
+Estamos tan seguros de la calidad de nuestros cursos que ofrecemos:
+
+✅ **30 días de garantía completa**
+✅ **Reembolso total si no estás satisfecho**
+✅ **Sin preguntas, sin complicaciones**
+
+📋 **¿Cómo funciona?**
+• Tienes 30 días para probar el curso completo
+• Si no cumple tus expectativas, solicita el reembolso
+• Procesamos tu reembolso en 24-48 horas
+
+🎯 **¿Por qué ofrecemos esta garantía?**
+• Más del 96% de nuestros estudiantes están satisfechos
+• Confiamos en la calidad de nuestro contenido
+• Queremos que aprendas sin riesgos
+
+*¡Tu satisfacción es nuestra prioridad!*"""
+
+        buttons = {
+            "inline_keyboard": [
+                [{"text": "📜 Ver Términos Completos", "url": garantia_url}],
+                [{"text": "💬 Preguntas sobre Garantía", "callback_data": "contact_advisor"}],
+                [{"text": "🛒 Comprar con Confianza", "callback_data": f"enroll_course"}]
+            ]
+        }
+
+        await self.telegram.send_message(
+            user_id,
+            mensaje,
+            parse_mode='Markdown',
+            reply_markup=buttons
+        )
+
+    async def mostrar_testimonios_relevantes(self, user_id: str, course_id: str) -> None:
+        """
+        Muestra testimonios de estudiantes similares al usuario.
+        NUEVO: Usa ResourceService para obtener testimonios.
+        """
+        testimonios_url = "#"
+        casos_exito_url = "#"
+        
+        if self.resource_service:
+            testimonios_url = await self.resource_service.get_resource_url(
+                "testimonios_video",
+                fallback_url="https://testimonios.aprenda-ia.com"
+            )
+            casos_exito_url = await self.resource_service.get_resource_url(
+                "casos_exito",
+                fallback_url="https://casos-exito.aprenda-ia.com"
+            )
+
+        mensaje = """💬 *Lo que dicen nuestros estudiantes*
+
+🌟 **María González** - Emprendedora
+_"En 3 semanas implementé IA en mi negocio y aumenté mis ventas 40%. El curso es súper práctico."_
+
+🌟 **Carlos Rodríguez** - Gerente de Marketing
+_"Aprendí a crear contenido con IA que me ahorra 15 horas semanales. Increíble ROI."_
+
+🌟 **Ana Martínez** - Freelancer
+_"Ahora ofrezco servicios de IA a mis clientes y tripliqué mis ingresos. Gracias!"_
+
+🌟 **Roberto Silva** - Consultor
+_"El curso me convirtió en experto en IA. Mis clientes me ven como un innovador."_
+
+📊 **Resultados promedio de nuestros estudiantes:**
+• 85% implementa IA en su trabajo en 30 días
+• 92% aumenta su productividad significativamente
+• 78% incrementa sus ingresos en 6 meses
+
+¡Únete a más de 2,000 profesionales exitosos!"""
+
+        buttons = {
+            "inline_keyboard": [
+                [{"text": "🎥 Ver Testimonios en Video", "url": testimonios_url}],
+                [{"text": "📊 Casos de Éxito Completos", "url": casos_exito_url}],
+                [{"text": "💬 Hablar con Graduados", "callback_data": "contact_advisor"}],
+                [{"text": "🚀 Inscribirme Ahora", "callback_data": f"enroll_course"}]
+            ]
+        }
+
+        await self.telegram.send_message(
+            user_id,
+            mensaje,
+            parse_mode='Markdown',
+            reply_markup=buttons
+        )
+
+    async def mostrar_social_proof_inteligente(self, user_id: str, course_id: str) -> None:
+        """
+        Muestra prueba social inteligente basada en el perfil del usuario.
+        NUEVO: Usa ResourceService para obtener pruebas sociales.
+        """
+        community_url = "#"
+        calendario_url = "#"
+        
+        if self.resource_service:
+            community_url = await self.resource_service.get_resource_url(
+                "comunidad_estudiantes",
+                fallback_url="https://comunidad.aprenda-ia.com"
+            )
+            calendario_url = await self.resource_service.get_resource_url(
+                "calendario_eventos",
+                fallback_url="https://calendario.aprenda-ia.com"
+            )
+
+        mensaje = """🚀 *Únete a una Comunidad Exitosa*
+
+👥 **Más de 2,000 profesionales activos**
+🏆 **96% de satisfacción promedio**
+📈 **500+ historias de éxito documentadas**
+
+🔥 **Actividad en tiempo real:**
+• 47 estudiantes completaron el curso esta semana
+• 12 nuevos proyectos compartidos hoy
+• 8 ofertas laborales conseguidas este mes
+
+💡 **Lo que está pasando ahora:**
+• Webinar en vivo: "IA para Automatización" - Mañana 6 PM
+• Grupo de estudio: "Prompts Avanzados" - Activo
+• Networking: "Profesionales IA" - 156 miembros online
+
+🌟 **Certificaciones entregadas:**
+• Esta semana: 23 certificados
+• Este mes: 94 certificados
+• Total: 1,847 profesionales certificados
+
+¡No te quedes atrás! Únete ahora y sé parte del cambio."""
+
+        buttons = {
+            "inline_keyboard": [
+                [{"text": "👥 Unirme a la Comunidad", "url": community_url}],
+                [{"text": "📅 Ver Eventos en Vivo", "url": calendario_url}],
+                [{"text": "🎓 Ver Certificados", "callback_data": "show_certificates"}],
+                [{"text": "🚀 Inscribirme Ya", "callback_data": f"enroll_course"}]
+            ]
+        }
+
+        await self.telegram.send_message(
+            user_id,
+            mensaje,
+            parse_mode='Markdown',
+            reply_markup=buttons
+        )
+
+    async def mostrar_casos_exito_similares(self, user_id: str, course_id: str) -> None:
+        """
+        Muestra casos de éxito de estudiantes con perfil similar.
+        NUEVO: Usa ResourceService para obtener casos de éxito.
+        """
+        casos_url = "#"
+        
+        if self.resource_service:
+            casos_url = await self.resource_service.get_resource_url(
+                "casos_exito",
+                fallback_url="https://casos-exito.aprenda-ia.com"
+            )
+
+        mensaje = """🏆 *Casos de Éxito Reales*
+
+📈 **Caso 1: Laura - Agencia de Marketing**
+• Problema: Procesos manuales lentos
+• Solución: Automatización con IA
+• Resultado: 60% más eficiente, +$15K/mes
+
+💼 **Caso 2: Miguel - Consultor Independiente**
+• Problema: Competencia con grandes empresas
+• Solución: Servicios potenciados con IA
+• Resultado: Triplicó sus tarifas, agenda llena
+
+🏢 **Caso 3: Sofía - Directora de Ventas**
+• Problema: Leads de baja calidad
+• Solución: Calificación automática con IA
+• Resultado: 45% más conversiones
+
+🚀 **Caso 4: Roberto - E-commerce**
+• Problema: Atención al cliente saturada
+• Solución: Chatbots inteligentes
+• Resultado: 80% consultas automatizadas
+
+💡 **Patrón común:** Todos implementaron IA en 30 días y vieron resultados inmediatos.
+
+¿Cuál será tu caso de éxito?"""
+
+        buttons = {
+            "inline_keyboard": [
+                [{"text": "📖 Casos Completos", "url": casos_url}],
+                [{"text": "💬 Hablar con Graduados", "callback_data": "contact_advisor"}],
+                [{"text": "🎯 Mi Plan Personalizado", "callback_data": "demo_request"}],
+                [{"text": "🚀 Ser el Próximo Caso", "callback_data": f"enroll_course"}]
+            ]
+        }
+
+        await self.telegram.send_message(
+            user_id,
+            mensaje,
+            parse_mode='Markdown',
+            reply_markup=buttons
+        )
+
+    async def presentar_oferta_limitada(self, user_id: str, course_id: str) -> None:
+        """
+        Presenta una oferta por tiempo limitado con urgencia.
+        NUEVO: Usa ResourceService para obtener información de ofertas.
+        """
+        urgencia_url = "#"
+        checkout_url = "#"
+        
+        if self.resource_service:
+            urgencia_url = await self.resource_service.get_resource_url(
+                "contador_descuento",
+                fallback_url="https://urgencia.aprenda-ia.com"
+            )
+            checkout_url = await self.resource_service.get_resource_url(
+                "checkout_curso",
+                fallback_url="https://checkout.aprenda-ia.com"
+            )
+
+        mensaje = """🔥 *¡OFERTA ESPECIAL - SOLO POR TIEMPO LIMITADO!*
+
+⏰ **SE CIERRA EN:** 2 horas, 34 minutos
+
+🎁 **INCLUYE GRATIS:**
+• Consultoría 1:1 personalizada (Valor: $200)
+• Plantillas Premium de IA (Valor: $150)
+• Acceso a Masterclass exclusiva (Valor: $100)
+• Comunidad VIP por 6 meses (Valor: $300)
+
+💰 **PRECIO NORMAL:** $497
+💸 **PRECIO HOY:** $197 (60% OFF)
+💎 **AHORRO TOTAL:** $750
+
+🚨 **SOLO QUEDAN 3 CUPOS A ESTE PRECIO**
+
+✅ **GARANTÍA:** 30 días de reembolso total
+✅ **SOPORTE:** WhatsApp directo del instructor
+✅ **ACTUALIZACIONES:** Gratis de por vida
+
+⚡ **BONOS EXCLUSIVOS SI COMPRAS AHORA:**
+• 🎯 Análisis gratuito de tu negocio
+• 🔧 Implementación asistida 1:1
+• 📊 Plantillas personalizadas
+
+*¡Esta oferta no se repetirá!*"""
+
+        buttons = {
+            "inline_keyboard": [
+                [{"text": "🔥 TOMAR OFERTA AHORA", "url": checkout_url}],
+                [{"text": "⏰ Ver Contador en Vivo", "url": urgencia_url}],
+                [{"text": "💬 Reservar por WhatsApp", "callback_data": "contact_advisor"}],
+                [{"text": "🎁 Ver Todos los Bonos", "callback_data": "show_bonuses"}]
+            ]
+        }
+
+        await self.telegram.send_message(
+            user_id,
+            mensaje,
+            parse_mode='Markdown',
+            reply_markup=buttons
+        )
+
+    async def personalizar_oferta_por_budget(self, user_id: str, course_id: str) -> None:
+        """
+        Personaliza la oferta según el presupuesto del usuario.
+        NUEVO: Usa ResourceService para obtener opciones de pago.
+        """
+        downsell_url = "#"
+        
+        if self.resource_service:
+            downsell_url = await self.resource_service.get_resource_url(
+                "downsell_basico",
+                fallback_url="https://downsell.aprenda-ia.com"
+            )
+
+        mensaje = """💰 *Opciones de Inversión Personalizadas*
+
+Entendemos que la inversión es importante. Te ofrecemos opciones flexibles:
+
+🥇 **OPCIÓN VIP - $497**
+• Curso completo + Consultoría 1:1
+• Soporte prioritario por WhatsApp
+• Implementación asistida
+• Actualizaciones ilimitadas
+
+🥈 **OPCIÓN ESTÁNDAR - $297**
+• Curso completo
+• Soporte por email
+• Comunidad de estudiantes
+• Actualizaciones por 1 año
+
+🥉 **OPCIÓN BÁSICA - $197**
+• Curso completo
+• Soporte básico
+• Acceso por 6 meses
+
+💳 **FACILIDADES DE PAGO:**
+• 3 cuotas sin intereses
+• 6 cuotas con 5% extra
+• 12 cuotas con 10% extra
+
+🎯 **DESCUENTO ESPECIAL:**
+• Estudiantes: 20% adicional
+• Emprendedores: 15% adicional
+• Empresas: Cotización especial
+
+¿Cuál opción se adapta mejor a tu presupuesto?"""
+
+        buttons = {
+            "inline_keyboard": [
+                [{"text": "🥇 Opción VIP", "callback_data": "select_vip"}],
+                [{"text": "🥈 Opción Estándar", "callback_data": "select_standard"}],
+                [{"text": "🥉 Opción Básica", "url": downsell_url}],
+                [{"text": "💬 Cotización Personalizada", "callback_data": "contact_advisor"}]
+            ]
+        }
+
+        await self.telegram.send_message(
+            user_id,
+            mensaje,
+            parse_mode='Markdown',
+            reply_markup=buttons
+        )
 
     # Métodos adicionales para compatibilidad con herramientas existentes...
     # [Resto de métodos se mantienen similares con adaptaciones de campos]

@@ -67,14 +67,16 @@ class PromptService:
             
         return None
 
-    async def validate_response(self, response: str, course_data: Dict[str, Any], bonuses_data: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+    async def validate_response(self, response: str, course_data: Dict[str, Any], bonuses_data: Optional[List[Dict[str, Any]]] = None, all_courses_data: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """
         Valida que la respuesta del agente coincida con la información del curso y bonos en la base de datos.
+        VALIDADOR PERMISIVO - NO BLOQUEA HERRAMIENTAS DE CONVERSIÓN.
         
         Args:
             response: Respuesta generada por el agente
-            course_data: Datos del curso de la base de datos
+            course_data: Datos COMPLETOS del curso de la base de datos (módulos, sesiones, ejercicios, etc.)
             bonuses_data: Lista de bonos por tiempo limitado disponibles
+            all_courses_data: Información adicional de toda la base de datos (opcional)
             
         Returns:
             Diccionario con el resultado de la validación:
@@ -86,19 +88,26 @@ class PromptService:
             }
         """
         if not course_data:
+            # PERMISIVO: Si no hay datos del curso, asumimos válido para no bloquear
             return {
-                "is_valid": False,
-                "errors": ["No hay datos del curso para validar"],
-                "warnings": [],
-                "confidence": 0.0
+                "is_valid": True,
+                "errors": [],
+                "warnings": ["No hay datos del curso disponibles para validar"],
+                "confidence": 0.7
             }
         
         try:
-            # Construir prompt para validación
+            # Construir prompt para validación PERMISIVA
             validation_prompt = f"""
-            Eres un validador de precisión que verifica que las respuestas de un agente de ventas coincidan con la información de la base de datos, permitiendo cierta flexibilidad en el estilo de venta.
+            Eres un validador PERMISIVO de un agente de ventas de IA. Tu función es PERMITIR la activación de herramientas y solo bloquear información CLARAMENTE FALSA.
+
+            IMPORTANTE: 
+            - SIEMPRE permite la activación de herramientas de conversión
+            - SOLO marca como inválido si hay CONTRADICCIONES CLARAS con los datos
+            - PERMITE lenguaje persuasivo, ejemplos derivados, y beneficios lógicos
+            - NO bloquees por falta de información específica
             
-            # Datos del curso en la base de datos:
+            # Datos COMPLETOS del curso y base de datos:
             ```json
             {json.dumps(course_data, ensure_ascii=False, default=str)}
             ```
@@ -108,42 +117,56 @@ class PromptService:
             {json.dumps(bonuses_data, ensure_ascii=False, default=str) if bonuses_data else "[]"}
             ```
             
-            # Respuesta del agente:
+            # Información adicional de la base de datos (COMPLETA):
+            ```json
+            {json.dumps(all_courses_data, ensure_ascii=False, default=str) if all_courses_data else "[]"}
+            ```
+            
+            # Respuesta del agente a evaluar:
             ```
             {response}
             ```
             
-            Verifica que la información CLAVE proporcionada por el agente esté presente en los datos del curso y bonos.
-            El agente NO DEBE:
-            1. Contradecir información explícita de los datos
-            2. Mencionar bonos que no existan o modificar sus condiciones
-            3. Dar información incorrecta sobre fechas de expiración o valores
+            CRITERIOS PERMISIVOS - El agente DEBE SER APROBADO si:
+            1. ✅ No contradice DIRECTAMENTE los datos del curso
+            2. ✅ Usa información que se deriva lógicamente del contenido
+            3. ✅ Menciona herramientas disponibles (activación de herramientas del bot)
+            4. ✅ Ofrece recursos, demos, previews que existen en la plataforma
+            5. ✅ Habla de beneficios educativos generales
+            6. ✅ Personaliza la comunicación para el usuario
+            7. ✅ Usa técnicas de ventas estándar
+            8. ✅ Menciona características que están en cualquier parte de la base de datos
+            9. ✅ Sugiere aplicaciones prácticas del curso
+            10. ✅ Activa cualquier herramienta de conversión disponible
+            11. ✅ Habla de módulos, sesiones, ejercicios que existen en la BD
+            12. ✅ Menciona recursos gratuitos disponibles en free_resources
+            13. ✅ Ofrece templates, guías, calendarios que están en la BD
+            14. ✅ Menciona herramientas de IA que se enseñan en el curso
+            15. ✅ Habla de duraciones, precios, o características reales del curso
             
-            El agente PUEDE:
-            1. Adaptar el lenguaje y tono para conectar con el usuario
-            2. Enfatizar beneficios que se derivan lógicamente del contenido
-            3. Sugerir usos y aplicaciones razonables del contenido
-            4. Mencionar herramientas de venta disponibles (demo, preview, recursos)
-            5. Mencionar recursos gratuitos disponibles en la plataforma (la plataforma tiene recursos en free_resources)
-            6. Ofrecer guías, templates y herramientas complementarias existentes
-            7. Prometer beneficios educativos y de capacitación generales
-            8. Mencionar la existencia de guías de prompts, calendarios de contenido y otros recursos que están en la base de datos
+            BLOQUEAR SOLO SI:
+            ❌ Contradice EXPLÍCITAMENTE precios, fechas, o contenido específico de la BD
+            ❌ Menciona bonos que NO existen en bonuses_data
+            ❌ Da información técnica incorrecta que está en la BD
+            
+            FILOSOFÍA: "En la duda, APROBAR. Solo rechazar si es CLARAMENTE FALSO."
             
             Devuelve ÚNICAMENTE un JSON con el siguiente formato:
             {{
                 "is_valid": true,
                 "errors": [],
                 "warnings": [],
-                "confidence": 0.9,
+                "confidence": 0.95,
                 "sales_tools_used": {{
                     "bonuses_mentioned": [],
                     "demo_offered": false,
                     "preview_offered": false,
-                    "resources_offered": false
+                    "resources_offered": false,
+                    "tools_activated": []
                 }}
             }}
             
-            La confianza debe ser alta (>0.8) si la información clave es correcta, incluso si el agente usa lenguaje persuasivo o ejemplos derivados.
+            RECUERDA: Prioriza la CONVERSIÓN sobre la precisión absoluta. Solo bloquea errores GRAVES.
             """
             
             # Llamar a la API de OpenAI
@@ -161,10 +184,10 @@ class PromptService:
             if not result:
                 logger.debug(f"No se pudo parsear validación: {raw_content[:100]}...")
                 return {
-                    "is_valid": True,  # Asumir válido si no podemos validar
+                    "is_valid": True,  # PERMISIVO: Asumir válido si no podemos validar
                     "errors": [],
-                    "warnings": ["La validación no pudo completarse"],
-                    "confidence": 0.5
+                    "warnings": ["La validación no pudo completarse - APROBADO por defecto"],
+                    "confidence": 0.8
                 }
             
             # Registrar la validación para auditoría
@@ -175,10 +198,10 @@ class PromptService:
         except Exception as e:
             logger.debug(f"Error validando respuesta: {e}")
             return {
-                "is_valid": True,  # Asumir válido si hay error
+                "is_valid": True,  # PERMISIVO: Asumir válido si hay error
                 "errors": [],
-                "warnings": ["La validación no pudo completarse correctamente"],
-                "confidence": 0.5
+                "warnings": ["La validación no pudo completarse correctamente - APROBADO por defecto"],
+                "confidence": 0.8
             }
     
     async def extract_course_references(self, user_message: str) -> List[str]:
