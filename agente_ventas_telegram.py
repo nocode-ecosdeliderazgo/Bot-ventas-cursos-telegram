@@ -471,7 +471,7 @@ dato no encontrado
                     from core.handlers.contact_flow import start_contact_flow
                     await start_contact_flow(update, context)
                     return
-                elif query.data.startswith('select_course_'):
+                elif query.data and query.data.startswith('select_course_'):
                     from core.handlers.contact_flow import handle_course_selection
                     await handle_course_selection(update, context)
                     return

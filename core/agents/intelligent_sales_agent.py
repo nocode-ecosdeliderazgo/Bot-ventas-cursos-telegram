@@ -900,30 +900,33 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
                     # Si la respuesta es inválida, devolver respuesta segura
                     return "Te entiendo perfectamente. Déjame obtener la información más actualizada sobre el curso para responderte con precisión. ¿Qué aspecto específico te interesa más?"
             
-            # Procesar la respuesta y activar herramientas si es necesario
-            final_response = await self._process_response(response_text, user_memory)
-            
-            # Activar herramientas basado en el análisis de intención
-            activated_tools = await self._activate_tools_based_on_intent(
+            # REDISEÑADO: Activar herramientas ANTES de procesar la respuesta para incorporar contenido
+            tool_contents = await self._activate_tools_based_on_intent(
                 intent_analysis, user_memory, course_info, user_message
             )
             
-            # Si se activaron herramientas, incluir información en la respuesta
-            if activated_tools:
-                logger.info(f"Herramientas activadas: {activated_tools}")
+            # Procesar contenido de herramientas
+            tools_content_text = ""
+            if tool_contents:
+                from core.agents.intelligent_sales_agent_tools import IntelligentSalesAgentTools
+                tools_handler = IntelligentSalesAgentTools(self.agent_tools)
+                tools_content_text = tools_handler.format_tool_content_for_agent(tool_contents)
                 
-                # Si se activó contactar_asesor_directo, usar la función wrapper
-                if 'contactar_asesor_directo' in activated_tools and self.agent_tools:
-                    try:
-                        contact_response = await self.agent_tools.activar_flujo_contacto_asesor(
-                            user_memory.user_id, course_info.get('id') if course_info else None
-                        )
-                        logger.info(f"🔄 Flujo de contacto activado, agente se desactiva temporalmente")
-                        # Retornar la respuesta del flujo de contacto
-                        return contact_response
-                    except Exception as e:
-                        logger.error(f"Error ejecutando flujo de contacto: {e}")
-                        return "¡Perfecto! Te voy a conectar con un asesor especializado que podrá ayudarte con todas tus preguntas."
+                # Si se activó contacto con asesor, retornar directamente
+                if any(content.get('type') == 'contact_flow_activated' for content in tool_contents):
+                    logger.info(f"🔄 Flujo de contacto activado, agente se desactiva temporalmente")
+                    return tools_content_text
+                
+                logger.info(f"✅ Contenido de herramientas procesado para incorporar en respuesta")
+            
+            # Incorporar contenido de herramientas en la respuesta del agente si existe
+            if tools_content_text:
+                # Combinar la respuesta del agente con el contenido de las herramientas
+                combined_response = response_text + "\n\n" + tools_content_text
+                final_response = await self._process_response_with_tools(combined_response, user_memory, tool_contents)
+            else:
+                # Procesar respuesta normal sin herramientas
+                final_response = await self._process_response(response_text, user_memory)
             
             return final_response
                 
@@ -1096,6 +1099,71 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
         else:
             # Mensaje único como string
             return response_text
+
+    async def _process_response_with_tools(self, combined_response: str, user_memory: LeadMemory, tool_contents: List[Dict[str, Any]]) -> Union[str, List[Dict[str, str]]]:
+        """
+        NUEVO: Procesa la respuesta combinada del agente + herramientas para generar multimedia.
+        Convierte el contenido de herramientas en formato multimedia para el bot principal.
+        """
+        
+        # Actualizar historial con solo la parte del agente (sin contenido de herramientas)
+        agent_response = combined_response.split("\n\n## CONTENIDO DE HERRAMIENTAS ACTIVADAS:")[0]
+        
+        if user_memory.message_history is None:
+            user_memory.message_history = []
+        
+        user_memory.message_history.append({
+            'role': 'assistant',
+            'content': agent_response,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+        # Limitar historial
+        if len(user_memory.message_history) > 20:
+            user_memory.message_history = user_memory.message_history[-20:]
+        
+        # Actualizar timestamps
+        user_memory.last_interaction = datetime.utcnow()
+        user_memory.updated_at = datetime.utcnow()
+        
+        # Construir respuesta multimedia con recursos
+        multimedia_response = []
+        
+        # Agregar mensaje del agente
+        multimedia_response.append({
+            'type': 'text',
+            'content': agent_response
+        })
+        
+        # Procesar contenido de herramientas para agregar recursos
+        for content in tool_contents:
+            content_type = content.get('type', 'text')
+            
+            if content_type == 'multimedia':
+                # Agregar recursos de herramientas multimedia
+                resources = content.get('resources', [])
+                for resource in resources:
+                    if resource.get('type') == 'document' and resource.get('url'):
+                        multimedia_response.append({
+                            'type': 'document',
+                            'url': resource['url'],
+                            'caption': resource.get('caption', 'Documento')
+                        })
+                    elif resource.get('type') == 'video' and resource.get('url'):
+                        multimedia_response.append({
+                            'type': 'video',
+                            'url': resource['url'],
+                            'caption': resource.get('caption', 'Video')
+                        })
+                    elif resource.get('type') == 'link' and resource.get('url'):
+                        # Los links se incluyen en el texto del agente
+                        pass
+        
+        # Si hay recursos multimedia, retornar lista; sino, solo texto
+        if len(multimedia_response) > 1:
+            return multimedia_response
+        else:
+            return agent_response
     
     async def _activate_tools_based_on_intent(
         self, 
@@ -1103,8 +1171,8 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
         user_memory, 
         course_info: Optional[Dict],
         user_message: str
-    ) -> List[str]:
-        """Wrapper para activar herramientas - implementación en módulo separado"""
+    ) -> List[Dict[str, Any]]:
+        """REDISEÑADO: Wrapper para activar herramientas - retorna contenido en lugar de nombres"""
         try:
             # Verificar que agent_tools esté disponible
             if not self.agent_tools:
@@ -1115,9 +1183,11 @@ Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
             tools_handler = IntelligentSalesAgentTools(self.agent_tools)
             
             user_id = user_memory.user_id
-            return await tools_handler._activate_tools_based_on_intent(
+            tool_contents = await tools_handler._activate_tools_based_on_intent(
                 intent_analysis, user_memory, course_info, user_message, user_id
             )
+            
+            return tool_contents
         except Exception as e:
             logger.error(f"Error en wrapper de herramientas: {e}")
             return []

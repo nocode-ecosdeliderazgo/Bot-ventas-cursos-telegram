@@ -13,6 +13,89 @@ from email.mime.multipart import MIMEMultipart
 
 logger = logging.getLogger(__name__)
 
+# --- Función para Activación Directa desde Herramientas ---
+
+async def start_contact_flow_directly(user_id: str, course_id: str = None, db_service=None) -> str:
+    """
+    NUEVO: Función para activar el flujo de contacto directamente desde herramientas.
+    Retorna un mensaje para el usuario y configura la memoria para el flujo predefinido.
+    """
+    try:
+        memory = GlobalMemory().get_lead_memory(user_id)
+        
+        # Si hay course_id específico, guardarlo
+        if course_id:
+            memory.selected_course = course_id
+            logger.info(f"📚 Curso seleccionado para flujo directo: {course_id}")
+            
+            # Obtener nombre del curso si hay DB disponible
+            if db_service:
+                try:
+                    from core.services.courseService import CourseService
+                    course_service = CourseService(db_service)
+                    course_details = await course_service.getCourseDetails(course_id)
+                    if course_details:
+                        memory.course_name = course_details.get('name')
+                        logger.info(f"📚 Nombre del curso obtenido: {memory.course_name}")
+                except Exception as e:
+                    logger.error(f"Error obteniendo detalles del curso: {e}")
+        
+        # Verificar qué información falta
+        missing_info = []
+        if not memory.email:
+            missing_info.append("email")
+        if not memory.phone:
+            missing_info.append("teléfono")
+        if not memory.selected_course:
+            missing_info.append("curso de interés")
+        
+        # Configurar stage según información faltante
+        if "email" in missing_info:
+            memory.stage = "awaiting_email"
+            message = """¡Perfecto! Te voy a conectar con un asesor especializado.
+
+Para que pueda ayudarte de la mejor manera, necesito tu información de contacto.
+
+📧 **Por favor, envíame tu email:**"""
+            
+        elif "teléfono" in missing_info:
+            memory.stage = "awaiting_phone"
+            message = """📱 **Ahora necesito tu número de teléfono:**
+
+Por favor, envíamelo en formato: +XX XXXXXXXXXX"""
+            
+        elif "curso de interés" in missing_info:
+            memory.stage = "awaiting_course_selection"
+            message = """📚 **Finalmente, necesito saber qué curso te interesa:**
+
+¿Podrías decirme cuál es tu principal área de interés?"""
+            
+        else:
+            # Toda la información está disponible, proceder con confirmación
+            memory.stage = "awaiting_confirmation"
+            message = f"""✅ **¡Perfecto! Ya tengo toda tu información.**
+
+📋 **Resumen:**
+• Nombre: {memory.name}
+• Email: {memory.email}
+• Teléfono: {memory.phone}
+• Curso: {getattr(memory, 'course_name', 'Curso de IA')}
+
+Un asesor especializado se pondrá en contacto contigo muy pronto para resolver todas tus dudas.
+
+¡Gracias por tu interés!"""
+        
+        # Guardar memoria actualizada
+        GlobalMemory().save_lead_memory(user_id, memory)
+        
+        logger.info(f"🔄 Flujo de contacto directo activado para usuario {user_id}, stage: {memory.stage}")
+        
+        return message
+        
+    except Exception as e:
+        logger.error(f"Error en start_contact_flow_directly: {e}")
+        return "Te voy a conectar con un asesor especializado. Por favor, proporciona tu email para contactarte:"
+
 @handle_telegram_errors
 async def show_contact_options(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Muestra las opciones de contacto."""
