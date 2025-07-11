@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # Datos de cursos reales - MANTENIDO para compatibilidad
 COURSES = {
     "ia_chatgpt": {
-        "id": "c76bc3dd-502a-4b99-8c6c-3f9fce33a14b",
+        "id": "a392bf83-4908-4807-89a9-95d0acc807c9",
         "name": "ChatGPT para Profesionales",
         "description": "Domina el uso profesional de ChatGPT y la IA generativa",
         "price": 199,

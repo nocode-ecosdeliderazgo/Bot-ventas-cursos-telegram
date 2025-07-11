@@ -63,7 +63,7 @@ class AgentTools:
 
     async def enviar_recursos_gratuitos(self, user_id: str, course_id: str) -> Dict[str, Union[str, List[Dict]]]:
         """
-        CORREGIDO: Envía recursos gratuitos desde tabla free_resources con respaldo en bot_resources.
+        NUEVO: Envía recursos gratuitos desde tabla free_resources con URLs de GitHub.
         """
         try:
             # Obtener información del curso
@@ -86,10 +86,8 @@ Te comparto estos materiales de valor exclusivos:
                     resource_url,
                     resource_description
                 FROM free_resources 
-                WHERE (course_id = $1 OR course_id IS NULL) AND active = true
-                ORDER BY 
-                    CASE WHEN course_id = $1 THEN 1 ELSE 2 END,
-                    created_at DESC
+                WHERE course_id = $1 AND active = true
+                ORDER BY created_at DESC
                 """
                 
                 free_resources_data = await self.db.fetch_all(query, course_id)
@@ -122,80 +120,19 @@ Te comparto estos materiales de valor exclusivos:
                     
                     logger.info(f"✅ Enviando {len(resources)} recursos gratuitos para curso {course_id}")
                 else:
-                    logger.info(f"📋 No se encontraron recursos en free_resources para curso {course_id}")
+                    # Si no hay recursos específicos del curso, usar mensaje informativo
+                    mensaje += "📚 Recursos disponibles próximamente\n"
+                    logger.info(f"📋 No se encontraron recursos gratuitos para curso {course_id}")
                     
             except Exception as e:
                 logger.error(f"❌ Error obteniendo recursos de free_resources: {e}")
+                mensaje += "📚 Recursos disponibles - contacta a tu asesor\n"
 
-            # Si no hay recursos en free_resources, buscar en bot_resources
+            # Si no se encontraron recursos en BD, agregar mensaje de contacto
             if not resources:
-                try:
-                    query = """
-                    SELECT br.resource_url, br.resource_title, br.resource_description, br.resource_type
-                    FROM bot_resources br
-                    WHERE br.is_active = true 
-                    AND (br.resource_key LIKE '%free%' OR br.resource_key LIKE '%gratuito%' OR br.resource_key LIKE '%guide%')
-                    AND br.resource_type IN ('document', 'pdf', 'video')
-                    ORDER BY br.created_at DESC
-                    LIMIT 3
-                    """
-                    
-                    bot_resources_data = await self.db.fetch_all(query)
-                    
-                    if bot_resources_data:
-                        for resource in bot_resources_data:
-                            resource_name = resource['resource_title']
-                            resource_url = self._convert_github_url_to_raw(resource['resource_url'])
-                            resource_type = resource['resource_type']
-                            
-                            mensaje += f"📄 {resource_name}\n"
-                            
-                            # Determinar tipo de recurso para Telegram
-                            if resource_type.upper() in ['VIDEO', 'MP4', 'MOV']:
-                                resources.append({
-                                    "type": "video",
-                                    "url": resource_url,
-                                    "caption": f"🎥 {resource_name}"
-                                })
-                            else:  # PDF, DOCUMENT, etc.
-                                resources.append({
-                                    "type": "document",
-                                    "url": resource_url,
-                                    "caption": f"📄 {resource_name}"
-                                })
-                        
-                        logger.info(f"✅ Enviando {len(resources)} recursos desde bot_resources")
-                    else:
-                        logger.info("📋 No se encontraron recursos en bot_resources")
-                        
-                except Exception as e:
-                    logger.error(f"❌ Error obteniendo recursos de bot_resources: {e}")
-
-            # Si aún no hay recursos, usar recursos de respaldo
-            if not resources:
-                recursos_respaldo = [
-                    {
-                        "type": "document",
-                        "url": "https://raw.githubusercontent.com/nocode-ecosdeliderazgo/bot-recursos-publicos/main/pdfs/guia-prompts-chatgpt-marketing.pdf",
-                        "caption": "📄 Guía de Prompts ChatGPT para Marketing"
-                    },
-                    {
-                        "type": "document", 
-                        "url": "https://raw.githubusercontent.com/nocode-ecosdeliderazgo/bot-recursos-publicos/main/pdfs/plantillas-ia-automatizacion.pdf",
-                        "caption": "📄 Plantillas de IA para Automatización"
-                    }
-                ]
-                
-                resources.extend(recursos_respaldo)
-                mensaje += "📄 Guía de Prompts ChatGPT para Marketing\n"
-                mensaje += "📄 Plantillas de IA para Automatización\n"
-                logger.info("📋 Usando recursos de respaldo")
-
-            # Mensaje final
-            if resources:
-                mensaje += f"\n💡 **¡{len(resources)} recursos completamente gratuitos para ti!**"
-            else:
                 mensaje += "\n💬 **Contacta a tu asesor para obtener los recursos exclusivos**"
+            else:
+                mensaje += f"\n💡 **¡{len(resources)} recursos completamente gratuitos para ti!**"
 
             await self._registrar_interaccion(user_id, course_id, "free_resources_sent", {"resources_count": len(resources)})
 
@@ -208,15 +145,8 @@ Te comparto estos materiales de valor exclusivos:
         except Exception as e:
             logger.error(f"❌ Error en enviar_recursos_gratuitos: {e}")
             return {
-                "type": "multimedia",
-                "content": "🎁 **Recursos Gratuitos**\n\nTe comparto estos materiales de valor:",
-                "resources": [
-                    {
-                        "type": "document",
-                        "url": "https://raw.githubusercontent.com/nocode-ecosdeliderazgo/bot-recursos-publicos/main/pdfs/guia-prompts-chatgpt-marketing.pdf",
-                        "caption": "📄 Guía de Prompts ChatGPT para Marketing"
-                    }
-                ]
+                "type": "text",
+                "content": "🎁 **Recursos gratuitos disponibles**\n\nContacta a tu asesor para obtener los materiales exclusivos del curso."
             }
 
     async def enviar_datos_pago(self, user_id: str, course_id: str = None) -> Dict[str, str]:
@@ -265,7 +195,7 @@ Te comparto estos materiales de valor exclusivos:
 
     async def mostrar_syllabus_interactivo(self, user_id: str, course_id: str) -> Dict[str, Union[str, List[Dict]]]:
         """
-        CORREGIDO: Envía syllabus real desde la BD consultando bot_resources.
+        CORREGIDO: Envía syllabus real desde la BD sin filtros.
         """
         try:
             # Obtener información del curso
@@ -280,50 +210,32 @@ Te comparto estos materiales de valor exclusivos:
 """
             resources = []
             
-            # CORREGIDO: Buscar syllabus en bot_resources directamente
-            try:
-                # Buscar syllabus específico del curso o genérico
-                query = """
-                SELECT br.resource_url, br.resource_title, br.resource_description
-                FROM bot_resources br
-                WHERE br.is_active = true 
-                AND (br.resource_key LIKE 'syllabus%' OR br.resource_key LIKE '%temario%')
-                AND br.resource_type = 'document'
-                ORDER BY 
-                    CASE 
-                        WHEN br.resource_key LIKE $1 THEN 1  -- Syllabus específico del curso
-                        WHEN br.resource_key = 'syllabus_completo' THEN 2  -- Syllabus genérico
-                        ELSE 3  -- Otros syllabus
-                    END
-                LIMIT 1
-                """
-                
-                syllabus_data = await self.db.fetch_one(query, f"%{course_id}%")
-                
-                if syllabus_data:
-                    syllabus_url = self._convert_github_url_to_raw(syllabus_data['resource_url'])
-                    resources.append({
-                        "type": "document",
-                        "url": syllabus_url,
-                        "caption": f"📋 {syllabus_data['resource_title']} - {course['name']}"
-                    })
-                    logger.info(f"✅ Syllabus encontrado: {syllabus_data['resource_title']}")
-                else:
-                    logger.warning(f"❌ No se encontró syllabus para curso {course_id}")
+            # CORREGIDO: Obtener syllabus real sin filtros
+            if self.resource_service:
+                try:
+                    syllabus_url = await self.resource_service.get_resource_url(
+                        f"syllabus_{course_id}",
+                        fallback_url=await self.resource_service.get_resource_url("syllabus_completo")
+                    )
                     
-            except Exception as e:
-                logger.error(f"❌ Error obteniendo syllabus de bot_resources: {e}")
+                    if syllabus_url:
+                        resources.append({
+                            "type": "document",
+                            "url": syllabus_url,
+                            "caption": f"📋 Syllabus completo - {course['name']}"
+                        })
+                except Exception as e:
+                    logger.error(f"Error obteniendo syllabus: {e}")
                     
-            # Si no hay syllabus en BD, usar URL de respaldo
+            # Si no hay ResourceService, usar URL hardcodeada
             if not resources:
                 resources.append({
                     "type": "document",
-                    "url": "https://raw.githubusercontent.com/nocode-ecosdeliderazgo/bot-recursos-publicos/main/pdfs/guia-prompts-chatgpt-marketing.pdf",
+                    "url": "https://github.com/nocode-ecosdeliderazgo/bot-recursos-publicos/blob/f1e643cb17e2d5e6607d1b40dbe1201416431582/pdfs/guia-prompts-chatgpt-marketing.pdf",
                     "caption": f"📋 Syllabus completo - {course['name']}"
                 })
-                logger.info("📋 Usando syllabus de respaldo")
 
-            # Obtener sesiones del curso para mostrar contenido
+            # Obtener sesiones del curso
             try:
                 from core.services.courseService import CourseService
                 course_service = CourseService(self.db)
@@ -339,8 +251,6 @@ Te comparto estos materiales de valor exclusivos:
 📝 {session.get('description', 'Descripción no disponible')}
 
 """
-                else:
-                    syllabus_info += "📚 Contenido detallado disponible en el syllabus completo."
             except Exception as e:
                 logger.error(f"Error obteniendo sesiones: {e}")
                 syllabus_info += "📚 Contenido detallado disponible en el syllabus completo."
@@ -361,7 +271,7 @@ Te comparto estos materiales de valor exclusivos:
                 "resources": [
                     {
                         "type": "document",
-                        "url": "https://raw.githubusercontent.com/nocode-ecosdeliderazgo/bot-recursos-publicos/main/pdfs/guia-prompts-chatgpt-marketing.pdf",
+                        "url": "https://github.com/nocode-ecosdeliderazgo/bot-recursos-publicos/blob/f1e643cb17e2d5e6607d1b40dbe1201416431582/pdfs/guia-prompts-chatgpt-marketing.pdf",
                         "caption": "📋 Syllabus completo"
                     }
                 ]
@@ -435,42 +345,21 @@ En este video verás:
 
     async def mostrar_comparativa_precios(self, user_id: str, course_id: str) -> Dict[str, str]:
         """
-        CORREGIDO: Muestra comparativa de precios usando nueva estructura con conversión de tipos.
+        CORREGIDO: Muestra comparativa de precios usando nueva estructura.
         """
         try:
             course = await self.db.get_course_details(course_id)
             if not course:
                 return {"type": "error", "content": "Curso no encontrado"}
 
-            # Convertir precio robustamente
-            precio_raw = course.get('price', 199)
-            try:
-                precio = float(precio_raw) if precio_raw else 199
-            except (ValueError, TypeError):
-                precio = 199
-            
+            precio = course.get('price', 199)
             currency = course.get('currency', 'USD')
-            
-            # Convertir session_count robustamente
-            session_count_raw = course.get('session_count', 4)
-            try:
-                session_count = int(session_count_raw) if session_count_raw else 4
-            except (ValueError, TypeError):
-                session_count = 4
-            
-            # Convertir duration_min robustamente
-            duration_min_raw = course.get('total_duration_min', 720)
-            try:
-                duration_min = int(duration_min_raw) if duration_min_raw else 720
-            except (ValueError, TypeError):
-                duration_min = 720
+            session_count = course.get('session_count', 4)
+            duration_min = course.get('total_duration_min', 720)
 
-            # Formatear precio sin decimales innecesarios
-            precio_formatted = f"{precio:.0f}" if precio == int(precio) else f"{precio:.2f}"
-            
             mensaje = f"""💰 **Análisis de Inversión - {course['name']}**
 
-**Tu inversión:** ${precio_formatted} {currency}
+**Tu inversión:** ${precio} {currency}
 
 **Lo que recibes:**
 📚 {session_count} sesiones completas
@@ -480,11 +369,11 @@ En este video verás:
 🔄 Acceso de por vida
 
 **Comparación con alternativas:**
-• Curso universitario: ${precio * 5:.0f} {currency}
-• Consultoría 1:1: ${precio * 8:.0f} {currency}
-• Bootcamp presencial: ${precio * 10:.0f} {currency}
+• Curso universitario: ${precio * 5} {currency}
+• Consultoría 1:1: ${precio * 8} {currency}
+• Bootcamp presencial: ${precio * 10} {currency}
 
-**Tu ahorro:** ${precio * 7:.0f} {currency} (87% de descuento)
+**Tu ahorro:** ${precio * 7} {currency} (87% de descuento)
 
 💡 **ROI estimado:** 300-500% en los primeros 6 meses aplicando lo aprendido
 
@@ -504,61 +393,31 @@ En este video verás:
                 "content": "💰 **Análisis de Inversión**\n\nEl curso tiene un excelente valor comparado con alternativas del mercado."
             }
 
-    async def contactar_asesor_directo(self, user_id: str, course_id: str = None) -> Dict[str, str]:
+    async def contactar_asesor_directo(self, user_id: str, course_id: str = None) -> str:
         """
-        CORREGIDO: Activa flujo de contacto directamente con manejo de errores.
+        CORREGIDO: Activa flujo de contacto directamente.
         """
         try:
             from core.handlers.contact_flow import start_contact_flow_directly
             response_message = await start_contact_flow_directly(user_id, course_id, self.db)
-            
-            # Registrar interacción
-            await self._registrar_interaccion(user_id, course_id or "unknown", "advisor_contact_requested", {"flow_activated": True})
-            
-            logger.info(f"✅ Flujo de contacto activado para usuario {user_id}")
-            
-            return {
-                "type": "text",
-                "content": response_message
-            }
-            
+            return response_message
         except Exception as e:
-            logger.error(f"❌ Error en contactar_asesor_directo: {e}")
-            
-            # Mensaje de respaldo sin activar flujo complejo
-            fallback_message = """¡Perfecto! Te voy a conectar con un asesor especializado.
-
-Para que pueda ayudarte de la mejor manera, necesito tu información de contacto.
-
-📧 **Por favor, envíame tu email:**"""
-            
-            return {
-                "type": "text",
-                "content": fallback_message
-            }
+            logger.error(f"Error en contactar_asesor_directo: {e}")
+            return "¡Perfecto! Te voy a conectar con un asesor especializado.\n\nPara contactarte, necesito tu email:"
 
     async def _registrar_interaccion(self, user_id: str, course_id: str, action: str, metadata: dict) -> None:
-        """Registra interacciones en la base de datos con manejo de errores."""
+        """Registra interacciones en la base de datos."""
         try:
             if self.db:
-                # Verificar si existe la tabla course_interactions
-                table_exists = await self.db.fetch_one(
-                    "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'course_interactions')"
+                await self.db.execute(
+                    """
+                    INSERT INTO course_interactions (user_id, course_id, interaction_type, details, created_at)
+                    VALUES ($1, $2, $3, $4, NOW())
+                    """,
+                    user_id, course_id, action, json.dumps(metadata)
                 )
-                
-                if table_exists and table_exists['exists']:
-                    await self.db.execute(
-                        """
-                        INSERT INTO course_interactions (user_id, course_id, interaction_type, details, created_at)
-                        VALUES ($1, $2, $3, $4, NOW())
-                        """,
-                        user_id, course_id, action, json.dumps(metadata)
-                    )
-                    logger.debug(f"✅ Interacción registrada: {action} para usuario {user_id}")
-                else:
-                    logger.warning("⚠️ Tabla course_interactions no existe, omitiendo registro")
         except Exception as e:
-            logger.error(f"❌ Error registrando interacción: {e}")
+            logger.error(f"Error registrando interacción: {e}")
 
     # Métodos adicionales simplificados
     async def mostrar_garantia_satisfaccion(self, user_id: str) -> Dict[str, str]:
@@ -769,37 +628,21 @@ Para que pueda ayudarte de la mejor manera, necesito tu información de contacto
         return {"type": "text", "content": mensaje}
 
     async def personalizar_oferta_por_budget(self, user_id: str, course_id: str) -> Dict[str, str]:
-        """CORREGIDO: Personaliza oferta según presupuesto con manejo de errores."""
+        """Personaliza oferta según presupuesto."""
         try:
             course = await self.db.get_course_details(course_id)
-            if not course:
-                logger.warning(f"No se encontró información del curso {course_id}")
-                return {
-                    "type": "text",
-                    "content": "💳 **Opciones de Pago Flexibles**\n\nTenemos varias opciones para adaptarse a tu presupuesto."
-                }
-            
-            # Obtener precio con manejo de errores
-            try:
-                precio_str = course.get('price', '199')
-                # Limpiar el precio y convertir a float
-                precio = float(str(precio_str).replace('$', '').replace(',', '').replace(' USD', ''))
-            except (ValueError, TypeError):
-                logger.warning(f"Error convirtiendo precio: {course.get('price')}")
-                precio = 199.0
-            
+            precio = course.get('price', 199)
             precio_3_cuotas = round(precio / 3, 2)
-            currency = course.get('currency', 'USD')
 
             mensaje = f"""💳 **Opciones de Pago Personalizadas**
 
 **Opción 1: Pago único**
-💰 ${precio} {currency}
+💰 ${precio} USD
 🎁 Incluye todos los bonos
 ✅ Acceso inmediato completo
 
 **Opción 2: 3 cuotas sin interés**
-💳 3 cuotas de ${precio_3_cuotas} {currency}
+💳 3 cuotas de ${precio_3_cuotas} USD
 📅 Una cada 30 días
 ✅ Acceso inmediato al contenido
 
@@ -810,28 +653,9 @@ Para que pueda ayudarte de la mejor manera, necesito tu información de contacto
 
 ¿Cuál opción se adapta mejor a tu presupuesto?"""
 
-            await self._registrar_interaccion(user_id, course_id, "payment_options_shown", {"price": precio, "currency": currency})
-
             return {"type": "text", "content": mensaje}
-            
-        except Exception as e:
-            logger.error(f"❌ Error en personalizar_oferta_por_budget: {e}")
-            return {
-                "type": "text",
-                "content": """💳 **Opciones de Pago Flexibles**
-
-Tenemos varias opciones para adaptarse a tu presupuesto:
-
-**Opción 1: Pago único**
-✅ Acceso inmediato completo
-🎁 Incluye todos los bonos
-
-**Opción 2: Pagos a plazos**
-💳 Facilidades de pago disponibles
-📅 Términos flexibles
-
-¿Te gustaría que te conecte con un asesor para revisar las opciones disponibles?"""
-            }
+        except:
+            return {"type": "text", "content": "💳 **Opciones de Pago Flexibles**\n\nTenemos varias opciones para adaptarse a tu presupuesto."}
 
     async def agendar_demo_personalizada(self, user_id: str, course_id: str) -> Dict[str, Union[str, List[Dict]]]:
         """Agenda demo personalizada."""
@@ -1155,6 +979,6 @@ Tenemos varias opciones para adaptarse a tu presupuesto:
         
         return {"type": "text", "content": mensaje}
 
-    async def activar_flujo_contacto_asesor(self, user_id: str, course_id: str = None) -> Dict[str, str]:
+    async def activar_flujo_contacto_asesor(self, user_id: str, course_id: str = None) -> str:
         """Activa flujo de contacto."""
         return await self.contactar_asesor_directo(user_id, course_id) 

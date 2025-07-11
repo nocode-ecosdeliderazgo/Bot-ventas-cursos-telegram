@@ -73,7 +73,14 @@ class IntelligentSalesAgentTools:
                 # 2. CONTACTAR ASESOR AUTOMÁTICAMENTE
                 try:
                     contact_response = await self.agent_tools.contactar_asesor_directo(user_id, course_id)
-                    if contact_response and isinstance(contact_response, str):
+                    if contact_response and isinstance(contact_response, dict):
+                        # Actualizar el tipo para indicar que es un flujo de contacto
+                        contact_response['type'] = 'contact_flow_activated'
+                        tool_contents.append(contact_response)
+                        activated_tools.append('contactar_asesor_directo')
+                        logger.info(f"✅ Contacto con asesor activado automáticamente para usuario {user_id}")
+                    elif contact_response and isinstance(contact_response, str):
+                        # Retrocompatibilidad con formato anterior
                         tool_contents.append({
                             "type": "contact_flow_activated",
                             "content": contact_response
@@ -185,7 +192,13 @@ class IntelligentSalesAgentTools:
             if any(keyword in user_message.lower() for keyword in contact_keywords):
                 try:
                     response = await self.agent_tools.contactar_asesor_directo(user_id, course_id)
-                    if response and isinstance(response, str):
+                    if response and isinstance(response, dict):
+                        # Actualizar el tipo para indicar que es un flujo de contacto
+                        response['type'] = 'contact_flow_activated'
+                        tool_contents.append(response)
+                        activated_tools.append('contactar_asesor_directo')
+                    elif response and isinstance(response, str):
+                        # Retrocompatibilidad con formato anterior
                         tool_contents.append({
                             "type": "contact_flow_activated",
                             "content": response

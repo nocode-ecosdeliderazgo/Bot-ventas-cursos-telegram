@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # Mapeo de códigos de curso a IDs
 CURSOS_MAP = {
-    "CURSO_IA_CHATGPT": "a392bf83-4908-4807-89a9-95d0acc807c9",
+            "CURSO_IA_CHATGPT": "c76bc3dd-502a-4b99-8c6c-3f9fce33a14b",
     "CURSO_PROMPTS": "b00f3d1c-e876-4bac-b734-2715110440a0",
     "CURSO_IMAGENES": "2715110440a0-b734-b00f3d1c-e876-4bac",
     "CURSO_AUTOMATIZACION": "4bac-2715110440a0-b734-b00f3d1c-e876",
@@ -119,9 +119,9 @@ class SmartSalesAgent:
                             logger.info(f"✅ Curso mapeado correctamente: {new_id}")
                             break
                     else:
-                        # Si no se encuentra mapeo, usar curso por defecto
-                        logger.warning("⚠️ Usando curso por defecto")
-                        user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
+                        # Si no se encuentra mapeo, limpiar curso seleccionado
+                        logger.warning("⚠️ Curso inválido, limpiando selección")
+                        user_memory.selected_course = None
                         self.global_memory.save_lead_memory(user_id, user_memory)
             
             # Actualizar datos básicos si están disponibles
@@ -143,6 +143,49 @@ class SmartSalesAgent:
                 course_hashtag = next((tag for tag in hashtags if tag.startswith('CURSO_') or tag.startswith('curso:') or tag.startswith('Experto_') or tag.startswith('EXPERTO_')), None)
                 campaign_hashtag = next((tag for tag in hashtags if tag.startswith('ADSIM_') or tag.startswith('anuncio:')), None)
                 return await ads_handler.process_ad_message(message_data, user_data, course_hashtag, campaign_hashtag)
+            
+            # VERIFICACIÓN: Si no hay curso seleccionado, dirigir al menú de selección
+            if not user_memory.selected_course:
+                logger.info(f"❌ Usuario {user_id} sin curso seleccionado, dirigiendo al menú")
+                message = """¡Hola! 😊 
+
+Para poder ayudarte mejor, primero necesito saber qué curso te interesa.
+
+Por favor selecciona un curso de nuestro catálogo:"""
+                
+                # Obtener cursos disponibles
+                try:
+                    query = """
+                    SELECT id, name, price, currency
+                    FROM ai_courses 
+                    WHERE status = 'publicado'
+                    ORDER BY name
+                    LIMIT 5
+                    """
+                    courses = await self.db.fetch_all(query)
+                    
+                    if courses:
+                        buttons = []
+                        for course in courses:
+                            try:
+                                price = float(course['price']) if course['price'] else 0
+                                currency = course['currency'] or 'USD'
+                                price_text = f" - ${price:.0f} {currency}" if price > 0 else ""
+                            except (ValueError, TypeError):
+                                price_text = ""
+                            
+                            button_text = f"🎓 {course['name']}{price_text}"
+                            callback_data = f"course_{course['id']}"
+                            buttons.append([InlineKeyboardButton(button_text, callback_data=callback_data)])
+                        
+                        keyboard = InlineKeyboardMarkup(buttons)
+                        return message, keyboard
+                    else:
+                        return "Lo siento, no hay cursos disponibles en este momento. Contacta con nuestro equipo de soporte.", None
+                        
+                except Exception as e:
+                    logger.error(f"Error obteniendo cursos para menú: {e}")
+                    return "Lo siento, hubo un problema obteniendo los cursos. Contacta con nuestro equipo de soporte.", None
             
             # FLUJO: Si el usuario está en la etapa de 'awaiting_preferred_name', mostrar archivos y mensaje
             if user_memory.stage == "awaiting_preferred_name":

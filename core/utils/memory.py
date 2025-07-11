@@ -232,11 +232,7 @@ class GlobalMemory:
         
         # 🛡️ CORRECCIÓN AUTOMÁTICA: Verificar y corregir selected_course incorrecto
         lead = self.leads_cache[user_id]
-        if lead.selected_course == "b00f3d1c-e876-4bac-b734-2715110440a0":
-            logger.warning(f"🔧 Corrigiendo selected_course incorrecto en cache para usuario {user_id}")
-            lead.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
-            lead.updated_at = datetime.now()
-            self.save_lead_memory(user_id, lead)
+        # Corrección eliminada - no asignar cursos automáticamente
         
         return lead
     
@@ -327,13 +323,7 @@ class GlobalMemory:
                 # Formato directo de LeadMemory
                 lead = LeadMemory.from_dict(data)
             
-            # 🛡️ CORRECCIÓN AUTOMÁTICA: Corregir selected_course incorrecto
-            if lead.selected_course == "b00f3d1c-e876-4bac-b734-2715110440a0":
-                logger.warning(f"🔧 Corrigiendo selected_course incorrecto para usuario {user_id}")
-                lead.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
-                lead.updated_at = datetime.now()
-                # Guardar la corrección inmediatamente
-                self.save_lead_memory(user_id, lead)
+            # Corrección eliminada - no asignar cursos automáticamente
             
             self.leads_cache[user_id] = lead
             return lead

@@ -3,7 +3,7 @@
 import os
 import logging
 import asyncio
-from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters
+from telegram.ext import Application, MessageHandler, CallbackQueryHandler, CommandHandler, filters
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from core.services.database import DatabaseService
 from core.agents.agent_tools import AgentTools
@@ -11,6 +11,7 @@ from core.agents.smart_sales_agent import SmartSalesAgent
 from core.utils.memory import GlobalMemory
 from core.utils.message_parser import extract_hashtags, get_course_from_hashtag
 from core.handlers.ads_flow import AdsFlowHandler
+from core.handlers.menu_flow import MenuFlowHandler
 from config.settings import settings
 
 # Configurar logging
@@ -35,6 +36,7 @@ class VentasBot:
         self.agent_tools = None
         self.ventas_bot = None
         self.ads_flow_handler = None
+        self.menu_flow_handler = None
         self.global_memory = GlobalMemory()
         self.templates = None
 
@@ -45,6 +47,7 @@ class VentasBot:
         self.agent_tools = AgentTools(self.db, None)  # Se actualizará con la API de Telegram
         self.ventas_bot = SmartSalesAgent(self.db, self.agent_tools)
         self.ads_flow_handler = AdsFlowHandler(self.db, self.agent_tools)
+        self.menu_flow_handler = MenuFlowHandler(self.db, self.agent_tools)
         
         # Importar templates para privacidad
         from core.utils.message_templates import MessageTemplates
@@ -91,6 +94,8 @@ class VentasBot:
             has_course_hashtag = any(tag.startswith('curso:') or tag.startswith('CURSO_') or tag.startswith('Experto_') or tag.startswith('EXPERTO_') for tag in hashtags)
             has_ad_hashtag = any(tag.startswith('anuncio:') or tag.startswith('ADSIM_') or tag.startswith('ADS') for tag in hashtags)
             
+# Línea removida porque /start se maneja con CommandHandler
+            
             # Preparar datos del mensaje y usuario
             message_data = {
                 'text': message.text,
@@ -119,7 +124,7 @@ class VentasBot:
                 # Forzar el curso correcto basado en el hashtag detectado
                 for hashtag in hashtags:
                     if hashtag == 'CURSO_IA_CHATGPT':
-                        user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
+                        user_memory.selected_course = "c76bc3dd-502a-4b99-8c6c-3f9fce33a14b"
                         self.global_memory.save_lead_memory(str(user.id), user_memory)
                     elif hashtag == 'CURSO_PROMPTS':
                         user_memory.selected_course = "b00f3d1c-e876-4bac-b734-2715110440a0"
@@ -142,6 +147,10 @@ class VentasBot:
             if user_memory.privacy_accepted and user_memory.stage == "waiting_for_name":
                 # El usuario está proporcionando su nombre
                 response, keyboard = await self.handle_name_input(message_data, user_data)
+# Línea removida porque /start se maneja con CommandHandler separado
+            elif user_memory and user_memory.privacy_accepted and user_memory.brenda_introduced and not user_memory.preferred_name:
+                # Usuario está proporcionando su nombre preferido en el flujo de menú
+                response, keyboard = await self.menu_flow_handler.handle_preferred_name(user_data, message.text)
             elif has_course_hashtag and has_ad_hashtag:
                 # Flujo de anuncios - verificar estado del usuario
                 if user_memory.privacy_accepted and user_memory.name:
@@ -155,6 +164,18 @@ class VentasBot:
             else:
                 # Flujo conversacional normal - SIEMPRE usar agente inteligente
                 logger.info(f"Usuario {user.id} en conversación normal - usando agente inteligente")
+                
+                # VERIFICAR: Si es un saludo simple y tiene curso phantom, limpiar memoria
+                simple_greetings = ['hola', 'hello', 'hi', 'buenas', 'saludos', 'que tal', 'buen día', 'buen dia']
+                is_simple_greeting = any(greeting in message.text.lower() for greeting in simple_greetings)
+                
+                if is_simple_greeting and user_memory.selected_course:
+                    logger.info(f"🧹 Limpiando curso phantom para usuario {user.id} en saludo simple")
+                    user_memory.selected_course = ""
+                    user_memory.course_presented = False
+                    user_memory.stage = "initial"
+                    self.global_memory.save_lead_memory(str(user.id), user_memory)
+                
                 if self.ventas_bot:
                     response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
                 else:
@@ -268,10 +289,7 @@ Soy Brenda, parte del equipo automatizado de Aprenda y Aplique IA y te voy a ayu
 
 A continuación te comparto toda la información del curso:"""
             
-            # ✅ GARANTIZAR que el curso esté guardado correctamente
-            if not user_memory.selected_course:
-                user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
-                self.global_memory.save_lead_memory(user_id, user_memory)
+            # No asignar curso por defecto - dejar que el agente inteligente maneje la selección
             
             course_id = user_memory.selected_course
             logger.info(f"Usando curso de memoria para {user_id}: {course_id}")
@@ -338,9 +356,7 @@ dato no encontrado
             user_memory.name = user_name
             user_memory.stage = "name_collected"
             
-            # ✅ GARANTIZAR que el curso esté guardado correctamente
-            if not user_memory.selected_course:
-                user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
+            # No asignar curso por defecto automáticamente
             
             course_id = user_memory.selected_course
             logger.info(f"Usando curso de memoria para {user_id}: {course_id}")
@@ -468,9 +484,47 @@ dato no encontrado
                     'username': query.from_user.username or ''
                 }
                 
+                # NUEVO: Manejar callbacks del agente inteligente (que no son course IDs)
+                agent_callbacks = [
+                    'unique_benefits', 'course_roi', 'success_stories', 'course_bonuses',
+                    'course_fit_quiz', 'free_content', 'community_info', 'faq',
+                    'full_curriculum', 'instructor_info', 'certification_info', 'career_opportunities',
+                    'enroll_now', 'enroll_urgent', 'reserve_spot', 'urgent_call',
+                    'show_promotions', 'payment_options', 'contact_advisor_urgent',
+                    'profile_professional', 'profile_student', 'profile_entrepreneur', 'profile_curious'
+                ]
+                
+                if query.data in agent_callbacks:
+                    logger.info(f"Usuario {user_data['id']} solicitó acción del agente: {query.data}")
+                    # Preparar datos del mensaje para el agente
+                    message_data = {
+                        'text': query.data,
+                        'chat_id': query.message.chat.id if query.message else 0,
+                        'message_id': query.message.message_id if query.message else 0,
+                        'from': user_data
+                    }
+                    # Procesar con el agente inteligente
+                    if self.ventas_bot:
+                        response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
+                    else:
+                        response, keyboard = "Error: Bot no inicializado correctamente.", None
                 # NUEVO: Manejar callbacks específicos de privacidad
-                if query.data in ['privacy_accept', 'privacy_decline', 'privacy_full']:
-                    response, keyboard = await self._handle_privacy_callback(query.data, user_data)
+                elif query.data in ['privacy_accept', 'privacy_decline', 'privacy_full']:
+                    if query.data == 'privacy_accept':
+                        response, keyboard = await self.menu_flow_handler.handle_privacy_acceptance(user_data)
+                    else:
+                        response, keyboard = await self._handle_privacy_callback(query.data, user_data)
+                # NUEVO: Manejar callbacks de menú de subtemas y cursos
+                elif query.data.startswith('subtheme_'):
+                    subtheme_id = query.data.replace('subtheme_', '')
+                    response, keyboard = await self.menu_flow_handler.handle_subtheme_selection(user_data, subtheme_id)
+                elif query.data.startswith('course_'):
+                    # Es selección de curso del menú (UUID válido)
+                    course_id = query.data.replace('course_', '')
+                    logger.info(f"Usuario {user_data['id']} seleccionó curso: {course_id}")
+                    response, keyboard = await self.menu_flow_handler.handle_course_selection(user_data, course_id)
+                elif query.data == 'back_to_subthemes':
+                    response, keyboard = await self.menu_flow_handler._show_subthemes_menu(user_data)
                 # NUEVO: Manejar callbacks específicos de contacto con asesor
                 elif query.data == 'contact_advisor':
                     from core.handlers.contact_flow import start_contact_flow
@@ -501,17 +555,34 @@ dato no encontrado
                 
                 # Manejar respuesta
                 if isinstance(response, str):
-                    if keyboard:
-                        await query.edit_message_text(
-                            text=response,
-                            reply_markup=keyboard,
-                            parse_mode='Markdown'
-                        )
-                    else:
-                        await query.edit_message_text(
-                            text=response,
-                            parse_mode='Markdown'
-                        )
+                    try:
+                        if keyboard:
+                            await query.edit_message_text(
+                                text=response,
+                                reply_markup=keyboard,
+                                parse_mode='Markdown'
+                            )
+                        else:
+                            await query.edit_message_text(
+                                text=response,
+                                parse_mode='Markdown'
+                            )
+                    except Exception as edit_error:
+                        # Si falla editar mensaje (ej: contenido idéntico), enviar mensaje nuevo
+                        logger.warning(f"No se pudo editar mensaje, enviando nuevo: {edit_error}")
+                        if keyboard:
+                            await context.bot.send_message(
+                                chat_id=query.message.chat.id if query.message else user_data['id'],
+                                text=response,
+                                reply_markup=keyboard,
+                                parse_mode='Markdown'
+                            )
+                        else:
+                            await context.bot.send_message(
+                                chat_id=query.message.chat.id if query.message else user_data['id'],
+                                text=response,
+                                parse_mode='Markdown'
+                            )
                 elif isinstance(response, list):
                     for item in response:
                         if item.get('type') == 'text':
@@ -521,17 +592,45 @@ dato no encontrado
                                 parse_mode='Markdown'
                             )
                         elif item.get('type') == 'image':
-                            with open(item['path'], 'rb') as img_file:
-                                await context.bot.send_photo(
-                                    chat_id=query.message.chat.id if query.message else user_data['id'],
-                                    photo=img_file
-                                )
+                            try:
+                                if item.get('url'):
+                                    await context.bot.send_photo(
+                                        chat_id=query.message.chat.id if query.message else user_data['id'],
+                                        photo=item['url'],
+                                        caption=item.get('caption', '')
+                                    )
+                                elif item.get('path'):
+                                    with open(item['path'], 'rb') as img_file:
+                                        await context.bot.send_photo(
+                                            chat_id=query.message.chat.id if query.message else user_data['id'],
+                                            photo=img_file,
+                                            caption=item.get('caption', '')
+                                        )
+                                else:
+                                    logger.warning(f"Imagen sin URL ni path: {item}")
+                            except Exception as img_error:
+                                logger.error(f"Error enviando imagen: {img_error}")
                         elif item.get('type') == 'document':
-                            with open(item['path'], 'rb') as doc_file:
-                                await context.bot.send_document(
-                                    chat_id=query.message.chat.id if query.message else user_data['id'],
-                                    document=doc_file
-                                )
+                            try:
+                                if item.get('url'):
+                                    # Convert GitHub URLs to raw format if needed
+                                    document_url = self.convert_github_url_to_raw(item['url'])
+                                    await context.bot.send_document(
+                                        chat_id=query.message.chat.id if query.message else user_data['id'],
+                                        document=document_url,
+                                        caption=item.get('caption', '')
+                                    )
+                                elif item.get('path'):
+                                    with open(item['path'], 'rb') as doc_file:
+                                        await context.bot.send_document(
+                                            chat_id=query.message.chat.id if query.message else user_data['id'],
+                                            document=doc_file,
+                                            caption=item.get('caption', '')
+                                        )
+                                else:
+                                    logger.warning(f"Documento sin URL ni path: {item}")
+                            except Exception as doc_error:
+                                logger.error(f"Error enviando documento: {doc_error}")
             
         except Exception as e:
             logger.error(f"Error handling callback query: {str(e)}", exc_info=True)
@@ -548,9 +647,7 @@ dato no encontrado
             if user_memory:
                 user_memory.privacy_accepted = True
                 user_memory.stage = "waiting_for_name"
-                # ✅ ASEGURAR que el curso esté asignado cuando acepta privacidad
-                if not user_memory.selected_course:
-                    user_memory.selected_course = "a392bf83-4908-4807-89a9-95d0acc807c9"
+                # No asignar curso automáticamente - solo en flujo de anuncios
                 self.global_memory.save_lead_memory(user_id, user_memory)
             
             # Pedir el nombre del usuario
@@ -654,6 +751,49 @@ dato no encontrado
             logger.error(f"❌ Error convirtiendo URL: {e}")
             return github_url
 
+    async def handle_start_command(self, update: Update, context):
+        """Maneja el comando /start."""
+        if self.ventas_bot is None:
+            await self.setup()
+        
+        try:
+            user = update.message.from_user
+            user_data = {
+                'id': user.id,
+                'first_name': user.first_name or '',
+                'last_name': user.last_name or '',
+                'username': user.username or ''
+            }
+            
+            response, keyboard = await self.menu_flow_handler.handle_start_command(user_data)
+            
+            if isinstance(response, str):
+                if keyboard:
+                    await update.message.reply_text(response, reply_markup=keyboard, parse_mode='Markdown')
+                else:
+                    await update.message.reply_text(response, parse_mode='Markdown')
+            elif isinstance(response, list):
+                # Manejar lista de mensajes multimedia
+                for item in response:
+                    if item.get('type') == 'text':
+                        await update.message.reply_text(item['content'], parse_mode='Markdown')
+                    elif item.get('type') == 'image':
+                        if item.get('url'):
+                            await update.message.reply_photo(photo=item['url'], caption=item.get('caption', ''))
+                        elif item.get('path'):
+                            with open(item['path'], 'rb') as img_file:
+                                await update.message.reply_photo(photo=img_file, caption=item.get('caption', ''))
+                    elif item.get('type') == 'document':
+                        if item.get('url'):
+                            await update.message.reply_document(document=item['url'], caption=item.get('caption', ''))
+                        elif item.get('path'):
+                            with open(item['path'], 'rb') as doc_file:
+                                await update.message.reply_document(document=doc_file, caption=item.get('caption', ''))
+                                
+        except Exception as e:
+            logger.error(f"Error en handle_start_command: {e}")
+            await update.message.reply_text("Lo siento, hubo un error. Por favor, intenta nuevamente.")
+
 def main_telegram_bot():
     """Función principal del bot de Telegram con manejo mejorado de errores."""
     logger.info("Iniciando bot de Telegram...")
@@ -672,6 +812,7 @@ def main_telegram_bot():
         application.bot_data['global_mem'] = bot.global_memory
         
         # Configurar handlers
+        application.add_handler(CommandHandler("start", bot.handle_start_command))
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bot.handle_message))
         application.add_handler(CallbackQueryHandler(bot.handle_callback_query))
 

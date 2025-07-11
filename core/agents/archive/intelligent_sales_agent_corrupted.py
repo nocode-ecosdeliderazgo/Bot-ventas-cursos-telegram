@@ -19,6 +19,7 @@ except ImportError:
 from core.utils.memory import LeadMemory
 from core.services.courseService import CourseService
 from core.services.promptService import PromptService
+from core.agents.intelligent_conversation_processor import IntelligentConversationProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -205,6 +206,11 @@ class IntelligentSalesAgent:
         # Servicios
         self.course_service = CourseService(db)
         self.prompt_service = PromptService(openai_api_key)
+        
+        # Procesador conversacional inteligente
+        self.conversation_processor = IntelligentConversationProcessor(
+            self.client, db, self.course_service
+        )
         
         # Agent tools - será asignado por SmartSalesAgent
         self.agent_tools = None
@@ -591,171 +597,239 @@ class IntelligentSalesAgent:
             return True  # En caso de error, permitir la respuesta
 
     async def generate_response(self, user_message: str, user_memory: LeadMemory, course_info: Optional[Dict]) -> Union[str, List[Dict[str, str]]]:
-        """Genera una respuesta personalizada usando OpenAI"""
+        """Genera una respuesta personalizada usando análisis conversacional inteligente"""
         if self.client is None:
             return "Lo siento, hay un problema con el sistema. Por favor intenta más tarde."
         
         try:
-            # CRÍTICO: Solo obtener información del curso si NO se pasó una válida
+            # 🧠 PASO 1: Análisis conversacional inteligente
+            logger.info(f"🧠 Analizando conversación para usuario {user_memory.user_id}")
+            conversation_analysis = await self.conversation_processor.analyze_and_learn(
+                user_memory.user_id, 
+                user_message, 
+                user_memory.selected_course
+            )
+            
+            # 📚 PASO 2: Obtener información del curso si es necesario
             if user_memory.selected_course and course_info is None:
-                logger.info(f"Obteniendo información completa del curso desde BD: {user_memory.selected_course}")
-                # ✅ USAR _get_course_info_from_db para obtener módulos completos
+                logger.info(f"📚 Obteniendo información del curso: {user_memory.selected_course}")
                 course_info = await self._get_course_info_from_db(user_memory.selected_course)
                 if not course_info:
-                    logger.warning(f"No se pudo obtener información del curso {user_memory.selected_course}")
-            elif course_info:
-                logger.info(f"✅ Usando course_info pasado correctamente para curso: {user_memory.selected_course}")
-                # VERIFICAR: Si el course_info pasado no tiene módulos, obtenerlos
-                if not course_info.get('modules') and not course_info.get('sessions'):
-                    logger.info(f"🔍 course_info no tiene módulos/sesiones, obteniendo información completa")
-                    complete_course_info = await self._get_course_info_from_db(user_memory.selected_course)
-                    if complete_course_info:
-                        # Combinar la información pasada con la completa
-                        course_info.update(complete_course_info)
-                        logger.info(f"✅ course_info actualizado con módulos/sesiones completos")
+                    logger.warning(f"⚠️ No se pudo obtener información del curso {user_memory.selected_course}")
+                    # Crear información mínima para continuar
+                    course_info = {
+                        'id': user_memory.selected_course,
+                        'name': 'Curso de IA para Profesionales',
+                        'short_description': 'Curso especializado en Inteligencia Artificial',
+                        'price': '199',
+                        'currency': 'USD',
+                        'level': 'básico',
+                        'sessions': []
+                    }
             
-            # Analizar intención del usuario
-            intent_analysis = await self._analyze_user_intent(user_message, user_memory)
+            # 🎯 PASO 3: Generar contexto personalizado
+            personalized_context = await self.conversation_processor.generate_personalized_context(
+                user_memory.user_id, 
+                user_memory.selected_course
+            )
             
-            # Detectar objeciones y señales de compra
-            objection_type = self._detect_objection_type(user_message)
-            buying_signals = self._detect_buying_signals(user_message)
-            interest_score = self._calculate_interest_score(user_message, user_memory)
+            # 🛠️ PASO 4: Detectar herramientas necesarias según análisis
+            tools_to_use = []
+            response_focus = conversation_analysis.get("next_conversation_focus", "general")
+            suggested_tools = conversation_analysis.get("suggested_tools", [])
             
-            # Actualizar puntuación de interés
-            user_memory.lead_score = interest_score
+            # Mapear herramientas según el análisis inteligente
+            if "free_resources" in suggested_tools or "FREE_RESOURCES" in conversation_analysis.get("user_profile", {}).get("intent_category", ""):
+                tools_to_use.append("enviar_recursos_gratuitos")
+            
+            if "syllabus" in suggested_tools or any(word in user_message.lower() for word in ["temario", "contenido", "que voy a aprender"]):
+                tools_to_use.append("mostrar_syllabus_interactivo")
+            
+            if "price_comparison" in suggested_tools or conversation_analysis.get("user_profile", {}).get("intent_category") == "OBJECTION_PRICE":
+                tools_to_use.append("mostrar_comparativa_precios")
+            
+            if "advisor_contact" in suggested_tools or any(word in user_message.lower() for word in ["asesor", "hablar", "contactar"]):
+                tools_to_use.append("contactar_asesor_directo")
+            
+            # 💬 PASO 5: Generar respuesta personalizada
+            logger.info(f"💬 Generando respuesta personalizada para {user_memory.name or 'Usuario'}")
+            response = await self._generate_intelligent_response(
+                user_message,
+                user_memory,
+                course_info,
+                conversation_analysis,
+                personalized_context,
+                tools_to_use
+            )
+            
+            # 📝 PASO 6: Actualizar memoria con nueva información
+            if user_memory.tools_used is None:
+                user_memory.tools_used = []
+            user_memory.tools_used.extend(tools_to_use)
+            
+            # Actualizar puntuación basada en análisis inteligente
+            engagement_level = conversation_analysis.get("user_profile", {}).get("engagement_level", "medium")
+            if engagement_level == "very_high":
+                user_memory.lead_score = min(100, user_memory.lead_score + 15)
+            elif engagement_level == "high":
+                user_memory.lead_score = min(100, user_memory.lead_score + 10)
+            elif engagement_level == "low":
+                user_memory.lead_score = max(0, user_memory.lead_score - 5)
+            
             user_memory.interaction_count += 1
             
-            # CRÍTICO: Guardar mensaje del usuario en historial
+            return response
+        
+        except Exception as e:
+            logger.error(f"❌ Error generando respuesta inteligente: {e}")
+            return "Lo siento, hubo un error procesando tu mensaje. ¿Podrías repetir tu pregunta?"
+
+    async def _generate_intelligent_response(
+        self,
+        user_message: str,
+        user_memory: LeadMemory,
+        course_info: Optional[Dict],
+        conversation_analysis: Dict[str, Any],
+        personalized_context: str,
+        tools_to_use: List[str]
+    ) -> Union[str, List[Dict[str, str]]]:
+        """
+        Genera respuesta completamente personalizada usando análisis conversacional
+        """
+        try:
+            # Construir historial de conversación
+            conversation_history = []
+            if user_memory.message_history:
+                recent_messages = user_memory.message_history[-8:]  # Últimos 4 intercambios
+                for msg in recent_messages:
+                    conversation_history.append({
+                        "role": msg.get('role', 'user'),
+                        "content": msg.get('content', '')
+                    })
+            
+            # Obtener análisis del usuario
+            user_profile = conversation_analysis.get("user_profile", {})
+            engagement_level = user_profile.get("engagement_level", "medium")
+            response_style = user_profile.get("response_style", "friendly")
+            intent_category = user_profile.get("intent_category", "exploration")
+            
+            # Construir prompt personalizado
+            personalized_prompt = f"""
+{self.system_prompt}
+
+## CONTEXTO PERSONALIZADO DEL USUARIO:
+{personalized_context}
+
+## ANÁLISIS CONVERSACIONAL ACTUAL:
+- Nivel de engagement: {engagement_level}
+- Estilo de respuesta recomendado: {response_style}
+- Categoría de intención: {intent_category}
+- Sentiment: {user_profile.get('sentiment', 'neutral')}
+- Enfoque siguiente: {conversation_analysis.get('next_conversation_focus', 'general')}
+
+## HERRAMIENTAS A USAR:
+{', '.join(tools_to_use) if tools_to_use else 'Solo respuesta conversacional'}
+
+## INFORMACIÓN DEL CURSO:
+- Nombre: {course_info.get('name', 'N/A') if course_info else 'N/A'}
+- Descripción: {course_info.get('short_description', 'N/A') if course_info else 'N/A'}
+- Precio: {course_info.get('price', 'N/A')} {course_info.get('currency', 'USD') if course_info else 'N/A'}
+- Nivel: {course_info.get('level', 'N/A') if course_info else 'N/A'}
+
+## INSTRUCCIONES ESPECÍFICAS:
+1. PERSONALIZA la respuesta basándote en el contexto del usuario
+2. USA el estilo de comunicación recomendado: {response_style}
+3. Si hay herramientas sugeridas, menciónalas naturalmente
+4. NO repitas información que ya conoces del usuario
+5. Mantén el engagement al nivel: {engagement_level}
+6. ENFÓCATE en: {conversation_analysis.get('next_conversation_focus', 'general')}
+
+MENSAJE DEL USUARIO: "{user_message}"
+
+Responde de manera completamente personalizada y estratégica:
+"""
+
+            # Preparar mensajes para OpenAI
+            messages = [{"role": "system", "content": personalized_prompt}]
+            messages.extend(conversation_history[-6:])  # Últimos mensajes para contexto
+            messages.append({"role": "user", "content": user_message})
+            
+            # Generar respuesta con OpenAI
+            response = await self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                max_tokens=800,
+                temperature=0.7,
+                presence_penalty=0.1,
+                frequency_penalty=0.1
+            )
+            
+            ai_response = response.choices[0].message.content
+            if not ai_response:
+                return "Lo siento, no pude generar una respuesta. ¿Podrías reformular tu pregunta?"
+            
+            # Guardar respuesta en historial
             if user_memory.message_history is None:
                 user_memory.message_history = []
             
             user_memory.message_history.append({
-                'role': 'user',
-                'content': user_message,
-                'timestamp': datetime.utcnow().isoformat()
+                'role': 'assistant',
+                'content': ai_response,
+                'timestamp': datetime.utcnow().isoformat(),
+                'tools_used': tools_to_use,
+                'analysis': conversation_analysis
             })
             
-            # Extraer información del mensaje del usuario
-            await self._extract_user_info(user_message, user_memory)
+            # Si hay herramientas a usar, ejecutarlas
+            if tools_to_use and self.agent_tools:
+                return await self._execute_tools_with_response(
+                    ai_response, 
+                    tools_to_use, 
+                    user_memory.user_id, 
+                    user_memory.selected_course
+                )
             
-            # Actualizar memoria con temas clave detectados
-            key_topics = intent_analysis.get('key_topics', [])
-            if key_topics and isinstance(key_topics, list):
-                if user_memory.interests is None:
-                    user_memory.interests = []
-                user_memory.interests.extend(key_topics)
-                user_memory.interests = list(set(user_memory.interests))
+            return ai_response
             
-            # 🛡️ PROTECCIÓN: Nunca permitir curso incorrecto
-            if user_memory.selected_course == "b00f3d1c-e876-4bac-b734-2715110440a0":
-                                    user_memory.selected_course = "c76bc3dd-502a-4b99-8c6c-3f9fce33a14b"
-            
-            # ✅ CRÍTICO: Si hay curso seleccionado del flujo de anuncios, NUNCA cambiarlo
-            if user_memory.selected_course:
-                logger.info(f"🎯 CURSO FIJO del flujo de anuncios: {user_memory.selected_course}")
-                if not course_info:
-                    logger.info(f"🔍 Obteniendo detalles completos del curso con módulos: {user_memory.selected_course}")
-                    # ✅ USAR _get_course_info_from_db que mapea correctamente los módulos
-                    course_info = await self._get_course_info_from_db(user_memory.selected_course)
-                    if not course_info:
-                        logger.error(f"❌ No se pudo obtener detalles del curso seleccionado: {user_memory.selected_course}")
-                        logger.error("❌ CURSO NO ENCONTRADO EN BD - Verificar si el curso existe en ai_courses")
-                        # En lugar de retornar error, usar información mínima para continuar
-                        course_info = {
-                            'id': user_memory.selected_course,
-                            'name': 'Curso seleccionado',
-                            'description': 'Curso de IA para profesionales',
-                            'price': 199.99,
-                            'level': 'básico',
-                            'modules': []  # Lista vacía para evitar errores de validación
-                        }
-                        logger.info("✅ Usando información mínima de curso para continuar conversación")
-                # NUNCA buscar otros cursos - el curso está determinado por el flujo de anuncios
-            else:
-                # Solo buscar referencias a cursos si NO hay curso seleccionado previamente
-                course_references = await self.prompt_service.extract_course_references(user_message)
-                
-                # Solo buscar otros cursos si NO hay curso seleccionado del flujo de anuncios
-                if course_references:
-                    for reference in course_references:
-                        # Buscar cursos que coincidan con la referencia
-                        courses = await self.course_service.searchCourses(reference)
-                        if courses:
-                            # 🛡️ CRÍTICO: NUNCA sobrescribir course_info si ya hay selected_course del flujo de anuncios
-                            if not user_memory.selected_course:
-                                # ✅ USAR _get_course_info_from_db para obtener módulos completos
-                                course_info = await self._get_course_info_from_db(courses[0]['id'])
-                                user_memory.selected_course = courses[0]['id']
-                            break
-                
-                # Si aún no hay curso seleccionado, usar información genérica
-                if not user_memory.selected_course and not course_info:
-                    logger.info("⚠️ No hay curso seleccionado - usando información genérica")
-                    course_info = {
-                        'id': 'generic',
-                        'name': 'Cursos de IA',
-                        'description': 'Cursos de Inteligencia Artificial',
-                        'price': 'Consultar',
-                        'level': 'Todos los niveles',
-                        'modules': []  # Lista vacía para evitar errores
-                    }
-            
-            # Preparar el historial de conversación
-            conversation_history: List[Dict[str, str]] = []
-            
-            # Agregar mensajes previos si existen
-            if user_memory.message_history:
-                # Limitar a los últimos 5 intercambios (10 mensajes)
-                recent_messages = user_memory.message_history[-10:]
-                for msg in recent_messages:
-                    role = "user" if msg.get('role') == 'user' else "assistant"
-                    conversation_history.append({
-                        "role": role,
-                        "content": msg.get('content', '')
-                    })
-            
-            # Construir contexto para el prompt
-            system_message = self.system_prompt
-            
-            # Agregar análisis de intención al contexto
-            intent_context = f"""
-## Análisis de Intención:
-- Categoría: {intent_analysis.get('category', 'GENERAL_QUESTION')}
-- Confianza: {intent_analysis.get('confidence', 0.5)}
-- Estrategia de ventas: {intent_analysis.get('sales_strategy', 'direct_benefit')}
-- Enfoque de respuesta: {intent_analysis.get('response_focus', 'Responder directamente')}
-- Debe preguntar más: {intent_analysis.get('should_ask_more', False)}
+        except Exception as e:
+            logger.error(f"❌ Error en _generate_intelligent_response: {e}")
+            return "Lo siento, hubo un error. ¿Podrías repetir tu pregunta?"
 
-## Herramientas Recomendadas:
-{json.dumps(intent_analysis.get('recommended_tools', {}), indent=2, ensure_ascii=False)}
-
-## Información Acumulada del Usuario:
-- Profesión: {user_memory.role if user_memory.role else 'No especificada'}
-- Intereses: {', '.join(user_memory.interests if user_memory.interests else ['Ninguno registrado'])}
-- Puntos de dolor: {', '.join(user_memory.pain_points if user_memory.pain_points else ['Ninguno registrado'])}
-- Nivel de interés: {user_memory.interest_level}
-- Interacciones: {user_memory.interaction_count}
-"""
-
-            # Agregar información de automatización si existe
-            if user_memory.automation_needs and any(user_memory.automation_needs.values()):
-                automation_context = f"""
-## Necesidades de Automatización Identificadas:
-- Tipos de reportes: {', '.join(user_memory.automation_needs.get('report_types', []))}
-- Frecuencia: {user_memory.automation_needs.get('frequency', 'No especificada')}
-- Tiempo invertido: {user_memory.automation_needs.get('time_investment', 'No especificado')}
-- Herramientas actuales: {', '.join(user_memory.automation_needs.get('current_tools', []))}
-- Frustraciones específicas: {', '.join(user_memory.automation_needs.get('specific_frustrations', []))}
-
-INSTRUCCIÓN ESPECIAL: El usuario YA expresó necesidades de automatización. NO preguntes más detalles. 
-Conecta DIRECTAMENTE con cómo el curso resuelve estos problemas específicos.
-"""
-                intent_context += automation_context
-
-            system_message = intent_context + "\n" + system_message
-            
-            # Agregar información del curso si está disponible
+    async def _execute_tools_with_response(
+        self,
+        ai_response: str,
+        tools_to_use: List[str],
+        user_id: str,
+        course_id: str
+    ) -> List[Dict[str, str]]:
+        """
+        Ejecuta herramientas y combina con respuesta IA
+        """
+        response_items = [{"type": "text", "content": ai_response}]
+        
+        for tool_name in tools_to_use:
+            try:
+                if hasattr(self.agent_tools, tool_name):
+                    tool_method = getattr(self.agent_tools, tool_name)
+                    tool_result = await tool_method(user_id, course_id)
+                    
+                    if isinstance(tool_result, dict):
+                        if tool_result.get("type") == "multimedia" and tool_result.get("resources"):
+                            response_items.extend(tool_result["resources"])
+                        elif tool_result.get("type") == "text":
+                            response_items.append({
+                                "type": "text",
+                                "content": tool_result.get("content", "")
+                            })
+                        elif tool_result.get("resources"):
+                            response_items.extend(tool_result["resources"])
+                            
+                    logger.info(f"✅ Herramienta {tool_name} ejecutada exitosamente")
+                    
+            except Exception as e:
+                logger.error(f"❌ Error ejecutando herramienta {tool_name}: {e}")
+        
+        return response_items
             if course_info:
                 course_context = f"""
 ## ⚠️ INFORMACIÓN REAL DEL CURSO (ÚNICA FUENTE AUTORIZADA):

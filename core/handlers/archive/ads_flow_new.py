@@ -42,20 +42,17 @@ class AdsFlowHandler:
         self.global_memory = GlobalMemory()
         self.templates = MessageTemplates()
         
-        # Mapeo de hashtags de cursos a IDs - ACTUALIZADO CON IDs REALES
+        # Mapeo de hashtags de cursos a IDs
         self.course_mapping = {
-            # Usar el ID real del curso de IA que existe en la base de datos
-            'CURSO_IA_CHATGPT': 'c76bc3dd-502a-4b99-8c6c-3f9fce33a14b',
-            'curso:ia_chatgpt': 'c76bc3dd-502a-4b99-8c6c-3f9fce33a14b',
+            'CURSO_IA_CHATGPT': 'a392bf83-4908-4807-89a9-95d0acc807c9',
+            'curso:ia_chatgpt': 'a392bf83-4908-4807-89a9-95d0acc807c9',
             'CURSO_PROMPTS': 'b00f3d1c-e876-4bac-b734-2715110440a0',
             'curso:prompts': 'b00f3d1c-e876-4bac-b734-2715110440a0',
             'CURSO_IMAGENES': '2715110440a0-b734-b00f3d1c-e876-4bac',
             'curso:imagenes': '2715110440a0-b734-b00f3d1c-e876-4bac',
             'CURSO_AUTOMATIZACION': '4bac-2715110440a0-b734-b00f3d1c-e876',
             'curso:automatizacion': '4bac-2715110440a0-b734-b00f3d1c-e876',
-            'Experto_IA_GPT_Gemini': 'c76bc3dd-502a-4b99-8c6c-3f9fce33a14b',
-            'EXPERTO_IA_GPT_GEMINI': 'c76bc3dd-502a-4b99-8c6c-3f9fce33a14b',
-            'curso:experto_ia_gpt_gemini': 'c76bc3dd-502a-4b99-8c6c-3f9fce33a14b',
+            'CURSO_NUEVO': 'd7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f',
             'curso:nuevo': 'd7ab3f21-5c6e-4d89-91f3-7a2b4e5c8d9f'
         }
 
@@ -124,34 +121,11 @@ class AdsFlowHandler:
             logger.error(f"Error registrando interacción: {e}")
 
     def _extract_course_id(self, course_hashtag: str) -> Optional[str]:
-        """
-        Extrae el ID del curso desde el hashtag.
-        MEJORADO: Maneja múltiples variaciones del hashtag y logging detallado.
-        """
-        # Eliminar # si existe
-        clean_hashtag = course_hashtag.lstrip('#')
-        
-        # Intentar múltiples variaciones del hashtag
-        variations = [
-            clean_hashtag,  # Original
-            clean_hashtag.upper(),  # Mayúsculas
-            clean_hashtag.lower(),  # Minúsculas
-            f"curso:{clean_hashtag.lower()}",  # Con prefijo curso:
-            f"CURSO_{clean_hashtag.upper()}"  # Con prefijo CURSO_
-        ]
-        
-        logger.info(f"Buscando curso para hashtag: {course_hashtag}")
-        logger.info(f"Variaciones a probar: {variations}")
-        
-        for variation in variations:
-            course_id = self.course_mapping.get(variation)
-            if course_id:
-                logger.info(f"Curso encontrado: {variation} -> {course_id}")
-                return course_id
-                
-        logger.warning(f"No se encontró mapeo para hashtag: {course_hashtag}")
-        logger.warning(f"Mapeo disponible: {list(self.course_mapping.keys())}")
-        return None
+        """Extrae el ID del curso desde el hashtag."""
+        # Normalizar hashtag
+        normalized = course_hashtag.upper()
+        course_id = self.course_mapping.get(normalized)
+        return course_id
 
     async def _show_privacy_notice(self, user_data: dict) -> Tuple[str, InlineKeyboardMarkup]:
         """Muestra el aviso de privacidad."""
@@ -191,83 +165,47 @@ Antes de mostrarte toda la información del curso, ¿cómo te gustaría que te l
         MIGRADO: Usa nueva estructura de base de datos con ai_courses.
         """
         try:
-            logger.info(f"Iniciando _present_course para curso {course_id}")
-            # Obtener información básica del curso (mismo método que funciona en otras partes)
-            course_details = await self.course_service.getCourseBasicInfo(course_id)
-            logger.info(f"Detalles del curso obtenidos: {course_details is not None}")
+            # Obtener detalles del curso desde nueva estructura
+            course_details = await self.course_service.getCourseDetails(course_id)
             if not course_details:
-                logger.warning(f"No se encontraron detalles para el curso {course_id}")
                 return [{"type": "text", "content": "Lo siento, no pude obtener los detalles del curso."}], None
             
-            # Usar la misma estructura que funciona en el flujo principal
-            response_items = [
-                {"type": "document", "path": "data/Experto-en-IA.pdf", "caption": "📄 Aquí tienes el PDF descriptivo del curso"},
-                {"type": "image", "path": "data/imagen_prueba.png", "caption": "🎯 Imagen del curso"}
-            ]
+            response_items = []
             
-            # Usar el mismo método de formateo que funciona en agente_ventas_telegram.py
-            try:
-                # Construir mensaje usando el método que funciona
-                course_name = course_details.get('name', 'Curso de IA')
-                course_description = course_details.get('short_description', 'Curso completo de Inteligencia Artificial')
-                
-                # Formatear duración desde total_duration_min
-                duration_min_raw = course_details.get('total_duration_min', 0)
-                try:
-                    duration_min = int(duration_min_raw) if duration_min_raw else 0
-                    if duration_min > 0:
-                        hours = duration_min // 60
-                        minutes = duration_min % 60
-                        duration = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
-                    else:
-                        duration = "Consultar"
-                except (ValueError, TypeError):
-                    duration = "Consultar"
-                
-                # Formatear nivel
-                level = course_details.get('level', 'Consultar')
-                
-                # Formatear precio
-                price_raw = course_details.get('price', 0)
-                try:
-                    price = float(price_raw) if price_raw else 0
-                    currency = course_details.get('currency', 'USD')
-                    price_str = f"${price:.0f} {currency}" if price > 0 else "Consultar precio"
-                except (ValueError, TypeError):
-                    price_str = "Consultar precio"
-                
-                # Construir mensaje con formato correcto
-                course_info_text = f"""🎓 {course_name}
-
-{course_description}
-
-⏱️ Duración: {duration}
-📊 Nivel: {level}
-💰 Inversión: {price_str}
-
-
-¿Qué te gustaría saber más sobre este curso?"""
-                
+            # 1. Enviar PDF si está disponible
+            syllabus_url = course_details.get('syllabus_url')
+            if syllabus_url:
                 response_items.append({
-                    "type": "text",
-                    "content": course_info_text
-                })
-                
-            except Exception as e:
-                logger.error(f"Error formateando información del curso: {e}")
-                # Mensaje de fallback
-                response_items.append({
-                    "type": "text",
-                    "content": "🎓 Información del curso disponible. ¿En qué puedo ayudarte?"
+                    "type": "document",
+                    "url": syllabus_url,
+                    "caption": "📚 Aquí tienes el PDF descriptivo del curso"
                 })
             
-            # Mensaje simple para activar el agente inteligente
+            # 2. Enviar imagen si está disponible (thumbnail_url eliminado en nueva estructura)
+            # Usar course_url como alternativa o imagen por defecto
+            image_url = course_details.get('course_url')  # Usar course_url en lugar de thumbnail_url
+            if image_url:
+                response_items.append({
+                    "type": "image",
+                    "url": image_url
+                    #"caption": "🎯 Imagen del curso"
+                })
+            
+            # 3. Enviar datos del curso usando plantillas migradas
+            course_info = CourseTemplates.format_course_info(course_details)
             response_items.append({
                 "type": "text",
-                "content": "¡Perfecto! Ya tienes toda la información del curso. El agente inteligente está ahora activo para responder cualquier pregunta que tengas. 😊\n\n¿En qué puedo ayudarte?"
+                "content": course_info
             })
             
-            return response_items, None
+            # 4. Crear teclado con opciones
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("💬 Hacer una pregunta", callback_data="ask_question")],
+                [InlineKeyboardButton("💰 Ver precios", callback_data="show_prices")],
+                [InlineKeyboardButton("📞 Agendar llamada", callback_data="schedule_call")]
+            ])
+            
+            return response_items, keyboard
             
         except Exception as e:
             logger.error(f"Error presentando curso: {e}")
