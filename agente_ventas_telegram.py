@@ -11,7 +11,7 @@ from core.agents.smart_sales_agent import SmartSalesAgent
 from core.utils.memory import GlobalMemory
 from core.utils.message_parser import extract_hashtags, get_course_from_hashtag
 from core.handlers.ads_flow import AdsFlowHandler
-from core.handlers.menu_flow import MenuFlowHandler
+# from core.handlers.menu_flow import MenuFlowHandler  # Comentado temporalmente
 from config.settings import settings
 
 # Configurar logging
@@ -47,7 +47,8 @@ class VentasBot:
         self.agent_tools = AgentTools(self.db, None)  # Se actualizará con la API de Telegram
         self.ventas_bot = SmartSalesAgent(self.db, self.agent_tools)
         self.ads_flow_handler = AdsFlowHandler(self.db, self.agent_tools)
-        self.menu_flow_handler = MenuFlowHandler(self.db, self.agent_tools)
+        # self.menu_flow_handler = MenuFlowHandler(self.db, self.agent_tools)  # Comentado temporalmente
+        self.menu_flow_handler = None  # Placeholder temporal
         
         # Importar templates para privacidad
         from core.utils.message_templates import MessageTemplates
@@ -147,10 +148,6 @@ class VentasBot:
             if user_memory.privacy_accepted and user_memory.stage == "waiting_for_name":
                 # El usuario está proporcionando su nombre
                 response, keyboard = await self.handle_name_input(message_data, user_data)
-# Línea removida porque /start se maneja con CommandHandler separado
-            elif user_memory and user_memory.privacy_accepted and user_memory.brenda_introduced and not user_memory.preferred_name:
-                # Usuario está proporcionando su nombre preferido en el flujo de menú
-                response, keyboard = await self.menu_flow_handler.handle_preferred_name(user_data, message.text)
             elif has_course_hashtag and has_ad_hashtag:
                 # Flujo de anuncios - verificar estado del usuario
                 if user_memory.privacy_accepted and user_memory.name:
@@ -484,47 +481,81 @@ dato no encontrado
                     'username': query.from_user.username or ''
                 }
                 
-                # NUEVO: Manejar callbacks del agente inteligente (que no son course IDs)
-                agent_callbacks = [
+                # ✅ NUEVO: Verificar si hay curso seleccionado antes de activar herramientas
+                user_memory = self.global_memory.get_lead_memory(str(user_data['id']))
+                
+                # Definir callbacks que requieren curso seleccionado
+                course_required_callbacks = [
+                    'ask_question', 'show_prices', 'schedule_call',
                     'unique_benefits', 'course_roi', 'success_stories', 'course_bonuses',
                     'course_fit_quiz', 'free_content', 'community_info', 'faq',
                     'full_curriculum', 'instructor_info', 'certification_info', 'career_opportunities',
                     'enroll_now', 'enroll_urgent', 'reserve_spot', 'urgent_call',
-                    'show_promotions', 'payment_options', 'contact_advisor_urgent',
-                    'profile_professional', 'profile_student', 'profile_entrepreneur', 'profile_curious'
+                    'show_promotions', 'payment_options', 'contact_advisor_urgent'
                 ]
                 
-                if query.data in agent_callbacks:
-                    logger.info(f"Usuario {user_data['id']} solicitó acción del agente: {query.data}")
-                    # Preparar datos del mensaje para el agente
+                # Definir callbacks que NO requieren curso (perfilado, menú general)
+                no_course_callbacks = [
+                    'profile_professional', 'profile_student', 'profile_entrepreneur', 'profile_curious',
+                    'menu_main', 'menu_courses', 'menu_contact', 'menu_faq', 'menu_privacy'
+                ]
+                
+                # Verificar si el callback requiere curso seleccionado
+                if query.data in course_required_callbacks:
+                    if not user_memory or not user_memory.selected_course:
+                        # No hay curso seleccionado - pedir selección de curso
+                        logger.info(f"Usuario {user_data['id']} sin curso seleccionado, pidiendo selección")
+                        response = """🎓 **Primero necesitas seleccionar un curso**
+
+Para usar esta función, necesito saber qué curso te interesa.
+
+Por favor, envía /start para ver nuestro catálogo de cursos y seleccionar el que más te interese.
+
+¡Será solo un momento! 😊"""
+                        keyboard = None
+                    else:
+                        # Hay curso seleccionado - procesar con agente
+                        logger.info(f"Usuario {user_data['id']} con curso {user_memory.selected_course}, procesando callback: {query.data}")
+                        message_data = {
+                            'text': query.data,
+                            'chat_id': query.message.chat.id if query.message else 0,
+                            'message_id': query.message.message_id if query.message else 0,
+                            'from': user_data
+                        }
+                        if self.ventas_bot:
+                            response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
+                        else:
+                            response, keyboard = "Error: Bot no inicializado correctamente.", None
+                
+                elif query.data in no_course_callbacks:
+                    # Callbacks que no requieren curso - procesar directamente
+                    logger.info(f"Usuario {user_data['id']} solicitó acción sin curso: {query.data}")
                     message_data = {
                         'text': query.data,
                         'chat_id': query.message.chat.id if query.message else 0,
                         'message_id': query.message.message_id if query.message else 0,
                         'from': user_data
                     }
-                    # Procesar con el agente inteligente
                     if self.ventas_bot:
                         response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
                     else:
                         response, keyboard = "Error: Bot no inicializado correctamente.", None
                 # NUEVO: Manejar callbacks específicos de privacidad
                 elif query.data in ['privacy_accept', 'privacy_decline', 'privacy_full']:
-                    if query.data == 'privacy_accept':
-                        response, keyboard = await self.menu_flow_handler.handle_privacy_acceptance(user_data)
-                    else:
-                        response, keyboard = await self._handle_privacy_callback(query.data, user_data)
+                    response, keyboard = await self._handle_privacy_callback(query.data, user_data)
                 # NUEVO: Manejar callbacks de menú de subtemas y cursos
-                elif query.data.startswith('subtheme_'):
-                    subtheme_id = query.data.replace('subtheme_', '')
-                    response, keyboard = await self.menu_flow_handler.handle_subtheme_selection(user_data, subtheme_id)
-                elif query.data.startswith('course_'):
-                    # Es selección de curso del menú (UUID válido)
-                    course_id = query.data.replace('course_', '')
-                    logger.info(f"Usuario {user_data['id']} seleccionó curso: {course_id}")
-                    response, keyboard = await self.menu_flow_handler.handle_course_selection(user_data, course_id)
-                elif query.data == 'back_to_subthemes':
-                    response, keyboard = await self.menu_flow_handler._show_subthemes_menu(user_data)
+                elif query.data.startswith('subtheme_') or query.data.startswith('course_') or query.data == 'back_to_subthemes':
+                    # Redirigir a flujo conversacional normal para manejo de menús
+                    message_data = {
+                        'text': query.data,
+                        'chat_id': query.message.chat.id if query.message else 0,
+                        'message_id': query.message.message_id if query.message else 0,
+                        'from': user_data
+                    }
+                    if self.ventas_bot:
+                        response, keyboard = await self.ventas_bot.handle_conversation(message_data, user_data)
+                    else:
+                        response, keyboard = "Error: Bot no inicializado correctamente.", None
                 # NUEVO: Manejar callbacks específicos de contacto con asesor
                 elif query.data == 'contact_advisor':
                     from core.handlers.contact_flow import start_contact_flow
@@ -607,9 +638,19 @@ dato no encontrado
                                             caption=item.get('caption', '')
                                         )
                                 else:
-                                    logger.warning(f"Imagen sin URL ni path: {item}")
+                                    logger.warning(f"❌ Imagen sin URL ni path válidos: {item}")
+                                    # Enviar mensaje de error en lugar de fallar
+                                    await context.bot.send_message(
+                                        chat_id=query.message.chat.id if query.message else user_data['id'],
+                                        text=f"🖼️ Imagen: {item.get('caption', 'Recurso visual')}\n❌ No disponible temporalmente"
+                                    )
                             except Exception as img_error:
-                                logger.error(f"Error enviando imagen: {img_error}")
+                                logger.error(f"❌ Error enviando imagen: {img_error}")
+                                # Enviar mensaje de error en lugar de fallar silenciosamente
+                                await context.bot.send_message(
+                                    chat_id=query.message.chat.id if query.message else user_data['id'],
+                                    text=f"🖼️ {item.get('caption', 'Imagen')}\n❌ Error al cargar la imagen"
+                                )
                         elif item.get('type') == 'document':
                             try:
                                 if item.get('url'):
@@ -628,9 +669,54 @@ dato no encontrado
                                             caption=item.get('caption', '')
                                         )
                                 else:
-                                    logger.warning(f"Documento sin URL ni path: {item}")
+                                    logger.warning(f"❌ Documento sin URL ni path válidos: {item}")
+                                    # Enviar enlace como texto en lugar de fallar
+                                    await context.bot.send_message(
+                                        chat_id=query.message.chat.id if query.message else user_data['id'],
+                                        text=f"📄 {item.get('caption', 'Documento')}\n❌ No disponible temporalmente"
+                                    )
                             except Exception as doc_error:
-                                logger.error(f"Error enviando documento: {doc_error}")
+                                logger.error(f"❌ Error enviando documento: {doc_error}")
+                                # Enviar mensaje de error en lugar de fallar silenciosamente
+                                await context.bot.send_message(
+                                    chat_id=query.message.chat.id if query.message else user_data['id'],
+                                    text=f"📄 {item.get('caption', 'Documento')}\n❌ Error al cargar el documento"
+                                )
+                        elif item.get('type') == 'video':
+                            try:
+                                if item.get('url'):
+                                    await context.bot.send_video(
+                                        chat_id=query.message.chat.id if query.message else user_data['id'],
+                                        video=item['url'],
+                                        caption=item.get('caption', '')
+                                    )
+                                elif item.get('path'):
+                                    with open(item['path'], 'rb') as video_file:
+                                        await context.bot.send_video(
+                                            chat_id=query.message.chat.id if query.message else user_data['id'],
+                                            video=video_file,
+                                            caption=item.get('caption', '')
+                                        )
+                                else:
+                                    logger.warning(f"❌ Video sin URL ni path válidos: {item}")
+                                    # Enviar enlace como texto
+                                    await context.bot.send_message(
+                                        chat_id=query.message.chat.id if query.message else user_data['id'],
+                                        text=f"🎥 {item.get('caption', 'Video')}\n❌ No disponible temporalmente"
+                                    )
+                            except Exception as video_error:
+                                logger.error(f"❌ Error enviando video: {video_error}")
+                                await context.bot.send_message(
+                                    chat_id=query.message.chat.id if query.message else user_data['id'],
+                                    text=f"🎥 {item.get('caption', 'Video')}\n❌ Error al cargar el video"
+                                )
+                        else:
+                            # Tipo de recurso no reconocido - enviar como texto
+                            logger.warning(f"❌ Tipo de recurso no reconocido: {item}")
+                            await context.bot.send_message(
+                                chat_id=query.message.chat.id if query.message else user_data['id'],
+                                text=f"📋 {item.get('caption', 'Recurso')}\n🔗 {item.get('url', 'No disponible')}"
+                            )
             
         except Exception as e:
             logger.error(f"Error handling callback query: {str(e)}", exc_info=True)
@@ -765,30 +851,16 @@ dato no encontrado
                 'username': user.username or ''
             }
             
-            response, keyboard = await self.menu_flow_handler.handle_start_command(user_data)
+            # Mensaje simple de bienvenida mientras se restaura menu_flow_handler
+            welcome_message = f"""¡Hola {user_data['first_name']}! 👋
+
+Soy Brenda, parte del equipo automatizado de Aprenda y Aplique IA.
+
+Para conocer nuestros cursos, simplemente dime qué tema te interesa o envía "cursos" para ver nuestro catálogo completo.
+
+¿En qué puedo ayudarte hoy? 😊"""
             
-            if isinstance(response, str):
-                if keyboard:
-                    await update.message.reply_text(response, reply_markup=keyboard, parse_mode='Markdown')
-                else:
-                    await update.message.reply_text(response, parse_mode='Markdown')
-            elif isinstance(response, list):
-                # Manejar lista de mensajes multimedia
-                for item in response:
-                    if item.get('type') == 'text':
-                        await update.message.reply_text(item['content'], parse_mode='Markdown')
-                    elif item.get('type') == 'image':
-                        if item.get('url'):
-                            await update.message.reply_photo(photo=item['url'], caption=item.get('caption', ''))
-                        elif item.get('path'):
-                            with open(item['path'], 'rb') as img_file:
-                                await update.message.reply_photo(photo=img_file, caption=item.get('caption', ''))
-                    elif item.get('type') == 'document':
-                        if item.get('url'):
-                            await update.message.reply_document(document=item['url'], caption=item.get('caption', ''))
-                        elif item.get('path'):
-                            with open(item['path'], 'rb') as doc_file:
-                                await update.message.reply_document(document=doc_file, caption=item.get('caption', ''))
+            await update.message.reply_text(welcome_message, parse_mode='Markdown')
                                 
         except Exception as e:
             logger.error(f"Error en handle_start_command: {e}")
