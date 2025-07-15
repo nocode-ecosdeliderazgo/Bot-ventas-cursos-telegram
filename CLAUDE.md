@@ -1,12 +1,14 @@
 # CLAUDE.md - Guía Completa del Proyecto
 
-Esta guía proporciona contexto completo a Claude Code (claude.ai/code) para trabajar eficientemente con este repositorio.
+Esta guía proporciona contexto completo y actualizado a Claude Code (claude.ai/code) para trabajar eficientemente con este repositorio.
 
 ## 📋 Resumen del Proyecto
 
 **Bot "Brenda"** - Sistema avanzado de ventas automatizadas para Telegram del negocio "Aprenda y Aplique IA", con arquitectura empresarial, 35+ herramientas de conversión, integración OpenAI GPT-4o-mini y motor de IA conversacional sofisticado.
 
 **Modelo de Negocio**: Conversión automatizada de leads para cursos de IA mediante flujos conversacionales inteligentes, detección de hashtags publicitarios y experiencias de venta personalizadas.
+
+**Estado de la Documentación**: Completamente organizada y actualizada (Julio 2025) - 7 archivos obsoletos eliminados, manteniendo solo documentación esencial y funcional.
 
 ## 🎯 ESTADO ACTUAL (Julio 2025)
 
@@ -330,20 +332,45 @@ ADVISOR_EMAIL=asesor@ejemplo.com
 
 ## 📊 Estructura de Archivos Críticos
 
-### **Archivos Core para Nueva Sesión Claude**
-- `CLAUDE.md` - Este archivo (contexto completo proyecto)
-- `README.md` - Documentación usuario final
-- `SISTEMA_HERRAMIENTAS_UNIFICADO_FINAL.md` - Documentación técnica herramientas
-- `agente_ventas_telegram.py` - Entry point principal
-- `core/agents/agent_tools.py` - 35+ herramientas implementadas
+### **📋 Documentación Principal (Organizada 2025)**
+- **`CLAUDE.md`** - Este archivo (contexto completo proyecto)
+- **`README.md`** - Documentación principal del proyecto 
+- **`SISTEMA_HERRAMIENTAS_UNIFICADO_FINAL.md`** - Documentación técnica de herramientas
+- **`STATUS_REPORT.md`** - Reporte de estado del proyecto
+- **`READY_FOR_TESTING.md`** - Estado de producción
+- **`TESTING_SYSTEM_READY.md`** - Sistema de testing implementado
+- **`DESARROLLO.md`** - Guía de desarrollo
+- **`ESTADO_ACTUAL_PROYECTO.md`** - Estado técnico detallado
+- **`CORRECCIONES_TECNICAS_FINALES.md`** - Historial de correcciones
 
-### **Configuración Esencial**
-- `.env` - Variables entorno (crear desde .env.example)
-- `config/settings.py` - Configuración Pydantic
-- `requirements.txt` - Dependencias Python
+### **🧪 Testing y Validación**
+- **`testing_automation/README.md`** - Sistema de testing automatizado
+- **`testing_automation/FLUJOS_VALIDACION_BOT.md`** - Flujos de validación detallados
 
-### **Base Datos**
-- `database/sql/base_estructura_nueva.sql` - Schema completo PostgreSQL
+### **🗑️ Archivos Eliminados (Julio 2025)**
+Se eliminaron 7 archivos obsoletos para mantener documentación limpia:
+- `ANALISIS_IMPLEMENTACION_REAL.md` (análisis completado)
+- `HERRAMIENTAS_CONVERSION_IMPLEMENTADAS.md` (duplicado)
+- `VALIDADOR_ACTUALIZADO.md` (obsoleto)
+- `RESUMEN_EJECUTIVO_NUEVA_SESION.md` (temporal)
+- `PLAN_IMPLEMENTACION_HERRAMIENTAS.md` (completado)
+- `MEJORAS_RECOMENDADAS.md` (muy extenso)
+- `testing_automation/FLUJOS_VALIDACION_BOT_ACTUALIZADO.md` (duplicado)
+
+### **💻 Archivos Core de Código**
+- **`agente_ventas_telegram.py`** - Entry point principal
+- **`core/agents/agent_tools.py`** - 35+ herramientas implementadas
+- **`core/agents/intelligent_sales_agent.py`** - Motor IA conversacional
+- **`core/services/courseService.py`** - Gestión de cursos
+- **`core/handlers/ads_flow.py`** - Flujo principal de anuncios
+
+### **⚙️ Configuración Esencial**
+- **`.env`** - Variables entorno (crear desde .env.example)
+- **`config/settings.py`** - Configuración Pydantic
+- **`requirements.txt`** - Dependencias Python
+
+### **💾 Base de Datos**
+- **`database/sql/base_estructura_nueva.sql`** - Schema completo PostgreSQL
 
 ## 🎯 Casos de Uso Reales Funcionando
 
